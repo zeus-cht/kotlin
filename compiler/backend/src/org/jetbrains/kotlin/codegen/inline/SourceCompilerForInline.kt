@@ -188,9 +188,7 @@ class PsiSourceCompilerForInline(private val codegen: ExpressionCodegen, overrid
                     val asmType = state.typeMapper.mapClass(lambdaInfo.classDescriptor)
                     val info = lambdaInfo.propertyReferenceInfo
                     PropertyReferenceCodegen.PropertyReferenceGenerationStrategy(
-                        true, info!!.getFunction, info.target, asmType,
-                        boundReceiverJvmKotlinType,
-                        lambdaInfo.functionWithBodyOrCallableReference, state, true
+                        true, info!!.getFunction, info.target, asmType, boundReceiverJvmKotlinType, state, true
                     )
                 } else {
                     FunctionReferenceGenerationStrategy(state, descriptor, resolvedCall, boundReceiverJvmKotlinType, null, true)

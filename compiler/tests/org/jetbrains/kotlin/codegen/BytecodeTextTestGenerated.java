@@ -3090,6 +3090,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/bytecodeText/lineNumbers"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
         }
 
+        @TestMetadata("callableReference.kt")
+        public void testCallableReference() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/lineNumbers/callableReference.kt");
+        }
+
         @TestMetadata("ifConsts.kt")
         public void testIfConsts() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/lineNumbers/ifConsts.kt");

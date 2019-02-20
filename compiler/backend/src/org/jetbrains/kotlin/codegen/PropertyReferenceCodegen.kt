@@ -155,16 +155,7 @@ class PropertyReferenceCodegen(
         functionCodegen.generateMethod(
             JvmDeclarationOrigin.NO_ORIGIN,
             getImpl,
-            PropertyReferenceGenerationStrategy(
-                true,
-                getFunction,
-                target,
-                asmType,
-                boundReceiverJvmKotlinType,
-                element,
-                state,
-                false
-            )
+            PropertyReferenceGenerationStrategy(true, getFunction, target, asmType, boundReceiverJvmKotlinType, state, false)
         )
 
         if (!ReflectionTypes.isNumberedKMutablePropertyType(localVariableDescriptorForReference.type)) return
@@ -176,16 +167,7 @@ class PropertyReferenceCodegen(
         functionCodegen.generateMethod(
             JvmDeclarationOrigin.NO_ORIGIN,
             setImpl,
-            PropertyReferenceGenerationStrategy(
-                false,
-                setFunction,
-                target,
-                asmType,
-                boundReceiverJvmKotlinType,
-                element,
-                state,
-                false
-            )
+            PropertyReferenceGenerationStrategy(false, setFunction, target, asmType, boundReceiverJvmKotlinType, state, false)
         )
     }
 
@@ -303,7 +285,6 @@ class PropertyReferenceCodegen(
         private val target: VariableDescriptor,
         private val asmType: Type,
         boundReceiverJvmKotlinType: JvmKotlinType?,
-        private val expression: KtElement,
         state: GenerationState,
         private val isInliningStrategy: Boolean
     ) :
@@ -368,8 +349,6 @@ class PropertyReferenceCodegen(
 
                 else -> codegen.intermediateValueForProperty(target as PropertyDescriptor, false, null, StackValue.none())
             }
-
-            codegen.markStartLineNumber(expression)
 
             if (isGetter) {
                 value.put(OBJECT_TYPE, targetKotlinType, v)
