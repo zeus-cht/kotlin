@@ -48,6 +48,7 @@ import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorContext
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContextUtils
+import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.util.Logger
@@ -251,7 +252,14 @@ private class ModulesStructure(
                 friendModuleDescriptors = friendDependencies.map { getModuleDescriptor(it) },
                 thisIsBuiltInsModule = builtInModuleDescriptor == null,
                 customBuiltInsModule = builtInModuleDescriptor
-            )
+            ) { incrementalData, lookupTracker, languageSettings, moduleContext ->
+                JsFactories.DefaultDeserializedDescriptorFactory.createCachedPackageFragmentProvider(
+                    incrementalData.compiledPackageParts.values.map { it.metadata },
+                    moduleContext.storageManager,
+                    moduleContext.module,
+                    CompilerDeserializationConfiguration(languageSettings)
+                )
+            }
 
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
         TopDownAnalyzerFacadeForJS.checkForErrors(files, analysisResult.bindingContext)
@@ -361,11 +369,11 @@ fun serializeModuleIntoKlib(
         processCompiledFileData(VfsUtilCore.virtualToIoFile(ktFile.virtualFile), compiledKotlinFile)
     }
 
-    val compiledKotlinFiles = cleanFiles + additionalFiles
+    val compiledKotlinFiles = (cleanFiles + additionalFiles)
 
     val header = metadataSerializer.serializeHeader(
         moduleDescriptor,
-        compiledKotlinFiles.map { it.irData.fqName }.distinct(),
+        compiledKotlinFiles.map { it.irData.fqName }.distinct().sorted(),
         emptyList()
     ).toByteArray()
     incrementalResultsConsumer?.run {
