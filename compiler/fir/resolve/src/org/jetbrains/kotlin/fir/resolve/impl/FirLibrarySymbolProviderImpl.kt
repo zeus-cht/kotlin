@@ -152,7 +152,9 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider(
 
     private val allPackageFragments = loadBuiltIns().groupBy { it.fqName }
 
-    private val fictitiousFunctionSymbols = mutableMapOf<Int, FirRegularClassSymbol>()
+    private data class ArityWithKind(val arity: Int, val kind: FunctionClassDescriptor.Kind)
+
+    private val fictitiousFunctionSymbols = mutableMapOf<ArityWithKind, FirRegularClassSymbol>()
 
     override fun getClassLikeSymbolByFqName(classId: ClassId): FirRegularClassSymbol? {
         return allPackageFragments[classId.packageFqName]?.firstNotNullResult {
@@ -162,7 +164,7 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider(
             val kind = FunctionClassDescriptor.Kind.byClassNamePrefix(packageFqName, className) ?: return@with null
             val prefix = kind.classNamePrefix
             val arity = className.substring(prefix.length).toIntOrNull() ?: return null
-            fictitiousFunctionSymbols.getOrPut(arity) {
+            fictitiousFunctionSymbols.getOrPut(ArityWithKind(arity, kind)) {
                 val status = FirDeclarationStatusImpl(Visibilities.PUBLIC, Modality.ABSTRACT).apply {
                     isExpect = false
                     isActual = false
