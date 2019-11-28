@@ -10,6 +10,8 @@ private external class Float64Array(buffer: ArrayBuffer)
 private external class Float32Array(buffer: ArrayBuffer)
 private external class Int32Array(buffer: ArrayBuffer)
 
+// TODO use top level declarations instead of object?
+// TODO check how well DCE works with property initializers?
 @PublishedApi
 internal object BitUtils {
     private val buf = ArrayBuffer(8)
