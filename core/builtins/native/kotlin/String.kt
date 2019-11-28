@@ -41,4 +41,10 @@ public class String : Comparable<String>, CharSequence {
     public override fun subSequence(startIndex: Int, endIndex: Int): CharSequence
 
     public override fun compareTo(other: String): Int
+
+    public override fun equals(other: Any?): Boolean
+
+    public override fun hashCode(): Int
+
+    public override fun toString(): String
 }
