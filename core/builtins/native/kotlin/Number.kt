@@ -54,5 +54,11 @@ public abstract class Number {
      * Returns the value of this number as a [Byte], which may involve rounding or truncation.
      */
     public abstract fun toByte(): Byte
+
+    public override fun equals(other: Any?): Boolean
+
+    public override fun hashCode(): Int
+
+    public override fun toString(): String
 }
 
