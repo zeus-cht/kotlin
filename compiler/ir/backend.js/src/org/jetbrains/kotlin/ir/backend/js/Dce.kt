@@ -100,7 +100,7 @@ private fun removeUselessDeclarations(module: IrModuleFragment, usefulDeclaratio
     }
 }
 
-private val PRINT_EDGES = java.lang.Boolean.getBoolean("kotlin.js.ir.dce.print.edges")
+private val PRINT_REACHABILITY_INFO = java.lang.Boolean.getBoolean("kotlin.js.ir.dce.print.reachability.info")
 
 fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendContext): Set<IrDeclaration> {
     val queue = ArrayDeque<IrDeclaration>()
@@ -114,7 +114,7 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
             // it's wrong solution -- we should prohibit only marking overridens
             if ((from?.isEffectivelyExternal() == true) && !this.isEffectivelyExternal()) return
 
-            if (PRINT_EDGES) {
+            if (PRINT_REACHABILITY_INFO) {
                 val fromFqn = (from as? IrDeclarationWithName)?.fqNameWhenAvailable?.asString() ?: altFromFqn ?: "<unknown>"
 
                 val toFqn = (this as? IrDeclarationWithName)?.fqNameWhenAvailable?.asString() ?: "<unknown>"
