@@ -100,7 +100,7 @@ private fun removeUselessDeclarations(module: IrModuleFragment, usefulDeclaratio
     }
 }
 
-private val PRINT_EDGES = true //java.lang.Boolean.getBoolean("kotlin.js.ir.dce.print.edges")
+private val PRINT_EDGES = java.lang.Boolean.getBoolean("kotlin.js.ir.dce.print.edges")
 
 fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendContext): Set<IrDeclaration> {
     val queue = ArrayDeque<IrDeclaration>()
