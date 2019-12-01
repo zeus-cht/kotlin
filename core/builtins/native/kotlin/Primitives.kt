@@ -236,12 +236,6 @@ public class Byte private constructor() : Number(), Comparable<Byte> {
      * The resulting `Double` value represents the same numerical value as this `Byte`.
      */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
 /**
@@ -471,12 +465,6 @@ public class Short private constructor() : Number(), Comparable<Short> {
      * The resulting `Double` value represents the same numerical value as this `Short`.
      */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
 /**
@@ -725,12 +713,6 @@ public class Int private constructor() : Number(), Comparable<Int> {
      * The resulting `Double` value represents the same numerical value as this `Int`.
      */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
 /**
@@ -981,12 +963,6 @@ public class Long private constructor() : Number(), Comparable<Long> {
      * the one with zero at least significant bit of mantissa is selected.
      */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
 /**
@@ -1205,12 +1181,6 @@ public class Float private constructor() : Number(), Comparable<Float> {
      * The resulting `Double` value represents the same numerical value as this `Float`.
      */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
 /**
@@ -1431,11 +1401,5 @@ public class Double private constructor() : Number(), Comparable<Double> {
     public override fun toFloat(): Float
     /** Returns this value. */
     public override fun toDouble(): Double
-
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
 }
 
