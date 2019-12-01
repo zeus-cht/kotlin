@@ -61,12 +61,6 @@ public class Char private constructor() : Comparable<Char> {
     /** Returns the value of this character as a `Double`. */
     public fun toDouble(): Double
 
-    public override fun equals(other: Any?): Boolean
-
-    public override fun hashCode(): Int
-
-    public override fun toString(): String
-
     companion object {
         /**
          * The minimum value of a character code unit.
