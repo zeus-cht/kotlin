@@ -19,15 +19,15 @@ task prepareNativeBuiltinsSources(type: Sync) {
         include "Annotation.kt"
         include "Any.kt"
         include "Array.kt"
-        include "Boolean.kt"
+//        include "Boolean.kt"
         include "CharSequence.kt"
         include "Collections.kt"
         include "Comparable.kt"
         include "Coroutines.kt"
         include "Iterator.kt"
         include "Nothing.kt"
-        include "Number.kt"
-        include "String.kt"
+//        include "Number.kt"
+//        include "String.kt"
     }
 
     into nativeBuiltinsSrcDir
