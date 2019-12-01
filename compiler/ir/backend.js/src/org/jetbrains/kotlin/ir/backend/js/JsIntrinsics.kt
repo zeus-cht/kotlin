@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.ir.util.kotlinPackageFqn
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.findSingleFunction
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import java.util.*
 
@@ -143,7 +142,9 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
     val jsObjectCreate = defineObjectCreateIntrinsic() // Object.create
     val jsCode = getInternalFunction("js") // js("<code>")
     val jsHashCode = getInternalFunction("hashCode")
+    val jsGetNumberHashCode = getInternalFunction("getNumberHashCode")
     val jsGetObjectHashCode = getInternalFunction("getObjectHashCode")
+    val jsGetStringHashCode = getInternalFunction("getStringHashCode")
     val jsToString = getInternalFunction("toString")
     val jsAnyToString = getInternalFunction("anyToString")
     val jsCompareTo = getInternalFunction("compareTo")
