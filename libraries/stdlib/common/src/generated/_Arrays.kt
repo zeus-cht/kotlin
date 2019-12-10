@@ -8107,7 +8107,15 @@ public fun BooleanArray.toHashSet(): HashSet<Boolean> {
  * Returns a [HashSet] of all elements.
  */
 public fun CharArray.toHashSet(): HashSet<Char> {
-    return toCollection(HashSet<Char>(mapCapacity(size)))
+    val checkStart = minOf(size, 128)
+    val hashSet = HashSet<Char>(mapCapacity(checkStart))
+    for (index in 0 until size) {
+        val char = get(index)
+        if (index < checkStart || !hashSet.contains(char)) {
+            hashSet.add(char)
+        }
+    }
+    return hashSet
 }
 
 /**

@@ -713,7 +713,15 @@ public fun <C : MutableCollection<in Char>> CharSequence.toCollection(destinatio
  * Returns a [HashSet] of all characters.
  */
 public fun CharSequence.toHashSet(): HashSet<Char> {
-    return toCollection(HashSet<Char>(mapCapacity(length)))
+    val checkStart = minOf(length, 128)
+    val hashSet = HashSet<Char>(mapCapacity(checkStart))
+    for (index in 0 until length) {
+        val char = get(index)
+        if (index < checkStart || !hashSet.contains(char)) {
+            hashSet.add(char)
+        }
+    }
+    return hashSet
 }
 
 /**

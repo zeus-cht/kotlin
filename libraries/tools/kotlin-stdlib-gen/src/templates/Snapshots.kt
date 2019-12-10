@@ -60,12 +60,11 @@ object Snapshots : TemplateGroupBase() {
         body(Sequences) { "return toCollection(LinkedHashSet<T>()).optimizeReadOnlySet()" }
 
         body(CharSequences, ArraysOfObjects, ArraysOfPrimitives) {
-            val size = if (f == CharSequences) "length" else "size"
             """
-            return when ($size) {
+            return when (${f.code.size}) {
                 0 -> emptySet()
                 1 -> setOf(this[0])
-                else -> toCollection(LinkedHashSet<T>(mapCapacity($size)))
+                else -> toCollection(LinkedHashSet<T>(mapCapacity(${f.code.size})))
             }
             """
         }
@@ -79,8 +78,24 @@ object Snapshots : TemplateGroupBase() {
         returns("HashSet<T>")
         body { "return toCollection(HashSet<T>(mapCapacity(collectionSizeOrDefault(12))))" }
         body(Sequences) { "return toCollection(HashSet<T>())" }
-        body(CharSequences) { "return toCollection(HashSet<T>(mapCapacity(length)))" }
-        body(ArraysOfObjects, ArraysOfPrimitives) { "return toCollection(HashSet<T>(mapCapacity(size)))" }
+        body(CharSequences, ArraysOfObjects, ArraysOfPrimitives) {
+            if (f == CharSequences || primitive == PrimitiveType.Char) {
+                """
+                val checkStart = minOf(${f.code.size}, 128)
+                val hashSet = HashSet<T>(mapCapacity(checkStart))
+            
+                for (index in 0 until ${f.code.size}) {
+                    val char = get(index)
+                    if (index < checkStart || !hashSet.contains(char)) {
+                        hashSet.add(char)
+                    }
+                }
+                return hashSet
+                """.trimIndent()
+            } else {
+                "return toCollection(HashSet<T>(mapCapacity(size)))"
+            }
+        }
     }
 
     val f_toSortedSet = fn("toSortedSet()") {
@@ -156,7 +171,7 @@ object Snapshots : TemplateGroupBase() {
         }
         body(CharSequences, ArraysOfPrimitives, ArraysOfObjects) {
             """
-            return when (${ if (f == CharSequences) "length" else "size" }) {
+            return when (${f.code.size}) {
                 0 -> emptyList()
                 1 -> listOf(this[0])
                 else -> this.toMutableList()
