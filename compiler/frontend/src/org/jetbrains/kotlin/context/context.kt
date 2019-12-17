@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.storage.ExceptionTracker
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
@@ -85,7 +86,9 @@ class MutableModuleContextImpl(
 
 fun GlobalContext(debugName: String): GlobalContextImpl {
     val tracker = ExceptionTracker()
-    return GlobalContextImpl(LockBasedStorageManager.createWithExceptionHandling(debugName, tracker), tracker)
+    return GlobalContextImpl(LockBasedStorageManager.createWithExceptionHandling(debugName, tracker) {
+        ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
+    }, tracker)
 }
 
 fun ProjectContext(project: Project, debugName: String): ProjectContext = ProjectContextImpl(project, GlobalContext(debugName))
