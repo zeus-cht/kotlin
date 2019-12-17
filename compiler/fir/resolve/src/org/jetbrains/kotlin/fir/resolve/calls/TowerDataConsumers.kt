@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.fir.resolve.calls
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.resolve.constructClassType
+import org.jetbrains.kotlin.fir.resolve.constructClassLikeType
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -227,7 +227,7 @@ class ExplicitReceiverTowerDataConsumer<T : AbstractFirBasedSymbol<*>>(
                         if (!AbstractTypeChecker.isSubtypeOf(
                                 candidateFactory.bodyResolveComponents.inferenceComponents.ctx,
                                 explicitReceiverType,
-                                declarationReceiverType.lookupTag.constructClassType(
+                                declarationReceiverType.lookupTag.constructClassLikeType(
                                     declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
                                     isNullable = true
                                 )

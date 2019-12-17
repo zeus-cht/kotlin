@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.fir.java.declarations.FirJavaValueParameter
 import org.jetbrains.kotlin.fir.java.enhancement.readOnlyToMutable
 import org.jetbrains.kotlin.fir.references.impl.FirErrorNamedReferenceImpl
 import org.jetbrains.kotlin.fir.references.impl.FirResolvedNamedReferenceImpl
-import org.jetbrains.kotlin.fir.resolve.constructClassType
+import org.jetbrains.kotlin.fir.resolve.constructClassLikeType
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.getClassDeclaredCallableSymbols
 import org.jetbrains.kotlin.fir.symbols.StandardClassIds
@@ -154,7 +154,7 @@ internal fun JavaClassifierType.toConeKotlinTypeWithNullability(
             classId = classId.readOnlyToMutable() ?: classId
 
             val lookupTag = ConeClassLikeLookupTagImpl(classId)
-            lookupTag.constructClassType(
+            lookupTag.constructClassLikeType(
                 typeArguments.mapIndexed { index, argument ->
                     argument.toConeProjection(
                         session, javaTypeParameterStack, null

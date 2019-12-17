@@ -35,5 +35,7 @@ class FirRegularClassSymbol(classId: ClassId) : FirClassSymbol<FirRegularClass>(
 class FirAnonymousObjectSymbol : FirClassSymbol<FirAnonymousObject>(ClassId(FqName.ROOT, FqName("anonymous"), true))
 
 class FirTypeAliasSymbol(classId: ClassId) : FirClassLikeSymbol<FirTypeAlias>(classId) {
-    override fun toLookupTag() = ConeClassLikeLookupTagImpl(classId)
+    private val lookupTag = ConeClassLikeLookupTagImpl(classId)
+
+    override fun toLookupTag() = lookupTag
 }

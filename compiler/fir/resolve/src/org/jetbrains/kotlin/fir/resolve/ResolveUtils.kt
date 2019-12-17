@@ -139,14 +139,25 @@ fun ConeClassifierLookupTag.toSymbol(useSiteSession: FirSession): FirClassifierS
 
 fun ConeTypeParameterLookupTag.toSymbol(): FirTypeParameterSymbol = this.symbol as FirTypeParameterSymbol
 
-fun ConeClassLikeLookupTag.constructClassType(typeArguments: Array<out ConeKotlinTypeProjection>, isNullable: Boolean): ConeLookupTagBasedType {
-    return ConeClassLikeTypeImpl(this, typeArguments, isNullable)
+fun ConeClassLikeLookupTag.constructClassLikeType(
+    typeArguments: Array<out ConeKotlinTypeProjection>,
+    isNullable: Boolean
+): ConeLookupTagBasedType {
+    return if (typeArguments.isNotEmpty() || isNullable || this !is ConeClassLikeLookupTagImpl) {
+        ConeClassLikeTypeImpl(this, typeArguments, isNullable)
+    } else {
+        defaultType ?: run {
+            ConeClassLikeTypeImpl(this@constructClassLikeType, typeArguments, isNullable).apply {
+                this@constructClassLikeType.defaultType = this
+            }
+        }
+    }
 }
 
 fun ConeClassifierLookupTag.constructType(typeArguments: Array<ConeKotlinTypeProjection>, isNullable: Boolean): ConeLookupTagBasedType {
     return when (this) {
         is ConeTypeParameterLookupTag -> ConeTypeParameterTypeImpl(this, isNullable)
-        is ConeClassLikeLookupTag -> this.constructClassType(typeArguments, isNullable)
+        is ConeClassLikeLookupTag -> this.constructClassLikeType(typeArguments, isNullable)
         else -> error("! ${this::class}")
     }
 }
@@ -156,15 +167,11 @@ fun FirClassifierSymbol<*>.constructType(typeArguments: Array<ConeKotlinTypeProj
         is FirTypeParameterSymbol -> {
             ConeTypeParameterTypeImpl(this.toLookupTag(), isNullable)
         }
-        is FirClassSymbol -> {
-            ConeClassLikeTypeImpl(this.toLookupTag(), typeArguments, isNullable)
+        is FirClassLikeSymbol -> {
+            toLookupTag().constructClassLikeType(typeArguments, isNullable)
         }
         is FirTypeAliasSymbol -> {
-            ConeClassLikeTypeImpl(
-                this.toLookupTag(),
-                typeArguments = typeArguments,
-                isNullable = isNullable
-            )
+            toLookupTag().constructClassLikeType(typeArguments, isNullable)
         }
         else -> error("!")
     }
