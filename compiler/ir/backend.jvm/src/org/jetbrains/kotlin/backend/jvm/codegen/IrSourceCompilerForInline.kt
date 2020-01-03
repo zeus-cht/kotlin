@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.expressions.IrLoop
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.psi.KtElement
@@ -119,9 +120,9 @@ class IrSourceCompilerForInline(
 
     override fun hasFinallyBlocks() = data.hasFinallyBlocks()
 
-    override fun generateFinallyBlocksIfNeeded(finallyCodegen: BaseExpressionCodegen, returnType: Type, afterReturnLabel: Label) {
-        require(finallyCodegen is ExpressionCodegen)
-        finallyCodegen.generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data)
+    override fun generateFinallyBlocksIfNeeded(codegen: BaseExpressionCodegen, returnType: Type, afterReturnLabel: Label, target: Label?) {
+        require(codegen is ExpressionCodegen)
+        codegen.generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data, target)
     }
 
     override fun createCodegenForExternalFinallyBlockGenerationOnNonLocalReturn(finallyNode: MethodNode, curFinallyDepth: Int) =
@@ -148,13 +149,32 @@ class IrSourceCompilerForInline(
         get() = callElement.symbol.descriptor as FunctionDescriptor
 
     override fun getContextLabels(): Set<String> {
-        val name = codegen.irFunction.name.asString()
+        val result = mutableSetOf<String>()
+        for (info in data.infos) {
+            if (info !is LoopInfo)
+                continue
+            result += info.loop.nonLocalReturnLabel(false)
+            result += info.loop.nonLocalReturnLabel(true)
+        }
+
+        var name = codegen.irFunction.name.asString()
         if (name == INVOKE_SUSPEND_METHOD_NAME) {
             codegen.context.suspendLambdaToOriginalFunctionMap[codegen.irFunction.parentAsClass.attributeOwnerId]?.let {
-                return setOf(it.name.asString())
+                name = it.name.asString()
             }
         }
-        return setOf(name)
+        result += name
+        return result
+    }
+
+    override fun getJumpTarget(label: String): Label? {
+        for (info in data.infos) {
+            when {
+                info is LoopInfo && info.loop.nonLocalReturnLabel(false) == label -> return info.continueLabel
+                info is LoopInfo && info.loop.nonLocalReturnLabel(true) == label -> return info.breakLabel
+            }
+        }
+        return null
     }
 
     // TODO: Find a way to avoid using PSI here
@@ -249,3 +269,6 @@ class IrSourceCompilerForInline(
         }
     }
 }
+
+// TODO generate better labels; this is unique (includes the object's address), but not very descriptive
+internal fun IrLoop.nonLocalReturnLabel(forBreak: Boolean): String = "$this\$${if (forBreak) "break" else "continue"}"
