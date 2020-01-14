@@ -26,9 +26,12 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetContainer
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.isAtLeast
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
+import org.jetbrains.kotlin.konan.CompilerVersion
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import kotlin.reflect.KClass
 
 private const val KOTLIN_PROJECT_EXTENSION_NAME = "kotlin"
@@ -151,5 +154,26 @@ enum class NativeCacheKind(val produce: String?, val outputKind: CompilerOutputK
     companion object {
         fun byCompilerArgument(argument: String): NativeCacheKind? =
             NativeCacheKind.values().firstOrNull { it.name.equals(argument, ignoreCase = true) }
+    }
+}
+
+enum class NativeDistributionType(val suffix: String?) {
+    REGULAR(null) {
+        override fun isAvailableFor(host: KonanTarget, version: CompilerVersion) = true
+    },
+    RESTRICTED("restricted") {
+        override fun isAvailableFor(host: KonanTarget, version: CompilerVersion): Boolean =
+            host == KonanTarget.MACOS_X64 && version.major == 1 && version.minor == 3
+    },
+    PREBUILT("prebuilt") {
+        override fun isAvailableFor(host: KonanTarget, version: CompilerVersion): Boolean =
+            version.isAtLeast(1, 4, 0)
+    };
+
+    abstract fun isAvailableFor(host: KonanTarget, version: CompilerVersion): Boolean
+
+    companion object {
+        fun byCompilerArgument(argument: String): NativeDistributionType? =
+            values().firstOrNull { it.name.equals(argument, ignoreCase = true) }
     }
 }
