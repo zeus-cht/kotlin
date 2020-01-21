@@ -61,13 +61,13 @@ public class Char internal constructor(val value: Int) : Comparable<Char> {
 
     override fun hashCode(): Int = value
 
+
+    // TODO implicit usages of toString and valueOf must be covered in DCE
+    @Suppress("JS_NAME_PROHIBITED_FOR_OVERRIDE")
+    @JsName("toString")
     public override fun toString(): String {
         return js("String").fromCharCode(value).unsafeCast<String>()
     }
-
-    // TODO make Char inline class and remove it
-    @JsName("valueOf")
-    protected fun valueOf() = value
 
     companion object {
         /**
