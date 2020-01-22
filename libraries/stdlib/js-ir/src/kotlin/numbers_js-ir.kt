@@ -26,7 +26,8 @@ public actual fun Double.toRawBits(): Long =
  * Returns the [Double] value corresponding to a given bit representation.
  */
 @SinceKotlin("1.2")
-public actual fun Double.Companion.fromBits(bits: Long): Double =
+@kotlin.internal.InlineOnly
+public actual inline fun Double.Companion.fromBits(bits: Long): Double =
     doubleFromBits(bits)
 
 /**
@@ -56,5 +57,6 @@ public actual fun Float.toRawBits(): Int =
  * Returns the [Float] value corresponding to a given bit representation.
  */
 @SinceKotlin("1.2")
-public actual fun Float.Companion.fromBits(bits: Int): Float =
+@kotlin.internal.InlineOnly
+public actual inline fun Float.Companion.fromBits(bits: Int): Float =
     floatFromBits(bits)

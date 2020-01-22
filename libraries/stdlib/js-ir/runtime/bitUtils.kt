@@ -28,6 +28,7 @@ internal fun doubleToRawBits(value: Double): Long {
     return Long(bufInt32[lowIndex], bufInt32[highIndex])
 }
 
+@PublishedApi
 internal fun doubleFromBits(value: Long): Double {
     bufInt32[lowIndex] = value.low
     bufInt32[highIndex] = value.high
@@ -39,6 +40,7 @@ internal fun floatToRawBits(value: Float): Int {
     return bufInt32[0]
 }
 
+@PublishedApi
 internal fun floatFromBits(value: Int): Float {
     bufInt32[0] = value
     return bufFloat32[0]
