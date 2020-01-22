@@ -7,6 +7,7 @@ where advanced options include:
   -Xinclude=<path>           A path to an intermediate library that should be processed in the same manner as source files.
   -Xir-dce                   Perform experimental dead code elimination
   -Xir-only                  Disables pre-IR backend
+  -Xir-print-reachability-info Print declarations' reachability info to stdout during performing DCE
   -Xir-produce-js            Generates JS file using IR backend. Also disables pre-IR backend
   -Xir-produce-klib-dir      Generate unpacked KLIB into parent directory of output JS file.
                              In combination with -meta-info generates both IR and pre-IR versions of library.
