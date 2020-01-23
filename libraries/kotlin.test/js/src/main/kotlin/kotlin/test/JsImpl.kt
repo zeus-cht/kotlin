@@ -17,6 +17,8 @@ actual fun todo(block: () -> Unit) {
     println("TODO at " + block)
 }
 
+internal actual fun Throwable.initCause(cause: Throwable) {}
+
 
 @PublishedApi
 internal actual fun <T : Throwable> checkResultIsFailure(exceptionClass: KClass<T>, message: String?, blockResult: Result<Unit>): T {

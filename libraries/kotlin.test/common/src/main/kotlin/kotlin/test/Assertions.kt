@@ -174,6 +174,20 @@ inline fun <T : Throwable> assertFailsWith(exceptionClass: KClass<T>, message: S
     checkResultIsFailure(exceptionClass, message, runCatching(block))
 
 
+internal fun Asserter.fail(message: String?, cause: Throwable): Nothing {
+    try {
+        fail(message)
+    } catch (assertion: Throwable) {
+        assertion.rootCause().initCause(cause)
+        throw assertion
+    }
+}
+
+internal tailrec fun Throwable.rootCause(): Throwable =
+    if (this.cause != null) this.cause!!.rootCause() else this
+
+internal expect fun Throwable.initCause(cause: Throwable)
+
 /**
  * Abstracts the logic for performing assertions. Specific implementations of [Asserter] can use JUnit
  * or TestNG assertion facilities.
