@@ -22,9 +22,15 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 open class FirDependenciesSymbolProviderImpl(val session: FirSession) : AbstractFirSymbolProvider<FirClassLikeSymbol<*>>() {
     protected open val dependencyProviders by lazy {
         val moduleInfo = session.moduleInfo ?: return@lazy emptyList()
-        moduleInfo.dependenciesWithoutSelf().mapNotNull {
-            session.sessionProvider?.getSession(it)?.firSymbolProvider
-        }.toList()
+        moduleInfo.dependenciesWithoutSelf().mapNotNull { dependencyInfo ->
+            session.sessionProvider?.getSession(dependencyInfo)?.firSymbolProvider
+        }.toList().sortedBy {
+            when {
+                it is FirBuiltinSymbolProvider -> 2
+                it is FirCompositeSymbolProvider && it.providers.lastOrNull() is FirBuiltinSymbolProvider -> 1
+                else -> 0
+            }
+        }
     }
 
     override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> {
