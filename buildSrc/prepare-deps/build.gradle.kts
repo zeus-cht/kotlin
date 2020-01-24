@@ -9,6 +9,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
 
+import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
+import org.jetbrains.kotlin.gradle.tasks.CleanOldStoredDataTask
+
 plugins {
     base
 }
@@ -87,6 +90,7 @@ repositories {
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
+    maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev")
 }
 
 val intellij by configurations.creating
@@ -105,7 +109,7 @@ val nodeJSPlugin by configurations.creating
 val intellijRuntimeAnnotations = "intellij-runtime-annotations"
 
 val dependenciesDir = (findProperty("kotlin.build.dependencies.dir") as String?)?.let(::File)
-    ?: rootProject.rootDir.parentFile.resolve("dependencies")
+    ?:  rootProject.gradle.gradleUserHomeDir.resolve("kotlin-build-dependency")
 
 val customDepsRepoDir = dependenciesDir.resolve("repo")
 
@@ -144,12 +148,20 @@ dependencies {
 
 val makeIntellijCore = buildIvyRepositoryTask(intellijCore, customDepsOrg, customDepsRepoDir)
 
+//tasks.register<CleanOldStoredDataTask> ("cleanOldStoredData")
+
+tasks.register("showAllRepos") {
+    CleanableStore.stores.forEach {println(it.key)}
+}
+
 val makeIntellijAnnotations by tasks.registering(Copy::class) {
     dependsOn(makeIntellijCore)
 
-    from(repoDir.resolve("intellij-core/$intellijVersion/artifacts/annotations.jar"))
+    val intellijCoreRepo = CleanableStore[repoDir.resolve("intellij-core").absolutePath][intellijVersion].use()
+//    val intellijCoreRepo = repoDir.resolve("intellij-core/$intellijVersion")
+    from(intellijCoreRepo.resolve("artifacts/annotations.jar"))
 
-    val targetDir = File(repoDir, "$intellijRuntimeAnnotations/$intellijVersion")
+    val targetDir = CleanableStore[repoDir.resolve(intellijRuntimeAnnotations).absolutePath][intellijVersion].use()
     into(targetDir)
 
     val ivyFile = File(targetDir, "$intellijRuntimeAnnotations.ivy.xml")
@@ -166,6 +178,13 @@ val makeIntellijAnnotations by tasks.registering(Copy::class) {
             targetDir,
             allowAnnotations = true
         )
+    }
+
+    doLast {
+        //TODO register CleanableStore
+        println("should always run")
+//        org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore[intellijCoreDir]
+//        repoDir.resolve(intellijCoreDir).setLastModified(java.time.Instant.now().toEpochMilli())
     }
 }
 
@@ -186,8 +205,8 @@ val makeIde = if (androidStudioBuild != null) {
         customDepsOrg,
         customDepsRepoDir,
         if (androidStudioOs == "mac")
-            ::skipContentsDirectory 
-        else 
+            ::skipContentsDirectory
+        else
             ::skipToplevelDirectory
     )
 } else {
@@ -227,6 +246,7 @@ tasks.register<Delete>("cleanLegacy") {
 }
 
 tasks.named<Delete>("clean") {
+    //TODO specify repos to clean? Use CleanDataTask
     delete(customDepsRepoDir)
 }
 
@@ -239,7 +259,7 @@ fun buildIvyRepositoryTask(
 ) = tasks.register("buildIvyRepositoryFor${configuration.name.capitalize()}") {
 
     fun ResolvedArtifact.moduleDirectory(): File =
-        File(repoDirectory, "$organization/${moduleVersion.id.name}/${moduleVersion.id.version}")
+        CleanableStore[repoDirectory.resolve("$organization/${moduleVersion.id.name}").absolutePath][moduleVersion.id.version].use()
 
     dependsOn(configuration)
     inputs.files(configuration)
