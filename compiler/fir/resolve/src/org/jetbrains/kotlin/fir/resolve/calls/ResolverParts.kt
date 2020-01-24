@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemOperation
 import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
@@ -39,8 +38,7 @@ internal object PreCheckExtensionReceiver : ResolutionStage() {
         val symbol = candidate.symbol
         if (symbol is FirNamedFunctionSymbol && candidate.dispatchReceiverValue == null &&
             (implicitExtensionReceiverValue == null) != (explicitReceiver == null) &&
-            explicitReceiver !is FirResolvedQualifier &&
-            symbol.callableId.packageName.startsWith(defaultPackage)
+            explicitReceiver !is FirResolvedQualifier
         ) {
             val extensionReceiverType = explicitReceiver?.typeRef?.coneTypeSafe()
                 ?: implicitExtensionReceiverValue?.type as? ConeClassLikeType
@@ -65,8 +63,6 @@ internal object PreCheckExtensionReceiver : ResolutionStage() {
         }
 
     }
-
-    private val defaultPackage = Name.identifier("kotlin")
 }
 
 internal object CheckExplicitReceiverConsistency : ResolutionStage() {
