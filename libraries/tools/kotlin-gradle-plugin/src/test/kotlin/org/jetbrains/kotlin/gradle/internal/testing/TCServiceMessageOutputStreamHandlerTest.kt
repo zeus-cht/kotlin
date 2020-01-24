@@ -66,6 +66,7 @@ class TCServiceMessageOutputStreamHandlerTest {
 
     @Test
     fun testFlush() {
+        //testStarted key correspond to [jetbrains.buildServer.messages.serviceMessages.TestStarted] class and requires "name" attribute
         handler.write("xxx##teamc".toByteArray())
         handler.flush()
         handler.write("ity[testStarted name='test']\n".toByteArray())
@@ -84,6 +85,7 @@ class TCServiceMessageOutputStreamHandlerTest {
 
     @Test
     fun testMessage() {
+        //testStarted key correspond to [jetbrains.buildServer.messages.serviceMessages.TestStarted] class and requires "name" attribute
         handler.write("xxx##teamcity[testStarted name='test']\n".toByteArray())
         handler.write("yyy##teamcity[testStarted name='test']".toByteArray())
         handler.close()
@@ -100,6 +102,7 @@ class TCServiceMessageOutputStreamHandlerTest {
 
     @Test
     fun testMessageSplit() {
+        //testStarted key correspond to [jetbrains.buildServer.messages.serviceMessages.TestStarted] class and requires "name" attribute
         handler.write("xxx##teamc".toByteArray())
         handler.write("ity[testStarted name='test']\n".toByteArray())
         handler.write("yyy##teamcity[testStarted name='test']".toByteArray())
