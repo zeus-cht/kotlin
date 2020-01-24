@@ -5,21 +5,15 @@
 
 package org.jetbrains.kotlin.fir.resolve.calls
 
-import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.impl.FirQualifiedAccessExpressionImpl
-import org.jetbrains.kotlin.fir.resolve.constructClassType
 import org.jetbrains.kotlin.fir.resolve.transformQualifiedAccessUsingSmartcastInfo
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.firUnsafe
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
-import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import java.util.*
 
@@ -43,7 +37,6 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
     lateinit var invokeReceiverCollector: CandidateCollector
 
     private class TowerScopeLevelProcessor(
-        val explicitReceiver: FirExpression?,
         val explicitReceiverKind: ExplicitReceiverKind,
         val resultCollector: CandidateCollector,
         val candidateFactory: CandidateFactory,
@@ -55,34 +48,6 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
             implicitExtensionReceiverValue: ImplicitReceiverValue<*>?,
             builtInExtensionFunctionReceiverValue: ReceiverValue?
         ) {
-            // Check explicit extension receiver for default package members
-            if (symbol is FirNamedFunctionSymbol && dispatchReceiverValue == null &&
-                (implicitExtensionReceiverValue == null) != (explicitReceiver == null) &&
-                explicitReceiver !is FirResolvedQualifier &&
-                symbol.callableId.packageName.startsWith(defaultPackage)
-            ) {
-                val extensionReceiverType = explicitReceiver?.typeRef?.coneTypeSafe()
-                    ?: implicitExtensionReceiverValue?.type as? ConeClassLikeType
-                if (extensionReceiverType != null) {
-                    val declarationReceiverTypeRef =
-                        (symbol as? FirCallableSymbol<*>)?.fir?.receiverTypeRef as? FirResolvedTypeRef
-                    val declarationReceiverType = declarationReceiverTypeRef?.type
-                    if (declarationReceiverType is ConeClassLikeType) {
-                        if (!AbstractTypeChecker.isSubtypeOf(
-                                candidateFactory.bodyResolveComponents.inferenceComponents.ctx,
-                                extensionReceiverType,
-                                declarationReceiverType.lookupTag.constructClassType(
-                                    declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
-                                    isNullable = true
-                                )
-                            )
-                        ) {
-                            return
-                        }
-                    }
-                }
-            }
-            // ---
             resultCollector.consumeCandidate(
                 group, candidateFactory.createCandidate(
                     symbol,
@@ -92,10 +57,6 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
                     builtInExtensionFunctionReceiverValue
                 )
             )
-        }
-
-        companion object {
-            val defaultPackage = Name.identifier("kotlin")
         }
     }
 
@@ -122,13 +83,12 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
             var result = ProcessorAction.NONE
             val processor =
                 TowerScopeLevelProcessor(
-                    info.explicitReceiver,
                     explicitReceiverKind,
                     resultCollector,
-                    // TODO: performance?
                     if (invokeResolveMode == InvokeResolveMode.IMPLICIT_CALL_ON_GIVEN_RECEIVER) {
                         invokeOnGivenReceiverCandidateFactory
                     } else candidateFactory,
+                    // TODO: performance?
                     group
                 )
             when (info.callKind) {
@@ -154,7 +114,6 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
                     }
 
                     val invokeReceiverProcessor = TowerScopeLevelProcessor(
-                        info.explicitReceiver,
                         explicitReceiverKind,
                         invokeReceiverCollector,
                         if (invokeBuiltinExtensionMode) invokeBuiltinExtensionReceiverCandidateFactory
@@ -226,14 +185,14 @@ class TowerResolveManager internal constructor(private val towerResolver: FirTow
                     if (stubReceiver != null) {
                         val stubReceiverValue = ExpressionReceiverValue(stubReceiver)
                         val stubProcessor = TowerScopeLevelProcessor(
-                            info.explicitReceiver,
                             if (this is MemberScopeTowerLevel && dispatchReceiver is AbstractExplicitReceiver<*>) {
                                 ExplicitReceiverKind.DISPATCH_RECEIVER
                             } else {
                                 ExplicitReceiverKind.EXTENSION_RECEIVER
                             },
                             resultCollector,
-                            stubReceiverCandidateFactory, group
+                            stubReceiverCandidateFactory,
+                            group
                         )
                         val towerLevelWithStubReceiver = replaceReceiverValue(stubReceiverValue)
                         with(towerLevelWithStubReceiver) {

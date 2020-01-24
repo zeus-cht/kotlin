@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.resolve.calls
 
 enum class CallKind(vararg resolutionSequence: ResolutionStage) {
     VariableAccess(
+        PreCheckExtensionReceiver,
         CheckVisibility,
         DiscriminateSynthetics,
         CheckExplicitReceiverConsistency,
@@ -20,6 +21,7 @@ enum class CallKind(vararg resolutionSequence: ResolutionStage) {
         CheckArguments
     ),
     Function(
+        PreCheckExtensionReceiver,
         CheckVisibility,
         DiscriminateSynthetics,
         MapArguments,

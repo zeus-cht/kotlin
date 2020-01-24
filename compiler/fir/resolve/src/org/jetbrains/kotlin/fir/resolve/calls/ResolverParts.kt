@@ -13,18 +13,17 @@ import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SyntheticSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemOperation
 import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
+import org.jetbrains.kotlin.types.AbstractTypeChecker
 
 
 abstract class ResolutionStage {
@@ -32,6 +31,43 @@ abstract class ResolutionStage {
 }
 
 abstract class CheckerStage : ResolutionStage()
+
+internal object PreCheckExtensionReceiver : ResolutionStage() {
+    override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
+        val explicitReceiver = callInfo.explicitReceiver
+        val implicitExtensionReceiverValue = candidate.implicitExtensionReceiverValue
+        val symbol = candidate.symbol
+        if (symbol is FirNamedFunctionSymbol && candidate.dispatchReceiverValue == null &&
+            (implicitExtensionReceiverValue == null) != (explicitReceiver == null) &&
+            explicitReceiver !is FirResolvedQualifier &&
+            symbol.callableId.packageName.startsWith(defaultPackage)
+        ) {
+            val extensionReceiverType = explicitReceiver?.typeRef?.coneTypeSafe()
+                ?: implicitExtensionReceiverValue?.type as? ConeClassLikeType
+            if (extensionReceiverType != null) {
+                val declarationReceiverTypeRef =
+                    (symbol as? FirCallableSymbol<*>)?.fir?.receiverTypeRef as? FirResolvedTypeRef
+                val declarationReceiverType = declarationReceiverTypeRef?.type
+                if (declarationReceiverType is ConeClassLikeType) {
+                    if (!AbstractTypeChecker.isSubtypeOf(
+                            candidate.bodyResolveComponents.inferenceComponents.ctx,
+                            extensionReceiverType,
+                            declarationReceiverType.lookupTag.constructClassType(
+                                declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
+                                isNullable = true
+                            )
+                        )
+                    ) {
+                        return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                    }
+                }
+            }
+        }
+
+    }
+
+    private val defaultPackage = Name.identifier("kotlin")
+}
 
 internal object CheckExplicitReceiverConsistency : ResolutionStage() {
     override suspend fun check(candidate: Candidate, sink: CheckerSink, callInfo: CallInfo) {
