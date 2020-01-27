@@ -10,7 +10,6 @@ import com.intellij.codeInsight.daemon.ImplicitUsageProvider
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.ide.impl.ProjectUtil
-import com.intellij.idea.IdeaTestApplication
 import com.intellij.lang.ExternalAnnotatorsFilter
 import com.intellij.lang.LanguageAnnotators
 import com.intellij.lang.StdLanguages
@@ -27,12 +26,13 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.impl.search.IndexPatternBuilder
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.xml.XmlFileNSInfoProvider
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.xml.XmlSchemaProvider
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.jetbrains.kotlin.idea.perf.Stats.Companion.tcSuite
 import org.jetbrains.kotlin.idea.perf.Stats.Companion.tcTest
 import org.jetbrains.kotlin.idea.util.getProjectJdkTableSafe
-import java.io.*
+import java.io.File
 
 abstract class WholeProjectPerformanceTest : DaemonAnalyzerTestCase(), WholeProjectFileProvider {
 
@@ -44,7 +44,7 @@ abstract class WholeProjectPerformanceTest : DaemonAnalyzerTestCase(), WholeProj
 
     override fun setUp() {
 
-        IdeaTestApplication.getInstance()
+        TestApplicationManager.getInstance()
         // to prevent leaked SDKs: 1.8 and Kotlin SDK
         runWriteAction {
             val jdkTableImpl = JavaAwareProjectJdkTableImpl.getInstanceEx()
