@@ -64,10 +64,9 @@ class CoroutineBuilder(val suspendContext: XSuspendContext) {
                         coroutineStackInserted = true
                     }
                 } else {
-                    if (coroutineStackInserted && isInvokeSuspendNegativeLineMethodFrame(runningStackFrameProxy)) {
-                        coroutineStackInserted = false
-                    } else
+                    if (! (coroutineStackInserted && isInvokeSuspendNegativeLineMethodFrame(runningStackFrameProxy)))
                         coroutineStackFrameList.add(RunningCoroutineStackFrameItem(runningStackFrameProxy, jStackFrame))
+                    coroutineStackInserted = false
                 }
             }
         } else if ((coroutine.state == CoroutineInfoData.State
