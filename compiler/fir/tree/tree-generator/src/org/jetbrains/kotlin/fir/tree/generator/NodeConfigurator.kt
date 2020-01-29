@@ -520,6 +520,10 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +returnTypeRef
         }
 
+        composedSuperTypeRef.configure {
+            +fieldList("superTypeRefs", resolvedTypeRef)
+        }
+
         thisReceiverExpression.configure {
             +field("calleeReference", thisReference)
         }
