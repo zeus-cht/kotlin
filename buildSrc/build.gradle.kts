@@ -2,10 +2,16 @@ extra["versions.shadow"] = "5.2.0"
 extra["versions.native-platform"] = "0.14"
 
 buildscript {
+    //TODO move it to single place
+    val bootstrapKotlinVersion = "1.4.0-dev-1148"
+
+    //val bootstrapKotlinRepo = "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-bootstrap"
+    val bootstrapKotlinRepo = "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev"
+
     val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
 
-    val buildSrcKotlinVersion: String by extra(findProperty("buildSrc.kotlin.version")?.toString() ?: embeddedKotlinVersion)
-    val buildSrcKotlinRepo: String? by extra(findProperty("buildSrc.kotlin.repo") as String?)
+    val buildSrcKotlinVersion: String by extra(findProperty("buildSrc.kotlin.version")?.toString() ?: bootstrapKotlinVersion)
+    val buildSrcKotlinRepo: String? by extra(findProperty("buildSrc.kotlin.repo") as String? ?: bootstrapKotlinRepo)
 
     repositories {
         if (cacheRedirectorEnabled) {
@@ -19,6 +25,7 @@ buildscript {
         buildSrcKotlinRepo?.let {
             maven(url = it)
         }
+
     }
 
     dependencies {
