@@ -28,6 +28,7 @@ abstract class ScriptChangeListener(protected val project: Project) {
 
     protected fun getAnalyzableKtFileForScript(vFile: VirtualFile): KtFile? {
         if (project.isDisposed) return null
+        if (!vFile.isValid) return null
 
         return (PsiManager.getInstance(project).findFile(vFile) as? KtFile)?.takeIf {
             ProjectRootsUtil.isInProjectSource(it, includeScriptsOutsideSourceRoots = true)
