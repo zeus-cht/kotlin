@@ -1972,21 +1972,12 @@ public inline fun <S, T : S> List<T>.reduceRightOrNull(operation: (T, acc: S) ->
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 public inline fun <T, R> Iterable<T>.scan(initial: R, operation: (acc: R, T) -> R): List<R> {
-    val result: ArrayList<R>
-    val iterator: Iterator<T>
-    if (this is Collection) {
-        if (isEmpty()) return listOf(initial)
-        iterator = this.iterator()
-        result = ArrayList(size + 1)
-    } else {
-        iterator = this.iterator()
-        if (!iterator.hasNext()) return listOf(initial)
-        result = ArrayList()
-    }
-    result.add(initial)
+    val estimatedSize = collectionSizeOrDefault(9)
+    val result = ArrayList<R>(estimatedSize + 1).apply { add(initial) }
+    if (estimatedSize == 0) return result
     var accumulator = initial
-    while (iterator.hasNext()) {
-        accumulator = operation(accumulator, iterator.next())
+    for (element in this) {
+        accumulator = operation(accumulator, element)
         result.add(accumulator)
     }
     return result
@@ -2003,22 +1994,13 @@ public inline fun <T, R> Iterable<T>.scan(initial: R, operation: (acc: R, T) -> 
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 public inline fun <T, R> Iterable<T>.scanIndexed(initial: R, operation: (index: Int, acc: R, T) -> R): List<R> {
-    val result: ArrayList<R>
-    val iterator: Iterator<T>
-    if (this is Collection) {
-        if (isEmpty()) return listOf(initial)
-        iterator = this.iterator()
-        result = ArrayList(size + 1)
-    } else {
-        iterator = this.iterator()
-        if (!iterator.hasNext()) return listOf(initial)
-        result = ArrayList()
-    }
-    result.add(initial)
+    val estimatedSize = collectionSizeOrDefault(9)
+    val result = ArrayList<R>(estimatedSize + 1).apply { add(initial) }
+    if (estimatedSize == 0) return result
     var index = 0
     var accumulator = initial
-    while (iterator.hasNext()) {
-        accumulator = operation(index++, accumulator, iterator.next())
+    for (element in this) {
+        accumulator = operation(index++, accumulator, element)
         result.add(accumulator)
     }
     return result
@@ -2034,19 +2016,10 @@ public inline fun <T, R> Iterable<T>.scanIndexed(initial: R, operation: (index: 
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 public inline fun <S, T : S> Iterable<T>.scanReduce(operation: (acc: S, T) -> S): List<S> {
-    val result: ArrayList<S>
-    val iterator: Iterator<T>
-    if (this is Collection) {
-        if (isEmpty()) return emptyList()
-        iterator = this.iterator()
-        result = ArrayList(size)
-    } else {
-        iterator = this.iterator()
-        if (!iterator.hasNext()) return emptyList()
-        result = ArrayList()
-    }
+    val iterator = this.iterator()
+    if (!iterator.hasNext()) return emptyList()
     var accumulator: S = iterator.next()
-    result.add(accumulator)
+    val result = ArrayList<S>(collectionSizeOrDefault(10)).apply { add(accumulator) }
     while (iterator.hasNext()) {
         accumulator = operation(accumulator, iterator.next())
         result.add(accumulator)
@@ -2065,20 +2038,11 @@ public inline fun <S, T : S> Iterable<T>.scanReduce(operation: (acc: S, T) -> S)
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 public inline fun <S, T : S> Iterable<T>.scanReduceIndexed(operation: (index: Int, acc: S, T) -> S): List<S> {
-    val result: ArrayList<S>
-    val iterator: Iterator<T>
-    if (this is Collection) {
-        if (isEmpty()) return emptyList()
-        iterator = this.iterator()
-        result = ArrayList(size)
-    } else {
-        iterator = this.iterator()
-        if (!iterator.hasNext()) return emptyList()
-        result = ArrayList()
-    }
-    var index = 1
+    val iterator = this.iterator()
+    if (!iterator.hasNext()) return emptyList()
     var accumulator: S = iterator.next()
-    result.add(accumulator)
+    val result = ArrayList<S>(collectionSizeOrDefault(10)).apply { add(accumulator) }
+    var index = 1
     while (iterator.hasNext()) {
         accumulator = operation(index++, accumulator, iterator.next())
         result.add(accumulator)
