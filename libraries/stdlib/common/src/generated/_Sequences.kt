@@ -1410,7 +1410,7 @@ public inline fun <S, T : S> Sequence<T>.reduceOrNull(operation: (acc: S, T) -> 
  * to each element and current accumulator value that starts with [initial] value.
  * @param [operation] function that takes current accumulator value and an element, and calculates the next accumulator value.
  *
- * The operation is _terminal_.
+ * The operation is _intermediate_ and _stateless_.
  * 
  * @sample samples.collections.Collections.Aggregates.scan
  */
@@ -1433,7 +1433,7 @@ public fun <T, R> Sequence<T>.scan(initial: R, operation: (acc: R, T) -> R): Seq
  * @param [operation] function that takes the index of an element, current accumulator value
  * and the element itself, and calculates the next accumulator value.
  *
- * The operation is _terminal_.
+ * The operation is _intermediate_ and _stateless_.
  * 
  * @sample samples.collections.Collections.Aggregates.scan
  */
@@ -1444,9 +1444,8 @@ public fun <T, R> Sequence<T>.scanIndexed(initial: R, operation: (index: Int, ac
         yield(initial)
         var index = 0
         var accumulator = initial
-        val iterator = iterator()
-        while (iterator.hasNext()) {
-            accumulator = operation(checkIndexOverflow(index++), accumulator, iterator.next())
+        for (element in this@scanIndexed) {
+            accumulator = operation(checkIndexOverflow(index++), accumulator, element)
             yield(accumulator)
         }
     }
@@ -1457,7 +1456,7 @@ public fun <T, R> Sequence<T>.scanIndexed(initial: R, operation: (index: Int, ac
  * to each element and current accumulator value that starts with the first element of this sequence.
  * @param [operation] function that takes current accumulator value and the element, and calculates the next accumulator value.
  *
- * The operation is _terminal_.
+ * The operation is _intermediate_ and _stateless_.
  * 
  * @sample samples.collections.Collections.Aggregates.scanReduce
  */
@@ -1483,7 +1482,7 @@ public fun <S, T : S> Sequence<T>.scanReduce(operation: (acc: S, T) -> S): Seque
  * @param [operation] function that takes the index of an element, current accumulator value
  * and the element itself, and calculates the next accumulator value.
  *
- * The operation is _terminal_.
+ * The operation is _intermediate_ and _stateless_.
  * 
  * @sample samples.collections.Collections.Aggregates.scanReduce
  */

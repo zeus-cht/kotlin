@@ -1060,6 +1060,7 @@ object Aggregates : TemplateGroupBase() {
             """
         }
         sample("samples.collections.Collections.Aggregates.scan")
+        sequenceClassification(intermediate, stateless)
 
         body(ArraysOfObjects, ArraysOfPrimitives, ArraysOfUnsigned, CharSequences) {
             """
@@ -1126,6 +1127,7 @@ object Aggregates : TemplateGroupBase() {
             """
         }
         sample("samples.collections.Collections.Aggregates.scan")
+        sequenceClassification(intermediate, stateless)
 
         body(ArraysOfObjects, ArraysOfPrimitives, ArraysOfUnsigned, CharSequences) {
             """
@@ -1161,9 +1163,8 @@ object Aggregates : TemplateGroupBase() {
                 yield(initial)
                 var index = 0
                 var accumulator = initial
-                val iterator = iterator()
-                while (iterator.hasNext()) {
-                    accumulator = operation(checkIndexOverflow(index++), accumulator, iterator.next())
+                for (element in this@scanIndexed) {
+                    accumulator = operation(checkIndexOverflow(index++), accumulator, element)
                     yield(accumulator)
                 }
             }
@@ -1264,6 +1265,7 @@ object Aggregates : TemplateGroupBase() {
             """
         }
         sample("samples.collections.Collections.Aggregates.scanReduce")
+        sequenceClassification(intermediate, stateless)
 
         body(ArraysOfObjects) {
             """
@@ -1332,6 +1334,7 @@ object Aggregates : TemplateGroupBase() {
             """
         }
         sample("samples.collections.Collections.Aggregates.scanReduce")
+        sequenceClassification(intermediate, stateless)
 
         body(ArraysOfObjects) {
             """
