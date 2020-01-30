@@ -224,7 +224,7 @@ compileTestKotlin {
 }
 
 compileLongRunningTestKotlin {
-    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlin.ExperimentalStdlibApi"
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalStdlibApi"
 }
 
 task longRunningTest(type: Test, dependsOn: longRunningTestClasses) {
