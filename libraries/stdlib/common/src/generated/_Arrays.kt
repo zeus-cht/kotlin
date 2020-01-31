@@ -8147,6 +8147,40 @@ public inline fun <K, V, M : MutableMap<in K, in V>> CharArray.associateTo(desti
 }
 
 /**
+ * Returns a [Map] where keys are elements from the given array and values are
+ * produced by the [valueSelector] function applied to each element.
+ * 
+ * If any two elements are equal, the last one gets added to the map.
+ * 
+ * The returned map preserves the entry iteration order of the original array.
+ * 
+ * @sample samples.collections.Collections.Transformations.associateWith
+ */
+@SinceKotlin("1.4")
+@ExperimentalStdlibApi
+public inline fun <K, V> Array<out K>.associateWith(valueSelector: (K) -> V): Map<K, V> {
+    val result = LinkedHashMap<K, V>()
+    return associateWithTo(result, valueSelector)
+}
+
+/**
+ * Populates and returns the [destination] mutable map with key-value pairs for each element of the given array,
+ * where key is the element itself and value is provided by the [valueSelector] function applied to that key.
+ * 
+ * If any two elements are equal, the last one overwrites the former value in the map.
+ * 
+ * @sample samples.collections.Collections.Transformations.associateWithTo
+ */
+@SinceKotlin("1.4")
+@ExperimentalStdlibApi
+public inline fun <K, V, M : MutableMap<in K, in V>> Array<out K>.associateWithTo(destination: M, valueSelector: (K) -> V): M {
+    for (element in this) {
+        destination.put(element, valueSelector(element))
+    }
+    return destination
+}
+
+/**
  * Appends all elements to the given [destination] collection.
  */
 public fun <T, C : MutableCollection<in T>> Array<out T>.toCollection(destination: C): C {

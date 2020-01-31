@@ -437,10 +437,14 @@ object Snapshots : TemplateGroupBase() {
     }
 
     val f_associateWith = fn("associateWith(valueSelector: (K) -> V)") {
-        include(Iterables, Sequences, CharSequences)
+        include(Iterables, Sequences, CharSequences, ArraysOfObjects)
     } builder {
         inline()
         since("1.3")
+        specialFor(ArraysOfObjects) {
+            since("1.4")
+            annotation("@ExperimentalStdlibApi")
+        }
         typeParam("K", primary = true)
         typeParam("V")
         returns("Map<K, V>")
@@ -472,10 +476,14 @@ object Snapshots : TemplateGroupBase() {
     }
 
     val f_associateWithTo = fn("associateWithTo(destination: M, valueSelector: (K) -> V)") {
-        include(Iterables, Sequences, CharSequences)
+        include(Iterables, Sequences, CharSequences, ArraysOfObjects)
     } builder {
         inline()
         since("1.3")
+        specialFor(ArraysOfObjects) {
+            since("1.4")
+            annotation("@ExperimentalStdlibApi")
+        }
         typeParam("K", primary = true)
         typeParam("V")
         typeParam("M : MutableMap<in K, in V>")

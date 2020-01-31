@@ -1073,6 +1073,18 @@ class ArraysTest {
         expect(null, { intArrayOf().reduceRightOrNull { a, b -> a + b } })
     }
 
+    @Test fun associateWith() {
+        val items = arrayOf("Alice", "Bob", "Carol")
+        val itemsWithTheirLength = items.associateWith { it.length }
+
+        assertEquals(mapOf("Alice" to 5, "Bob" to 3, "Carol" to 5), itemsWithTheirLength)
+
+        val updatedLength =
+            items.drop(1).associateWithTo(itemsWithTheirLength.toMutableMap()) { name -> name.toLowerCase().count { it in "aeuio" }}
+
+        assertEquals(mapOf("Alice" to 5, "Bob" to 1, "Carol" to 2), updatedLength)
+    }
+
     @Test fun reverseInPlace() {
 
         fun <TArray, T> doTest(build: Iterable<Int>.() -> TArray, reverse: TArray.() -> Unit, snapshot: TArray.() -> List<T>) {
