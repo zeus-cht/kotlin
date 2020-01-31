@@ -2181,8 +2181,6 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
             parseTypeArgumentList();
 
-            recoverOnPlatformTypeSuffix();
-
             if (!at(DOT)) {
                 break;
             }
