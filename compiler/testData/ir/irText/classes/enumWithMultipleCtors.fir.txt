@@ -76,7 +76,7 @@ FILE fqName:<root> fileName:/enumWithMultipleCtors.kt
       BLOCK_BODY
         SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:prop1 type:kotlin.String visibility:private [final]' type=kotlin.Unit origin=null
           receiver: GET_VAR '<this>: <root>.A declared in <root>.A' type=<root>.A origin=null
-          value: GET_VAR 'arg: kotlin.String declared in <root>.A.<init>' type=kotlin.String origin=null
+          value: GET_VAR 'arg: kotlin.String declared in <root>.A.<init>' type=kotlin.String origin=VARIABLE_AS_FUNCTION
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS ENUM_CLASS name:A modality:FINAL visibility:public superTypes:[kotlin.Enum<<root>.A>]'
     CONSTRUCTOR visibility:private <> () returnType:<root>.A
@@ -97,7 +97,7 @@ FILE fqName:<root> fileName:/enumWithMultipleCtors.kt
           value: CONST String type=kotlin.String value="int"
         DELEGATING_CONSTRUCTOR_CALL 'private constructor <init> (arg: kotlin.String) declared in <root>.A'
           arg: CALL 'public open fun toString (): kotlin.String declared in kotlin.Any' type=kotlin.String origin=null
-            $this: GET_VAR 'x: kotlin.Int declared in <root>.A.<init>' type=kotlin.Int origin=null
+            $this: GET_VAR 'x: kotlin.Int declared in <root>.A.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
     FUN name:f visibility:public modality:OPEN <> ($this:<root>.A) returnType:kotlin.String
       $this: VALUE_PARAMETER name:<this> type:<root>.A
       BLOCK_BODY

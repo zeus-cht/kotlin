@@ -90,7 +90,7 @@ FILE fqName:<root> fileName:/primaryConstructorWithSuperConstructorCall.kt
       VALUE_PARAMETER name:x index:0 type:kotlin.Int
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (x: kotlin.Int, y: kotlin.Int) [primary] declared in <root>.TestWithDelegatingConstructor'
-          x: GET_VAR 'x: kotlin.Int declared in <root>.TestWithDelegatingConstructor.<init>' type=kotlin.Int origin=null
+          x: GET_VAR 'x: kotlin.Int declared in <root>.TestWithDelegatingConstructor.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           y: CONST Int type=kotlin.Int value=0
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:

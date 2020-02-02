@@ -15,7 +15,7 @@ FILE fqName:<root> fileName:/implicitNotNullInDestructuringAssignment.kt
         CALL 'public open fun j (): <root>.J? [operator] declared in <root>.J' type=<root>.J? origin=null
       VAR name:a type:kotlin.Int [val]
         CALL 'public final fun component1 (): kotlin.Int [operator] declared in <root>' type=kotlin.Int origin=null
-          $receiver: GET_VAR 'val tmp_0: <root>.J? [val] declared in <root>.test' type=<root>.J? origin=null
+          $receiver: GET_VAR 'val tmp_0: <root>.J? [val] declared in <root>.test' type=<root>.J? origin=VARIABLE_AS_FUNCTION
       VAR name:b type:kotlin.Int [val]
         CALL 'private final fun component2 (): kotlin.Int [operator] declared in <root>' type=kotlin.Int origin=null
-          $receiver: GET_VAR 'val tmp_0: <root>.J? [val] declared in <root>.test' type=<root>.J? origin=null
+          $receiver: GET_VAR 'val tmp_0: <root>.J? [val] declared in <root>.test' type=<root>.J? origin=VARIABLE_AS_FUNCTION

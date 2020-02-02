@@ -16,4 +16,4 @@ FILE fqName:<root> fileName:/argumentMappedWithError.kt
       CALL 'public final fun foo (arg: kotlin.Number): kotlin.Unit declared in <root>' type=kotlin.Unit origin=null
         arg: CALL 'public final fun convert <R> (): R of <root>.convert declared in <root>' type=kotlin.Number origin=null
           <R>: kotlin.Number
-          $receiver: GET_VAR 'val x: kotlin.Int [val] declared in <root>.main' type=kotlin.Int origin=null
+          $receiver: GET_VAR 'val x: kotlin.Int [val] declared in <root>.main' type=kotlin.Int origin=VARIABLE_AS_FUNCTION

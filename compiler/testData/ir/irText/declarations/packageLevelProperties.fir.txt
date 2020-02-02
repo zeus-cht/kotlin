@@ -43,7 +43,7 @@ FILE fqName:<root> fileName:/packageLevelProperties.kt
       VALUE_PARAMETER name:value index:0 type:kotlin.Int
       BLOCK_BODY
         SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:test4 type:kotlin.Int visibility:private [static]' type=kotlin.Unit origin=null
-          value: GET_VAR 'value: kotlin.Int declared in <root>.<set-test4>' type=kotlin.Int origin=null
+          value: GET_VAR 'value: kotlin.Int declared in <root>.<set-test4>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
   PROPERTY name:test5 visibility:public modality:FINAL [var]
     FIELD PROPERTY_BACKING_FIELD name:test5 type:kotlin.Int visibility:private [static]
       EXPRESSION_BODY
@@ -70,7 +70,8 @@ FILE fqName:<root> fileName:/packageLevelProperties.kt
           initializer: FUN_EXPR type=kotlin.Function0<kotlin.Int> origin=LAMBDA
             FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:kotlin.Int
               BLOCK_BODY
-                CONST Int type=kotlin.Int value=42
+                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.Int declared in <root>.test7$delegate'
+                  CONST Int type=kotlin.Int value=42
     FUN DELEGATED_PROPERTY_ACCESSOR name:<get-test7> visibility:public modality:FINAL <> () returnType:kotlin.Int
       correspondingProperty: PROPERTY name:test7 visibility:public modality:FINAL [delegated,val]
       BLOCK_BODY
@@ -100,4 +101,4 @@ FILE fqName:<root> fileName:/packageLevelProperties.kt
         ERROR_CALL 'Unresolved reference: <Inapplicable(INAPPLICABLE): [kotlin/collections/setValue]>#' type=IrErrorType
           CONST Null type=kotlin.Nothing? value=null
           PROPERTY_REFERENCE 'public final test8: IrErrorType [delegated,var]' field='FIELD PROPERTY_DELEGATE name:test8$delegate type:java.util.HashMap<kotlin.String, kotlin.Int> visibility:private [final,static]' getter='public final fun <get-test8> (): IrErrorType declared in <root>' setter='public final fun <set-test8> (<set-?>: IrErrorType): kotlin.Unit declared in <root>' type=kotlin.reflect.KProperty<*> origin=null
-          GET_VAR '<set-?>: IrErrorType declared in <root>.<set-test8>' type=IrErrorType origin=null
+          GET_VAR '<set-?>: IrErrorType declared in <root>.<set-test8>' type=IrErrorType origin=VARIABLE_AS_FUNCTION

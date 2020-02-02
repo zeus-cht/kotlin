@@ -21,7 +21,7 @@ FILE fqName:<root> fileName:/basicFunInterfaceConversion.kt
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun foo (f: <root>.Foo): kotlin.String declared in <root>'
         CALL 'public abstract fun invoke (): kotlin.String declared in <root>.Foo' type=kotlin.String origin=null
-          $this: GET_VAR 'f: <root>.Foo declared in <root>.foo' type=<root>.Foo origin=null
+          $this: GET_VAR 'f: <root>.Foo declared in <root>.foo' type=<root>.Foo origin=VARIABLE_AS_FUNCTION
   FUN name:test visibility:public modality:FINAL <> () returnType:kotlin.String
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun test (): kotlin.String declared in <root>'
@@ -29,4 +29,5 @@ FILE fqName:<root> fileName:/basicFunInterfaceConversion.kt
           f: FUN_EXPR type=kotlin.Function0<kotlin.String> origin=LAMBDA
             FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> () returnType:kotlin.String
               BLOCK_BODY
-                CONST String type=kotlin.String value="OK"
+                RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.test'
+                  CONST String type=kotlin.String value="OK"

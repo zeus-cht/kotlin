@@ -24,7 +24,7 @@ FILE fqName:<root> fileName:/when.kt
       RETURN type=kotlin.Nothing from='public final fun testWithSubject (x: kotlin.Any?): kotlin.String declared in <root>'
         BLOCK type=kotlin.String origin=WHEN
           VAR IR_TEMPORARY_VARIABLE name:tmp_0 type:kotlin.Any? [val]
-            GET_VAR 'x: kotlin.Any? declared in <root>.testWithSubject' type=kotlin.Any? origin=null
+            GET_VAR 'x: kotlin.Any? declared in <root>.testWithSubject' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
           WHEN type=kotlin.String origin=WHEN
             BRANCH
               if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
@@ -61,24 +61,24 @@ FILE fqName:<root> fileName:/when.kt
         WHEN type=kotlin.String origin=WHEN
           BRANCH
             if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
-              arg0: GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=null
+              arg0: GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
               arg1: CONST Null type=kotlin.Nothing? value=null
             then: CONST String type=kotlin.String value="null"
           BRANCH
             if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
               arg0: TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
-                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=null
+                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
               arg1: GET_OBJECT 'CLASS OBJECT name:A modality:FINAL visibility:public superTypes:[kotlin.Any]' type=<root>.A
             then: CONST String type=kotlin.String value="A"
           BRANCH
             if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.String
               TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
-                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=null
+                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
             then: CONST String type=kotlin.String value="String"
           BRANCH
             if: TYPE_OP type=kotlin.Boolean origin=NOT_INSTANCEOF typeOperand=kotlin.Number
               TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
-                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=null
+                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
             then: CONST String type=kotlin.String value="!Number"
           BRANCH
             if: CALL 'public final fun contains <T> (element: T of kotlin.collections.contains): kotlin.Boolean [operator] declared in kotlin.collections' type=kotlin.Boolean origin=null
@@ -86,7 +86,7 @@ FILE fqName:<root> fileName:/when.kt
               $receiver: CALL 'public final fun setOf <T> (): kotlin.collections.Set<T of kotlin.collections.setOf> [inline] declared in kotlin.collections' type=kotlin.collections.Set<kotlin.Nothing> origin=null
                 <T>: kotlin.Nothing
               element: TYPE_OP type=kotlin.Number origin=IMPLICIT_CAST typeOperand=kotlin.Number
-                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=null
+                GET_VAR 'x: kotlin.Any? declared in <root>.test' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
             then: CONST String type=kotlin.String value="nothingness?"
           BRANCH
             if: CONST Boolean type=kotlin.Boolean value=true
@@ -97,7 +97,7 @@ FILE fqName:<root> fileName:/when.kt
       RETURN type=kotlin.Nothing from='public final fun testComma (x: kotlin.Int): kotlin.String declared in <root>'
         BLOCK type=kotlin.String origin=WHEN
           VAR IR_TEMPORARY_VARIABLE name:tmp_1 type:kotlin.Int [val]
-            GET_VAR 'x: kotlin.Int declared in <root>.testComma' type=kotlin.Int origin=null
+            GET_VAR 'x: kotlin.Int declared in <root>.testComma' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           WHEN type=kotlin.String origin=WHEN
             BRANCH
               if: WHEN type=kotlin.Boolean origin=OROR

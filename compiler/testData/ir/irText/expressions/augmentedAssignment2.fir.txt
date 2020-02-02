@@ -52,19 +52,19 @@ FILE fqName:<root> fileName:/augmentedAssignment2.kt
       VAR name:a type:<root>.A [val]
         CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in <root>.A' type=<root>.A origin=null
       CALL 'public final fun plusAssign (s: kotlin.String): kotlin.Unit [operator] declared in <root>' type=kotlin.Unit origin=null
-        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=null
+        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=VARIABLE_AS_FUNCTION
         s: CONST String type=kotlin.String value="+="
       CALL 'public final fun minusAssign (s: kotlin.String): kotlin.Unit [operator] declared in <root>' type=kotlin.Unit origin=null
-        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=null
+        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=VARIABLE_AS_FUNCTION
         s: CONST String type=kotlin.String value="-="
       CALL 'public final fun timesAssign (s: kotlin.String): kotlin.Unit [operator] declared in <root>' type=kotlin.Unit origin=null
-        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=null
+        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=VARIABLE_AS_FUNCTION
         s: CONST String type=kotlin.String value="*="
       CALL 'public final fun divAssign (s: kotlin.String): kotlin.Unit [operator] declared in <root>' type=kotlin.Unit origin=null
-        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=null
+        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=VARIABLE_AS_FUNCTION
         s: CONST String type=kotlin.String value="/="
       CALL 'public final fun remAssign (s: kotlin.String): kotlin.Unit [operator] declared in <root>' type=kotlin.Unit origin=null
-        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=null
+        $receiver: GET_VAR 'val a: <root>.A [val] declared in <root>.testVariable' type=<root>.A origin=VARIABLE_AS_FUNCTION
         s: CONST String type=kotlin.String value="*="
   FUN name:testProperty visibility:public modality:FINAL <> () returnType:kotlin.Unit
     BLOCK_BODY

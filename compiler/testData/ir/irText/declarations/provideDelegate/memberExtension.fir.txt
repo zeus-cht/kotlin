@@ -30,7 +30,7 @@ FILE fqName:<root> fileName:/memberExtension.kt
         BLOCK_BODY
           RETURN type=kotlin.Nothing from='public final fun getValue (receiver: kotlin.String, p: kotlin.Any): kotlin.String [operator] declared in <root>.Host.StringDelegate'
             CALL 'public final fun plus (other: kotlin.Any?): kotlin.String [operator] declared in kotlin.String' type=kotlin.String origin=null
-              $this: GET_VAR 'receiver: kotlin.String declared in <root>.Host.StringDelegate.getValue' type=kotlin.String origin=null
+              $this: GET_VAR 'receiver: kotlin.String declared in <root>.Host.StringDelegate.getValue' type=kotlin.String origin=VARIABLE_AS_FUNCTION
               other: CALL 'public final fun <get-s> (): kotlin.String declared in <root>.Host.StringDelegate' type=kotlin.String origin=null
                 $this: GET_VAR '<this>: <root>.Host.StringDelegate declared in <root>.Host.StringDelegate.getValue' type=<root>.Host.StringDelegate origin=null
       FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]

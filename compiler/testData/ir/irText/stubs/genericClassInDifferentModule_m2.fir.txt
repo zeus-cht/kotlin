@@ -7,7 +7,7 @@ FILE fqName:<root> fileName:/genericClassInDifferentModule_m2.kt
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (x: T of <root>.Base) [primary] declared in <root>.Base'
           <T>: <none>
-          x: GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=null
+          x: GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=VARIABLE_AS_FUNCTION
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Derived1 modality:FINAL visibility:public superTypes:[<root>.Base<T of <root>.Derived1>]'
     FUN name:foo visibility:public modality:FINAL <Y> ($this:<root>.Derived1, y:Y of <root>.Derived1.foo) returnType:T of <root>.Derived1
       TYPE_PARAMETER name:Y index:0 variance: superTypes:[kotlin.Any?]
@@ -20,7 +20,7 @@ FILE fqName:<root> fileName:/genericClassInDifferentModule_m2.kt
     PROPERTY name:bar visibility:public modality:FINAL [var]
       FIELD PROPERTY_BACKING_FIELD name:bar type:T of <root>.Derived1 visibility:private
         EXPRESSION_BODY
-          GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=null
+          GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=VARIABLE_AS_FUNCTION
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-bar> visibility:public modality:FINAL <> ($this:<root>.Derived1) returnType:T of <root>.Derived1
         correspondingProperty: PROPERTY name:bar visibility:public modality:FINAL [var]
         $this: VALUE_PARAMETER name:<this> type:<root>.Derived1
@@ -42,7 +42,7 @@ FILE fqName:<root> fileName:/genericClassInDifferentModule_m2.kt
         $this: VALUE_PARAMETER name:<this> type:<root>.Derived1
         BLOCK_BODY
           RETURN type=kotlin.Nothing from='public final fun <get-exn> (): T of <root>.Derived1 declared in <root>.Derived1'
-            GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=null
+            GET_VAR 'x: T of <root>.Derived1 declared in <root>.Derived1.<init>' type=T of <root>.Derived1 origin=VARIABLE_AS_FUNCTION
       FUN name:<set-exn> visibility:public modality:FINAL <> ($this:<root>.Derived1, value:T of <root>.Derived1) returnType:kotlin.Unit
         correspondingProperty: PROPERTY name:exn visibility:public modality:FINAL [var]
         $this: VALUE_PARAMETER name:<this> type:<root>.Derived1

@@ -29,10 +29,10 @@ FILE fqName:<root> fileName:/smartCastOnFakeOverrideReceiver.kt
           WHEN type=kotlin.Int? origin=IF
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=<root>.B
-                GET_VAR 'x: kotlin.Any declared in <root>.A.testA1' type=kotlin.Any origin=null
+                GET_VAR 'x: kotlin.Any declared in <root>.A.testA1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               then: CALL 'public final fun f (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=null
                 $this: TYPE_OP type=<root>.B origin=IMPLICIT_CAST typeOperand=<root>.B
-                  GET_VAR 'x: kotlin.Any declared in <root>.A.testA1' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.A.testA1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
             BRANCH
               if: CONST Boolean type=kotlin.Boolean value=true
               then: CONST Null type=kotlin.Nothing? value=null
@@ -44,10 +44,10 @@ FILE fqName:<root> fileName:/smartCastOnFakeOverrideReceiver.kt
           WHEN type=kotlin.Int? origin=IF
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=<root>.B
-                GET_VAR 'x: kotlin.Any declared in <root>.A.testA2' type=kotlin.Any origin=null
+                GET_VAR 'x: kotlin.Any declared in <root>.A.testA2' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               then: CALL 'public final fun <get-aVal> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=null
                 $this: TYPE_OP type=<root>.B origin=IMPLICIT_CAST typeOperand=<root>.B
-                  GET_VAR 'x: kotlin.Any declared in <root>.A.testA2' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.A.testA2' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
             BRANCH
               if: CONST Boolean type=kotlin.Boolean value=true
               then: CONST Null type=kotlin.Nothing? value=null
@@ -78,10 +78,10 @@ FILE fqName:<root> fileName:/smartCastOnFakeOverrideReceiver.kt
           WHEN type=kotlin.Int? origin=IF
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=<root>.B
-                GET_VAR 'x: kotlin.Any declared in <root>.B.testB1' type=kotlin.Any origin=null
+                GET_VAR 'x: kotlin.Any declared in <root>.B.testB1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               then: CALL 'public final fun f (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=null
                 $this: TYPE_OP type=<root>.B origin=IMPLICIT_CAST typeOperand=<root>.B
-                  GET_VAR 'x: kotlin.Any declared in <root>.B.testB1' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.B.testB1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
             BRANCH
               if: CONST Boolean type=kotlin.Boolean value=true
               then: CONST Null type=kotlin.Nothing? value=null
@@ -93,10 +93,10 @@ FILE fqName:<root> fileName:/smartCastOnFakeOverrideReceiver.kt
           WHEN type=kotlin.Int? origin=IF
             BRANCH
               if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=<root>.B
-                GET_VAR 'x: kotlin.Any declared in <root>.B.testB2' type=kotlin.Any origin=null
+                GET_VAR 'x: kotlin.Any declared in <root>.B.testB2' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               then: CALL 'public final fun <get-aVal> (): kotlin.Int declared in <root>.A' type=kotlin.Int origin=null
                 $this: TYPE_OP type=<root>.B origin=IMPLICIT_CAST typeOperand=<root>.B
-                  GET_VAR 'x: kotlin.Any declared in <root>.B.testB2' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.B.testB2' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
             BRANCH
               if: CONST Boolean type=kotlin.Boolean value=true
               then: CONST Null type=kotlin.Nothing? value=null
@@ -183,13 +183,13 @@ FILE fqName:<root> fileName:/smartCastOnFakeOverrideReceiver.kt
       VALUE_PARAMETER name:a index:0 type:kotlin.Any
       BLOCK_BODY
         TYPE_OP type=<root>.GB<kotlin.Int, kotlin.String> origin=CAST typeOperand=<root>.GB<kotlin.Int, kotlin.String>
-          GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=null
+          GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
         CALL 'public final fun f (): kotlin.Int declared in <root>.GA' type=kotlin.Int origin=null
           $this: TYPE_OP type=<root>.GB<kotlin.Int, kotlin.String> origin=IMPLICIT_CAST typeOperand=<root>.GB<kotlin.Int, kotlin.String>
-            GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=null
+            GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
         CALL 'public final fun <get-aVal> (): kotlin.Int declared in <root>.GA' type=kotlin.Int origin=null
           $this: TYPE_OP type=<root>.GB<kotlin.Int, kotlin.String> origin=IMPLICIT_CAST typeOperand=<root>.GB<kotlin.Int, kotlin.String>
-            GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=null
+            GET_VAR 'a: kotlin.Any declared in <root>.GB.testGB1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
     FUN FAKE_OVERRIDE name:f visibility:public modality:FINAL <> ($this:<root>.GA) returnType:kotlin.Int [fake_override]
       overridden:
         public final fun f (): kotlin.Int declared in <root>.GA

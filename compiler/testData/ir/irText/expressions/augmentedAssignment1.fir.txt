@@ -20,23 +20,23 @@ FILE fqName:<root> fileName:/augmentedAssignment1.kt
         CONST Int type=kotlin.Int value=0
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
         CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=1
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
         CALL 'public final fun minus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=2
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
         CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=3
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
         CALL 'public final fun div (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=4
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
         CALL 'public final fun rem (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.testVariable' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=5
   FUN name:testProperty visibility:public modality:FINAL <> () returnType:kotlin.Unit
     BLOCK_BODY

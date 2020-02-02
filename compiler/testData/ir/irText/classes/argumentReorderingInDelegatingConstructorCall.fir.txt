@@ -49,8 +49,8 @@ FILE fqName:<root> fileName:/argumentReorderingInDelegatingConstructorCall.kt
       VALUE_PARAMETER name:yy index:1 type:kotlin.Int
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (x: kotlin.Int, y: kotlin.Int) [primary] declared in <root>.Base'
-          x: GET_VAR 'yy: kotlin.Int declared in <root>.Test1.<init>' type=kotlin.Int origin=null
-          y: GET_VAR 'xx: kotlin.Int declared in <root>.Test1.<init>' type=kotlin.Int origin=null
+          x: GET_VAR 'yy: kotlin.Int declared in <root>.Test1.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
+          y: GET_VAR 'xx: kotlin.Int declared in <root>.Test1.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
         INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:Test1 modality:FINAL visibility:public superTypes:[<root>.Base]'
     PROPERTY FAKE_OVERRIDE name:x visibility:public modality:FINAL [fake_override,val]
       FUN FAKE_OVERRIDE name:<get-x> visibility:public modality:FINAL <> ($this:<root>.Test1) returnType:kotlin.Int [fake_override]
@@ -91,8 +91,8 @@ FILE fqName:<root> fileName:/argumentReorderingInDelegatingConstructorCall.kt
       VALUE_PARAMETER name:a index:2 type:kotlin.Any
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (xx: kotlin.Int, yy: kotlin.Int) declared in <root>.Test2'
-          xx: GET_VAR 'yyy: kotlin.Int declared in <root>.Test2.<init>' type=kotlin.Int origin=null
-          yy: GET_VAR 'xxx: kotlin.Int declared in <root>.Test2.<init>' type=kotlin.Int origin=null
+          xx: GET_VAR 'yyy: kotlin.Int declared in <root>.Test2.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
+          yy: GET_VAR 'xxx: kotlin.Int declared in <root>.Test2.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
     PROPERTY FAKE_OVERRIDE name:x visibility:public modality:FINAL [fake_override,val]
       FUN FAKE_OVERRIDE name:<get-x> visibility:public modality:FINAL <> ($this:<root>.Test2) returnType:kotlin.Int [fake_override]
         correspondingProperty: PROPERTY FAKE_OVERRIDE name:x visibility:public modality:FINAL [fake_override,val]

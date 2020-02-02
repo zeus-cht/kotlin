@@ -34,22 +34,22 @@ FILE: kotlinSam.kt
         }
 
         R|/foo1|(<L> = foo1@fun <anonymous>(x: R|kotlin/Int|): R|kotlin/Boolean| {
-            >(R|<local>/x|, Int(1))
+            ^ >(R|<local>/x|, Int(1))
         }
         )
         R|/foo1|(R|<local>/f|)
         <Inapplicable(INAPPLICABLE): [/foo2]>#(<L> = foo2@fun <anonymous>(x: R|ERROR CLASS: No type for parameter|): R|kotlin/Boolean| {
-            >(R|<local>/x|, Int(1))
+            ^ >(R|<local>/x|, Int(1))
         }
         )
         <Inapplicable(INAPPLICABLE): [/foo2]>#(R|<local>/f|)
         <Inapplicable(INAPPLICABLE): [/foo3]>#(<L> = foo3@fun <anonymous>(x: R|ERROR CLASS: No type for parameter|): R|kotlin/Boolean| {
-            >(R|<local>/x|, Int(1))
+            ^ >(R|<local>/x|, Int(1))
         }
         )
         <Inapplicable(INAPPLICABLE): [/foo3]>#(R|<local>/f|)
         R|/foo4|(<L> = foo4@fun <anonymous>(x: R|kotlin/Int|): R|kotlin/Boolean| {
-            >(R|<local>/x|, Int(1))
+            ^ >(R|<local>/x|, Int(1))
         }
         )
         R|/foo4|(R|<local>/f|)

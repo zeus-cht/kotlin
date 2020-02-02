@@ -19,22 +19,22 @@ FILE fqName:<root> fileName:/typeOperators.kt
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun test1 (x: kotlin.Any): kotlin.Boolean declared in <root>'
         TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=<root>.IThing
-          GET_VAR 'x: kotlin.Any declared in <root>.test1' type=kotlin.Any origin=null
+          GET_VAR 'x: kotlin.Any declared in <root>.test1' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   FUN name:test2 visibility:public modality:FINAL <> (x:kotlin.Any) returnType:kotlin.Boolean
     VALUE_PARAMETER name:x index:0 type:kotlin.Any
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun test2 (x: kotlin.Any): kotlin.Boolean declared in <root>'
         TYPE_OP type=kotlin.Boolean origin=NOT_INSTANCEOF typeOperand=<root>.IThing
-          GET_VAR 'x: kotlin.Any declared in <root>.test2' type=kotlin.Any origin=null
+          GET_VAR 'x: kotlin.Any declared in <root>.test2' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   FUN name:test3 visibility:public modality:FINAL <> (x:kotlin.Any) returnType:<root>.IThing
     VALUE_PARAMETER name:x index:0 type:kotlin.Any
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun test3 (x: kotlin.Any): <root>.IThing declared in <root>'
         TYPE_OP type=<root>.IThing origin=CAST typeOperand=<root>.IThing
-          GET_VAR 'x: kotlin.Any declared in <root>.test3' type=kotlin.Any origin=null
+          GET_VAR 'x: kotlin.Any declared in <root>.test3' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   FUN name:test4 visibility:public modality:FINAL <> (x:kotlin.Any) returnType:<root>.IThing?
     VALUE_PARAMETER name:x index:0 type:kotlin.Any
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun test4 (x: kotlin.Any): <root>.IThing? declared in <root>'
         TYPE_OP type=<root>.IThing? origin=SAFE_CAST typeOperand=<root>.IThing
-          GET_VAR 'x: kotlin.Any declared in <root>.test4' type=kotlin.Any origin=null
+          GET_VAR 'x: kotlin.Any declared in <root>.test4' type=kotlin.Any origin=VARIABLE_AS_FUNCTION

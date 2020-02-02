@@ -14,7 +14,7 @@ FILE fqName:<root> fileName:/useImportedMember.kt
       VALUE_PARAMETER name:g index:0 type:G of <root>.I
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun genericFromSuper (g: G of <root>.I): G of <root>.I declared in <root>.I'
-          GET_VAR 'g: G of <root>.I declared in <root>.I.genericFromSuper' type=G of <root>.I origin=null
+          GET_VAR 'g: G of <root>.I declared in <root>.I.genericFromSuper' type=G of <root>.I origin=VARIABLE_AS_FUNCTION
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
@@ -110,7 +110,7 @@ FILE fqName:<root> fileName:/useImportedMember.kt
       VALUE_PARAMETER name:t index:0 type:T of <root>.C.g1
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun g1 <T> (t: T of <root>.C.g1): T of <root>.C.g1 declared in <root>.C'
-          GET_VAR 't: T of <root>.C.g1 declared in <root>.C.g1' type=T of <root>.C.g1 origin=null
+          GET_VAR 't: T of <root>.C.g1 declared in <root>.C.g1' type=T of <root>.C.g1 origin=VARIABLE_AS_FUNCTION
     PROPERTY name:g2 visibility:public modality:FINAL [val]
       FUN name:<get-g2> visibility:public modality:FINAL <> ($this:<root>.C) returnType:T of <uninitialized parent>
         correspondingProperty: PROPERTY name:g2 visibility:public modality:FINAL [val]

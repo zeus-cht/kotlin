@@ -21,9 +21,9 @@ FILE fqName:<root> fileName:/kt23030.kt
             if: WHEN type=kotlin.Boolean origin=ANDAND
               BRANCH
                 if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Int
-                  GET_VAR 'x: kotlin.Any declared in <root>.testOverloadedCompareToCallWithSmartCast' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.testOverloadedCompareToCallWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
                 then: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Char
-                  GET_VAR 'y: kotlin.Any declared in <root>.testOverloadedCompareToCallWithSmartCast' type=kotlin.Any origin=null
+                  GET_VAR 'y: kotlin.Any declared in <root>.testOverloadedCompareToCallWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               BRANCH
                 if: CONST Boolean type=kotlin.Boolean value=true
                 then: CONST Boolean type=kotlin.Boolean value=false
@@ -41,17 +41,17 @@ FILE fqName:<root> fileName:/kt23030.kt
             if: WHEN type=kotlin.Boolean origin=ANDAND
               BRANCH
                 if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Int
-                  GET_VAR 'x: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=null
+                  GET_VAR 'x: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
                 then: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Char
-                  GET_VAR 'y: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=null
+                  GET_VAR 'y: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               BRANCH
                 if: CONST Boolean type=kotlin.Boolean value=true
                 then: CONST Boolean type=kotlin.Boolean value=false
             then: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
               arg0: TYPE_OP type=kotlin.Int origin=IMPLICIT_CAST typeOperand=kotlin.Int
-                GET_VAR 'x: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=null
+                GET_VAR 'x: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
               arg1: TYPE_OP type=kotlin.Char origin=IMPLICIT_CAST typeOperand=kotlin.Char
-                GET_VAR 'y: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=null
+                GET_VAR 'y: kotlin.Any declared in <root>.testEqualsWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
           BRANCH
             if: CONST Boolean type=kotlin.Boolean value=true
             then: CONST Boolean type=kotlin.Boolean value=false
@@ -86,9 +86,9 @@ FILE fqName:<root> fileName:/kt23030.kt
               if: WHEN type=kotlin.Boolean origin=ANDAND
                 BRANCH
                   if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Int
-                    GET_VAR 'x: kotlin.Any declared in <root>.C.testMemberExtensionCompareToCallWithSmartCast' type=kotlin.Any origin=null
+                    GET_VAR 'x: kotlin.Any declared in <root>.C.testMemberExtensionCompareToCallWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
                   then: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Char
-                    GET_VAR 'y: kotlin.Any declared in <root>.C.testMemberExtensionCompareToCallWithSmartCast' type=kotlin.Any origin=null
+                    GET_VAR 'y: kotlin.Any declared in <root>.C.testMemberExtensionCompareToCallWithSmartCast' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
                 BRANCH
                   if: CONST Boolean type=kotlin.Boolean value=true
                   then: CONST Boolean type=kotlin.Boolean value=false

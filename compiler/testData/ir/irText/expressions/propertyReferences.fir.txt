@@ -136,7 +136,7 @@ FILE fqName:<root> fileName:/propertyReferences.kt
       VALUE_PARAMETER name:value index:0 type:kotlin.Int
       BLOCK_BODY
         SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:varWithBackingFieldAndAccessors type:kotlin.Int visibility:private [static]' type=kotlin.Unit origin=null
-          value: GET_VAR 'value: kotlin.Int declared in <root>.<set-varWithBackingFieldAndAccessors>' type=kotlin.Int origin=null
+          value: GET_VAR 'value: kotlin.Int declared in <root>.<set-varWithBackingFieldAndAccessors>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
   PROPERTY name:test_varWithBackingFieldAndAccessors visibility:public modality:FINAL [val]
     FIELD PROPERTY_BACKING_FIELD name:test_varWithBackingFieldAndAccessors type:kotlin.reflect.KMutableProperty0<kotlin.Int> visibility:private [final,static]
       EXPRESSION_BODY
@@ -221,7 +221,7 @@ FILE fqName:<root> fileName:/propertyReferences.kt
           $this: GET_FIELD 'FIELD PROPERTY_DELEGATE name:delegatedVar$delegate type:<root>.Delegate visibility:private [final,static]' type=<root>.Delegate origin=GET_PROPERTY
           thisRef: CONST Null type=kotlin.Nothing? value=null
           kProp: PROPERTY_REFERENCE 'public final delegatedVar: kotlin.Int [delegated,var]' field='FIELD PROPERTY_DELEGATE name:delegatedVar$delegate type:<root>.Delegate visibility:private [final,static]' getter='public final fun <get-delegatedVar> (): kotlin.Int declared in <root>' setter='public final fun <set-delegatedVar> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>' type=kotlin.reflect.KProperty<*> origin=null
-          value: GET_VAR '<set-?>: kotlin.Int declared in <root>.<set-delegatedVar>' type=kotlin.Int origin=null
+          value: GET_VAR '<set-?>: kotlin.Int declared in <root>.<set-delegatedVar>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
   PROPERTY name:test_delegatedVar visibility:public modality:FINAL [val]
     FIELD PROPERTY_BACKING_FIELD name:test_delegatedVar type:kotlin.reflect.KMutableProperty0<kotlin.Int> visibility:private [final,static]
       EXPRESSION_BODY

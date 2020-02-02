@@ -218,7 +218,7 @@ digraph implicitReceivers_kt {
                 81 [label="Function call: R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/c|, <L> = wc@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
     (this@R|special/anonymous| as R|A|)
     this@R|special/anonymous|.R|/A.foo|()
-    this@R|special/anonymous|.R|/A.foo|()
+    ^ this@R|special/anonymous|.R|/A.foo|()
 }
 )"];
                 82 [label="Access variable this@R|special/anonymous|"];
@@ -231,26 +231,26 @@ digraph implicitReceivers_kt {
     R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/c|, <L> = wc@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
         (this@R|special/anonymous| as R|A|)
         this@R|special/anonymous|.R|/A.foo|()
-        this@R|special/anonymous|.R|/A.foo|()
+        ^ this@R|special/anonymous|.R|/A.foo|()
     }
     )
     this@R|special/anonymous|.R|/A.foo|()
-    this@R|special/anonymous|.R|/A.foo|()
+    ^ this@R|special/anonymous|.R|/A.foo|()
 }
 )"];
             88 [label="Exit function anonymousFunction"];
         }
         89 [label="Postponed exit from lambda"];
         90 [label="Function call: R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/a|, <L> = wa@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
-    R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/b|, <L> = wb@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
+    ^ R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/b|, <L> = wb@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
         R|kotlin/with|<R|kotlin/Any|, R|kotlin/Unit|>(R|<local>/c|, <L> = wc@fun R|kotlin/Any|.<anonymous>(): R|kotlin/Unit| <kind=EXACTLY_ONCE>  {
             (this@R|special/anonymous| as R|A|)
             this@R|special/anonymous|.R|/A.foo|()
-            this@R|special/anonymous|.R|/A.foo|()
+            ^ this@R|special/anonymous|.R|/A.foo|()
         }
         )
         this@R|special/anonymous|.R|/A.foo|()
-        this@R|special/anonymous|.R|/A.foo|()
+        ^ this@R|special/anonymous|.R|/A.foo|()
     }
     )
 }

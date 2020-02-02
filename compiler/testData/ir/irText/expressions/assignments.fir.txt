@@ -46,11 +46,11 @@ FILE fqName:<root> fileName:/assignments.kt
         CONST Int type=kotlin.Int value=1
       SET_VAR 'var x: kotlin.Int [var] declared in <root>.test1' type=kotlin.Int origin=null
         CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
-          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.test1' type=kotlin.Int origin=null
+          $this: GET_VAR 'var x: kotlin.Int [var] declared in <root>.test1' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
           other: CONST Int type=kotlin.Int value=1
   FUN name:test2 visibility:public modality:FINAL <> (r:<root>.Ref) returnType:kotlin.Unit
     VALUE_PARAMETER name:r index:0 type:<root>.Ref
     BLOCK_BODY
       SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:x type:kotlin.Int visibility:private' type=kotlin.Unit origin=null
-        receiver: GET_VAR 'r: <root>.Ref declared in <root>.test2' type=<root>.Ref origin=null
+        receiver: GET_VAR 'r: <root>.Ref declared in <root>.test2' type=<root>.Ref origin=VARIABLE_AS_FUNCTION
         value: CONST Int type=kotlin.Int value=0

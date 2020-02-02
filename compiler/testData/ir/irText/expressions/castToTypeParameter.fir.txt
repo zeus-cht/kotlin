@@ -5,7 +5,7 @@ FILE fqName:<root> fileName:/castToTypeParameter.kt
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun castFun <T> (x: kotlin.Any): T of <root>.castFun declared in <root>'
         TYPE_OP type=T of <root>.castFun origin=CAST typeOperand=T of <root>.castFun
-          GET_VAR 'x: kotlin.Any declared in <root>.castFun' type=kotlin.Any origin=null
+          GET_VAR 'x: kotlin.Any declared in <root>.castFun' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   FUN name:castExtFun visibility:public modality:FINAL <T> ($receiver:kotlin.Any) returnType:T of <root>.castExtFun
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
     $receiver: VALUE_PARAMETER name:<this> type:kotlin.Any
@@ -33,7 +33,7 @@ FILE fqName:<root> fileName:/castToTypeParameter.kt
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun castMemberFun (x: kotlin.Any): T of <root>.Host declared in <root>.Host'
           TYPE_OP type=T of <root>.Host origin=CAST typeOperand=T of <root>.Host
-            GET_VAR 'x: kotlin.Any declared in <root>.Host.castMemberFun' type=kotlin.Any origin=null
+            GET_VAR 'x: kotlin.Any declared in <root>.Host.castMemberFun' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
     FUN name:castGenericMemberFun visibility:public modality:FINAL <TF> ($this:<root>.Host, x:kotlin.Any) returnType:TF of <root>.Host.castGenericMemberFun
       TYPE_PARAMETER name:TF index:0 variance: superTypes:[kotlin.Any?]
       $this: VALUE_PARAMETER name:<this> type:<root>.Host
@@ -41,7 +41,7 @@ FILE fqName:<root> fileName:/castToTypeParameter.kt
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public final fun castGenericMemberFun <TF> (x: kotlin.Any): TF of <root>.Host.castGenericMemberFun declared in <root>.Host'
           TYPE_OP type=TF of <root>.Host.castGenericMemberFun origin=CAST typeOperand=TF of <root>.Host.castGenericMemberFun
-            GET_VAR 'x: kotlin.Any declared in <root>.Host.castGenericMemberFun' type=kotlin.Any origin=null
+            GET_VAR 'x: kotlin.Any declared in <root>.Host.castGenericMemberFun' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
     FUN name:castMemberExtFun visibility:public modality:FINAL <> ($this:<root>.Host, $receiver:kotlin.Any) returnType:T of <root>.Host
       $this: VALUE_PARAMETER name:<this> type:<root>.Host
       $receiver: VALUE_PARAMETER name:<this> type:kotlin.Any

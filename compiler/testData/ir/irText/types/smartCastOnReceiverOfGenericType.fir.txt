@@ -4,22 +4,22 @@ FILE fqName:<root> fileName:/smartCastOnReceiverOfGenericType.kt
     VALUE_PARAMETER name:b index:1 type:kotlin.Any
     BLOCK_BODY
       TYPE_OP type=kotlin.collections.MutableList<kotlin.String> origin=CAST typeOperand=kotlin.collections.MutableList<kotlin.String>
-        GET_VAR 'a: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=null
+        GET_VAR 'a: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       TYPE_OP type=kotlin.String origin=CAST typeOperand=kotlin.String
-        GET_VAR 'b: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=null
+        GET_VAR 'b: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       CALL 'public abstract fun add (element: kotlin.String): kotlin.Boolean declared in kotlin.collections.MutableList' type=kotlin.Boolean origin=null
         $this: TYPE_OP type=kotlin.collections.MutableList<kotlin.String> origin=IMPLICIT_CAST typeOperand=kotlin.collections.MutableList<kotlin.String>
-          GET_VAR 'a: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=null
+          GET_VAR 'a: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
         element: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
-          GET_VAR 'b: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=null
+          GET_VAR 'b: kotlin.Any declared in <root>.testFunction' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   FUN name:testProperty visibility:public modality:FINAL <> (a:kotlin.Any, b:kotlin.Any) returnType:kotlin.Unit
     VALUE_PARAMETER name:a index:0 type:kotlin.Any
     VALUE_PARAMETER name:b index:1 type:kotlin.Any
     BLOCK_BODY
       TYPE_OP type=<root>.Cell<kotlin.String> origin=CAST typeOperand=<root>.Cell<kotlin.String>
-        GET_VAR 'a: kotlin.Any declared in <root>.testProperty' type=kotlin.Any origin=null
+        GET_VAR 'a: kotlin.Any declared in <root>.testProperty' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       TYPE_OP type=kotlin.String origin=CAST typeOperand=kotlin.String
-        GET_VAR 'b: kotlin.Any declared in <root>.testProperty' type=kotlin.Any origin=null
+        GET_VAR 'b: kotlin.Any declared in <root>.testProperty' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       ERROR_CALL 'Unresolved reference: R|FakeOverride</Cell.value: R|kotlin/String|>|' type=IrErrorType
   FUN name:testInnerClass visibility:public modality:FINAL <> (a:kotlin.Any, b:kotlin.Any, c:kotlin.Any) returnType:kotlin.Unit
     VALUE_PARAMETER name:a index:0 type:kotlin.Any
@@ -27,28 +27,28 @@ FILE fqName:<root> fileName:/smartCastOnReceiverOfGenericType.kt
     VALUE_PARAMETER name:c index:2 type:kotlin.Any
     BLOCK_BODY
       TYPE_OP type=<root>.Outer.Inner<kotlin.Int, kotlin.String> origin=CAST typeOperand=<root>.Outer.Inner<kotlin.Int, kotlin.String>
-        GET_VAR 'a: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=null
+        GET_VAR 'a: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       TYPE_OP type=kotlin.Int origin=CAST typeOperand=kotlin.Int
-        GET_VAR 'b: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=null
+        GET_VAR 'b: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       TYPE_OP type=kotlin.String origin=CAST typeOperand=kotlin.String
-        GET_VAR 'c: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=null
+        GET_VAR 'c: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       ERROR_CALL 'Unresolved reference: <Inapplicable(INAPPLICABLE): [/Outer.Inner.use]>#' type=IrErrorType
-        GET_VAR 'b: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Int origin=null
-        GET_VAR 'c: kotlin.Any declared in <root>.testInnerClass' type=kotlin.String origin=null
+        GET_VAR 'b: kotlin.Any declared in <root>.testInnerClass' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
+        GET_VAR 'c: kotlin.Any declared in <root>.testInnerClass' type=kotlin.String origin=VARIABLE_AS_FUNCTION
   FUN name:testNonSubstitutedTypeParameter visibility:public modality:FINAL <T> (a:kotlin.Any, b:kotlin.Any) returnType:kotlin.Unit
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
     VALUE_PARAMETER name:a index:0 type:kotlin.Any
     VALUE_PARAMETER name:b index:1 type:kotlin.Any
     BLOCK_BODY
       TYPE_OP type=kotlin.collections.MutableList<kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>> origin=CAST typeOperand=kotlin.collections.MutableList<kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>>
-        GET_VAR 'a: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=null
+        GET_VAR 'a: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       TYPE_OP type=kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter> origin=CAST typeOperand=kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>
-        GET_VAR 'b: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=null
+        GET_VAR 'b: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
       CALL 'public abstract fun add (element: kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>): kotlin.Boolean declared in kotlin.collections.MutableList' type=kotlin.Boolean origin=null
         $this: TYPE_OP type=kotlin.collections.MutableList<kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>> origin=IMPLICIT_CAST typeOperand=kotlin.collections.MutableList<kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>>
-          GET_VAR 'a: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=null
+          GET_VAR 'a: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
         element: TYPE_OP type=kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter> origin=IMPLICIT_CAST typeOperand=kotlin.collections.List<T of <root>.testNonSubstitutedTypeParameter>
-          GET_VAR 'b: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=null
+          GET_VAR 'b: kotlin.Any declared in <root>.testNonSubstitutedTypeParameter' type=kotlin.Any origin=VARIABLE_AS_FUNCTION
   CLASS CLASS name:Cell modality:FINAL visibility:public superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.Cell
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]

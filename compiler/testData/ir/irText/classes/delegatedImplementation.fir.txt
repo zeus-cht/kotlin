@@ -110,7 +110,7 @@ FILE fqName:<root> fileName:/delegatedImplementation.kt
             PROPERTY name:x visibility:public modality:FINAL [val]
               FIELD PROPERTY_BACKING_FIELD name:x type:kotlin.String visibility:private [final]
                 EXPRESSION_BODY
-                  GET_VAR 'x0: kotlin.String declared in <root>.otherImpl' type=kotlin.String origin=null
+                  GET_VAR 'x0: kotlin.String declared in <root>.otherImpl' type=kotlin.String origin=VARIABLE_AS_FUNCTION
               FUN DEFAULT_PROPERTY_ACCESSOR name:<get-x> visibility:public modality:FINAL <> ($this:<root>.otherImpl.<no name provided>) returnType:kotlin.String
                 correspondingProperty: PROPERTY name:x visibility:public modality:FINAL [val]
                 $this: VALUE_PARAMETER name:<this> type:<root>.otherImpl.<no name provided>
@@ -121,7 +121,7 @@ FILE fqName:<root> fileName:/delegatedImplementation.kt
             PROPERTY name:y visibility:public modality:FINAL [var]
               FIELD PROPERTY_BACKING_FIELD name:y type:kotlin.Int visibility:private
                 EXPRESSION_BODY
-                  GET_VAR 'y0: kotlin.Int declared in <root>.otherImpl' type=kotlin.Int origin=null
+                  GET_VAR 'y0: kotlin.Int declared in <root>.otherImpl' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
               FUN DEFAULT_PROPERTY_ACCESSOR name:<get-y> visibility:public modality:FINAL <> ($this:<root>.otherImpl.<no name provided>) returnType:kotlin.Int
                 correspondingProperty: PROPERTY name:y visibility:public modality:FINAL [var]
                 $this: VALUE_PARAMETER name:<this> type:<root>.otherImpl.<no name provided>

@@ -11,10 +11,10 @@ FILE fqName:<root> fileName:/implicitCastInReturnFromConstructor.kt
         WHEN type=kotlin.Unit origin=IF
           BRANCH
             if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Unit
-              GET_VAR 'x: kotlin.Any? declared in <root>.C.<init>' type=kotlin.Any? origin=null
+              GET_VAR 'x: kotlin.Any? declared in <root>.C.<init>' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
             then: RETURN type=kotlin.Nothing from='public constructor <init> (x: kotlin.Any?) declared in <root>.C'
               TYPE_OP type=kotlin.Unit origin=IMPLICIT_CAST typeOperand=kotlin.Unit
-                GET_VAR 'x: kotlin.Any? declared in <root>.C.<init>' type=kotlin.Any? origin=null
+                GET_VAR 'x: kotlin.Any? declared in <root>.C.<init>' type=kotlin.Any? origin=VARIABLE_AS_FUNCTION
         DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in <root>.C'
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:

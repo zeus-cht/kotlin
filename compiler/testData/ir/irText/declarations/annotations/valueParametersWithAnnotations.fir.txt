@@ -40,7 +40,7 @@ FILE fqName:<root> fileName:/valueParametersWithAnnotations.kt
     PROPERTY name:xx visibility:public modality:FINAL [val]
       FIELD PROPERTY_BACKING_FIELD name:xx type:kotlin.Int visibility:private [final]
         EXPRESSION_BODY
-          GET_VAR 'x: kotlin.Int declared in <root>.TestClassConstructor1.<init>' type=kotlin.Int origin=null
+          GET_VAR 'x: kotlin.Int declared in <root>.TestClassConstructor1.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
       FUN DEFAULT_PROPERTY_ACCESSOR name:<get-xx> visibility:public modality:FINAL <> ($this:<root>.TestClassConstructor1) returnType:kotlin.Int
         correspondingProperty: PROPERTY name:xx visibility:public modality:FINAL [val]
         $this: VALUE_PARAMETER name:<this> type:<root>.TestClassConstructor1

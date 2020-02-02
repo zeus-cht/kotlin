@@ -69,7 +69,7 @@ FILE fqName:<root> fileName:/delegatedPropertyAccessorsWithAnnotations.kt
       BLOCK_BODY
         SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:value type:kotlin.Int visibility:private' type=kotlin.Unit origin=null
           receiver: GET_VAR '<this>: <root>.Cell declared in <root>.Cell.setValue' type=<root>.Cell origin=null
-          value: GET_VAR 'newValue: kotlin.Int declared in <root>.Cell.setValue' type=kotlin.Int origin=null
+          value: GET_VAR 'newValue: kotlin.Int declared in <root>.Cell.setValue' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:kotlin.Boolean [fake_override,operator]
       overridden:
         public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
@@ -123,4 +123,4 @@ FILE fqName:<root> fileName:/delegatedPropertyAccessorsWithAnnotations.kt
           $this: GET_FIELD 'FIELD PROPERTY_DELEGATE name:test2$delegate type:<root>.Cell visibility:private [final,static]' type=<root>.Cell origin=GET_PROPERTY
           thisRef: CONST Null type=kotlin.Nothing? value=null
           kProp: PROPERTY_REFERENCE 'public final test2: kotlin.Int [delegated,var]' field='FIELD PROPERTY_DELEGATE name:test2$delegate type:<root>.Cell visibility:private [final,static]' getter='public final fun <get-test2> (): kotlin.Int declared in <root>' setter='public final fun <set-test2> (<set-?>: kotlin.Int): kotlin.Unit declared in <root>' type=kotlin.reflect.KProperty<*> origin=null
-          newValue: GET_VAR '<set-?>: kotlin.Int declared in <root>.<set-test2>' type=kotlin.Int origin=null
+          newValue: GET_VAR '<set-?>: kotlin.Int declared in <root>.<set-test2>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION

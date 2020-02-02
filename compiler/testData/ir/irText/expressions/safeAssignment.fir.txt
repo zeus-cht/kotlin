@@ -42,5 +42,5 @@ FILE fqName:<root> fileName:/safeAssignment.kt
     VALUE_PARAMETER name:nc index:0 type:<root>.C?
     BLOCK_BODY
       SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:x type:kotlin.Int visibility:private' type=kotlin.Unit origin=null
-        receiver: GET_VAR 'nc: <root>.C? declared in <root>.test' type=<root>.C? origin=null
+        receiver: GET_VAR 'nc: <root>.C? declared in <root>.test' type=<root>.C? origin=VARIABLE_AS_FUNCTION
         value: CONST Int type=kotlin.Int value=42

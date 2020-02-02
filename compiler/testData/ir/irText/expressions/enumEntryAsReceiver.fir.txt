@@ -87,6 +87,6 @@ FILE fqName:<root> fileName:/enumEntryAsReceiver.kt
   FUN name:box visibility:public modality:FINAL <> () returnType:kotlin.String
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun box (): kotlin.String declared in <root>'
-        CALL 'public abstract fun invoke (): kotlin.String [operator] declared in kotlin.Function0' type=kotlin.String origin=null
+        CALL 'public abstract fun invoke (): R of kotlin.Function0 [operator] declared in kotlin.Function0' type=kotlin.String origin=INVOKE
           $this: CALL 'public abstract fun <get-value> (): kotlin.Function0<kotlin.String> declared in <root>.X' type=kotlin.Function0<kotlin.String> origin=null
             $this: GET_ENUM 'ENUM_ENTRY name:B' type=<root>.X

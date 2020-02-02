@@ -4,7 +4,7 @@ FILE fqName:<root> fileName:/whenReturn.kt
     BLOCK_BODY
       BLOCK type=kotlin.Nothing origin=WHEN
         VAR IR_TEMPORARY_VARIABLE name:tmp_0 type:kotlin.String [val]
-          GET_VAR 'grade: kotlin.String declared in <root>.toString' type=kotlin.String origin=null
+          GET_VAR 'grade: kotlin.String declared in <root>.toString' type=kotlin.String origin=VARIABLE_AS_FUNCTION
         WHEN type=kotlin.Nothing origin=WHEN
           BRANCH
             if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ

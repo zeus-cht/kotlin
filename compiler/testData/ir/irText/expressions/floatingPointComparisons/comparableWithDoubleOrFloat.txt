@@ -9,17 +9,17 @@ FILE fqName:<root> fileName:/comparableWithDoubleOrFloat.kt
             if: WHEN type=kotlin.Boolean origin=ANDAND
               BRANCH
                 if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Double
-                  GET_VAR 'x: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=null
+                  GET_VAR 'x: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=VARIABLE_AS_FUNCTION
                 then: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Double
-                  GET_VAR 'y: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=null
+                  GET_VAR 'y: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=VARIABLE_AS_FUNCTION
               BRANCH
                 if: CONST Boolean type=kotlin.Boolean value=true
                 then: CONST Boolean type=kotlin.Boolean value=false
             then: CALL 'public final fun less (arg0: kotlin.Double, arg1: kotlin.Double): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=LT
               arg0: TYPE_OP type=kotlin.Double origin=IMPLICIT_CAST typeOperand=kotlin.Double
-                GET_VAR 'x: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=null
+                GET_VAR 'x: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=VARIABLE_AS_FUNCTION
               arg1: TYPE_OP type=kotlin.Double origin=IMPLICIT_CAST typeOperand=kotlin.Double
-                GET_VAR 'y: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=null
+                GET_VAR 'y: kotlin.Comparable<kotlin.Double> declared in <root>.testD' type=kotlin.Comparable<kotlin.Double> origin=VARIABLE_AS_FUNCTION
           BRANCH
             if: CONST Boolean type=kotlin.Boolean value=true
             then: CONST Boolean type=kotlin.Boolean value=false
@@ -33,17 +33,17 @@ FILE fqName:<root> fileName:/comparableWithDoubleOrFloat.kt
             if: WHEN type=kotlin.Boolean origin=ANDAND
               BRANCH
                 if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Float
-                  GET_VAR 'x: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=null
+                  GET_VAR 'x: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=VARIABLE_AS_FUNCTION
                 then: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=kotlin.Float
-                  GET_VAR 'y: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=null
+                  GET_VAR 'y: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=VARIABLE_AS_FUNCTION
               BRANCH
                 if: CONST Boolean type=kotlin.Boolean value=true
                 then: CONST Boolean type=kotlin.Boolean value=false
             then: CALL 'public final fun less (arg0: kotlin.Float, arg1: kotlin.Float): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=LT
               arg0: TYPE_OP type=kotlin.Float origin=IMPLICIT_CAST typeOperand=kotlin.Float
-                GET_VAR 'x: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=null
+                GET_VAR 'x: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=VARIABLE_AS_FUNCTION
               arg1: TYPE_OP type=kotlin.Float origin=IMPLICIT_CAST typeOperand=kotlin.Float
-                GET_VAR 'y: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=null
+                GET_VAR 'y: kotlin.Comparable<kotlin.Float> declared in <root>.testF' type=kotlin.Comparable<kotlin.Float> origin=VARIABLE_AS_FUNCTION
           BRANCH
             if: CONST Boolean type=kotlin.Boolean value=true
             then: CONST Boolean type=kotlin.Boolean value=false

@@ -86,7 +86,7 @@ FILE fqName:<root> fileName:/multipleThisReferences.kt
                     CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
                       $this: CALL 'public final fun <get-x> (): kotlin.Int declared in <root>.Outer.Inner' type=kotlin.Int origin=null
                         $this: GET_VAR '<this>: <uninitialized parent>.<anonymous> declared in <no parent>.<anonymous>' type=<uninitialized parent>.<anonymous> origin=null
-                      other: GET_VAR 'y: kotlin.Int declared in <root>.Host.<init>' type=kotlin.Int origin=null
+                      other: GET_VAR 'y: kotlin.Int declared in <root>.Host.<init>' type=kotlin.Int origin=VARIABLE_AS_FUNCTION
                 FUN DEFAULT_PROPERTY_ACCESSOR name:<get-xx> visibility:public modality:FINAL <> ($this:<root>.Host.test.<no name provided>) returnType:kotlin.Int
                   correspondingProperty: PROPERTY name:xx visibility:public modality:FINAL [val]
                   $this: VALUE_PARAMETER name:<this> type:<root>.Host.test.<no name provided>
