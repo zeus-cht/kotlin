@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.resolve.transformers.body.resolve
 
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirFunctionTarget
 import org.jetbrains.kotlin.fir.copy
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
@@ -13,7 +14,9 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.diagnostics.FirSimpleDiagnostic
 import org.jetbrains.kotlin.fir.expressions.FirExpression
+import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirStatement
+import org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.*
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
@@ -272,12 +275,17 @@ class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransformer) 
                 lambdaResolution.expectedReturnTypeRef ?: anonymousFunction.returnTypeRef.takeUnless { it is FirImplicitTypeRef }
             val result = transformFunction(anonymousFunction, withExpectedType(expectedReturnType)).single as FirAnonymousFunction
             val body = result.body
-            return if (result.returnTypeRef is FirImplicitTypeRef && body != null) {
+            if (result.returnTypeRef is FirImplicitTypeRef && body != null) {
                 result.transformReturnTypeRef(transformer, withExpectedType(body.resultType))
-                result
-            } else {
-                result
             }
+            val statement = body?.statements?.lastOrNull()
+            if (statement is FirExpression && statement !is FirReturnExpression && !body.resultType.isNothing) {
+                val returnExpression = FirReturnExpressionImpl(statement.source, statement)
+                returnExpression.target = FirFunctionTarget(null)
+                returnExpression.target.bind(result)
+                (body.statements as? MutableList<FirStatement>)?.set(body.statements.size - 1, returnExpression)
+            }
+            return result
         }
 
         val label = anonymousFunction.label
