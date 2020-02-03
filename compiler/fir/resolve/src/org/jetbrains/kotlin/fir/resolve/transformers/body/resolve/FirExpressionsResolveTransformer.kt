@@ -359,11 +359,7 @@ class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransformer) :
 
         callableReferenceAccess.annotations.forEach { it.accept(this, data) }
         val explicitReceiver = callableReferenceAccess.explicitReceiver
-        val transformedLHS = explicitReceiver?.transformSingle(this, ResolutionMode.ContextIndependent)?.apply {
-            if (this is FirResolvedQualifierImpl && callableReferenceAccess.safe) {
-                this.safe = true
-            }
-        }
+        val transformedLHS = explicitReceiver?.transformSingle(this, ResolutionMode.ContextIndependent)
 
         val callableReferenceAccessWithTransformedLHS =
             if (transformedLHS != null)

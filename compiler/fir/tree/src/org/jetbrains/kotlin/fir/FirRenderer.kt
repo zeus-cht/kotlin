@@ -946,7 +946,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
     override fun visitCallableReferenceAccess(callableReferenceAccess: FirCallableReferenceAccess) {
         callableReferenceAccess.annotations.renderAnnotations()
         callableReferenceAccess.explicitReceiver?.accept(this)
-        if (callableReferenceAccess.safe && callableReferenceAccess.explicitReceiver !is FirResolvedQualifier) {
+        if (callableReferenceAccess.safe) {
             print("?")
         }
         print("::")
@@ -1053,9 +1053,6 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             print(classId.asString())
         } else {
             print(resolvedQualifier.packageFqName.asString().replace(".", "/"))
-        }
-        if (resolvedQualifier.safe) {
-            print("?")
         }
         print("|")
     }

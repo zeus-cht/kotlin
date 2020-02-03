@@ -78,13 +78,15 @@ class FirDoubleColonExpressionResolver(
     }
 
     internal fun resolveDoubleColonLHS(doubleColonExpression: FirCallableReferenceAccess): DoubleColonLHS? {
-        val resultForExpr = tryResolveLHS(doubleColonExpression, this::shouldTryResolveLHSAsExpression, this::resolveExpressionOnLHS)
+        val resultForExpr = tryResolveLHS(doubleColonExpression, this::shouldTryResolveLHSAsExpression) { expression, _ ->
+            resolveExpressionOnLHS(expression)
+        }
         if (resultForExpr != null && !resultForExpr.isObjectQualifier) {
             return resultForExpr
         }
 
-        val resultForType = tryResolveLHS(doubleColonExpression, this::shouldTryResolveLHSAsType) { expression ->
-            resolveTypeOnLHS(expression)
+        val resultForType = tryResolveLHS(doubleColonExpression, this::shouldTryResolveLHSAsType) { expression, safe ->
+            resolveTypeOnLHS(expression, safe)
         }
 
         if (resultForType != null) {
@@ -109,13 +111,13 @@ class FirDoubleColonExpressionResolver(
     private fun <T : DoubleColonLHS> tryResolveLHS(
         doubleColonExpression: FirCallableReferenceAccess,
         criterion: (FirCallableReferenceAccess) -> Boolean,
-        resolve: (FirExpression) -> T?
+        resolve: (FirExpression, Boolean) -> T?
     ): T? {
         val expression = doubleColonExpression.explicitReceiver ?: return null
 
         if (!criterion(doubleColonExpression)) return null
 
-        return resolve(expression)
+        return resolve(expression, doubleColonExpression.safe)
     }
 
     private fun FirResolvedQualifier.expandedRegularClassIfAny(): FirRegularClass? {
@@ -141,9 +143,7 @@ class FirDoubleColonExpressionResolver(
         return DoubleColonLHS.Expression(type, isObjectQualifier = false)
     }
 
-    private fun resolveTypeOnLHS(
-        expression: FirExpression
-    ): DoubleColonLHS.Type? {
+    private fun resolveTypeOnLHS(expression: FirExpression, safe: Boolean): DoubleColonLHS.Type? {
         val resolvedExpression = expression as? FirResolvedQualifier
             ?: return null
 
@@ -168,7 +168,7 @@ class FirDoubleColonExpressionResolver(
                     else -> ConeStarProjection
                 }
             },
-            isNullable = expression.safe
+            isNullable = safe
         )
 
         return DoubleColonLHS.Type(type)

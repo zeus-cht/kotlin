@@ -431,7 +431,6 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +field("packageFqName", fqNameType)
             +field("relativeClassFqName", fqNameType, nullable = true)
             +field("classId", classIdType, nullable = true)
-            +booleanField("safe")
             +typeArguments.withTransform()
         }
 
