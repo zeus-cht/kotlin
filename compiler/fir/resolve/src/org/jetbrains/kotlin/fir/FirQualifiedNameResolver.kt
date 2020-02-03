@@ -65,8 +65,7 @@ class FirQualifiedNameResolver(components: BodyResolveComponents) : BodyResolveC
             return FirResolvedQualifierImpl(
                 source,
                 resolved.packageFqName,
-                resolved.relativeClassFqName,
-                safe = false
+                resolved.relativeClassFqName
             ).apply { resultType = typeForQualifier(this) }
         }
 
