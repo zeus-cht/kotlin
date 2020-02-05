@@ -184,7 +184,9 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
                         flow.addTypeStatement(operandVariable typeEq any)
                     }
                     if (isNotNullCheck) {
-                        flow.addImplication((expressionVariable eq true) implies (operandVariable typeEq any)) }
+                        flow.addImplication((expressionVariable eq true) implies (operandVariable typeEq any))
+                        flow.addImplication((expressionVariable eq true) implies (operandVariable notEq null))
+                    }
 
                 } else {
                     if (isNotNullCheck) {
@@ -196,14 +198,13 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
             FirOperation.AS -> {
                 if (operandVariable.isReal()) {
                     flow.addTypeStatement(operandVariable typeEq type)
-                } else {
-                    logicSystem.approveStatementsInsideFlow(
-                        flow,
-                        operandVariable notEq null,
-                        shouldRemoveSynthetics = true,
-                        shouldForkFlow = false
-                    )
                 }
+                logicSystem.approveStatementsInsideFlow(
+                    flow,
+                    operandVariable notEq null,
+                    shouldRemoveSynthetics = true,
+                    shouldForkFlow = false
+                )
             }
 
             FirOperation.SAFE_AS -> {
@@ -329,6 +330,12 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         val argument = checkNotNullCall.argument
         val operandVariable = variableStorage.getOrCreateRealVariable(argument.symbol, argument) ?: return
         node.flow.addTypeStatement(operandVariable typeEq any)
+        logicSystem.approveStatementsInsideFlow(
+            node.flow,
+            operandVariable notEq null,
+            shouldRemoveSynthetics = true,
+            shouldForkFlow = false
+        )
     }
 
     // ----------------------------------- When -----------------------------------
@@ -660,7 +667,16 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         }
 
         if (!isVariableDeclaration) {
-            node.flow.addTypeStatement(propertyVariable typeEq initializer.typeRef.coneTypeUnsafe<ConeKotlinType>())
+            val initializerType = initializer.typeRef.coneTypeUnsafe<ConeKotlinType>()
+            node.flow.addTypeStatement(propertyVariable typeEq initializerType)
+            if (initializerType.nullability == ConeNullability.NOT_NULL) {
+                logicSystem.approveStatementsInsideFlow(
+                    node.flow,
+                    propertyVariable notEq null,
+                    shouldRemoveSynthetics = true,
+                    shouldForkFlow = false
+                )
+            }
         }
     }
 
