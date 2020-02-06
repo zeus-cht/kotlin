@@ -235,7 +235,7 @@ public actual fun <T> Array<out T>.contentDeepToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boolean {
+public actual infix fun <T> Array<out T>?.contentEquals(other: Array<out T>?): Boolean {
     definedExternally
 }
 
@@ -248,7 +248,7 @@ public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boo
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
+public actual infix fun ByteArray?.contentEquals(other: ByteArray?): Boolean {
     definedExternally
 }
 
@@ -261,7 +261,7 @@ public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
+public actual infix fun ShortArray?.contentEquals(other: ShortArray?): Boolean {
     definedExternally
 }
 
@@ -274,7 +274,7 @@ public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
+public actual infix fun IntArray?.contentEquals(other: IntArray?): Boolean {
     definedExternally
 }
 
@@ -287,7 +287,7 @@ public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
+public actual infix fun LongArray?.contentEquals(other: LongArray?): Boolean {
     definedExternally
 }
 
@@ -300,7 +300,7 @@ public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
+public actual infix fun FloatArray?.contentEquals(other: FloatArray?): Boolean {
     definedExternally
 }
 
@@ -313,7 +313,7 @@ public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
+public actual infix fun DoubleArray?.contentEquals(other: DoubleArray?): Boolean {
     definedExternally
 }
 
@@ -326,7 +326,7 @@ public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean {
+public actual infix fun BooleanArray?.contentEquals(other: BooleanArray?): Boolean {
     definedExternally
 }
 
@@ -339,7 +339,7 @@ public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean
  */
 @SinceKotlin("1.1")
 @library("arrayEquals")
-public actual infix fun CharArray.contentEquals(other: CharArray): Boolean {
+public actual infix fun CharArray?.contentEquals(other: CharArray?): Boolean {
     definedExternally
 }
 
@@ -348,7 +348,7 @@ public actual infix fun CharArray.contentEquals(other: CharArray): Boolean {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun <T> Array<out T>.contentHashCode(): Int {
+public actual fun <T> Array<out T>?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -357,7 +357,7 @@ public actual fun <T> Array<out T>.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun ByteArray.contentHashCode(): Int {
+public actual fun ByteArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -366,7 +366,7 @@ public actual fun ByteArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun ShortArray.contentHashCode(): Int {
+public actual fun ShortArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -375,7 +375,7 @@ public actual fun ShortArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun IntArray.contentHashCode(): Int {
+public actual fun IntArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -384,7 +384,7 @@ public actual fun IntArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun LongArray.contentHashCode(): Int {
+public actual fun LongArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -393,7 +393,7 @@ public actual fun LongArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun FloatArray.contentHashCode(): Int {
+public actual fun FloatArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -402,7 +402,7 @@ public actual fun FloatArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun DoubleArray.contentHashCode(): Int {
+public actual fun DoubleArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -411,7 +411,7 @@ public actual fun DoubleArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun BooleanArray.contentHashCode(): Int {
+public actual fun BooleanArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -420,7 +420,7 @@ public actual fun BooleanArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayHashCode")
-public actual fun CharArray.contentHashCode(): Int {
+public actual fun CharArray?.contentHashCode(): Int {
     definedExternally
 }
 
@@ -431,7 +431,7 @@ public actual fun CharArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun <T> Array<out T>.contentToString(): String {
+public actual fun <T> Array<out T>?.contentToString(): String {
     definedExternally
 }
 
@@ -442,7 +442,7 @@ public actual fun <T> Array<out T>.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun ByteArray.contentToString(): String {
+public actual fun ByteArray?.contentToString(): String {
     definedExternally
 }
 
@@ -453,7 +453,7 @@ public actual fun ByteArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun ShortArray.contentToString(): String {
+public actual fun ShortArray?.contentToString(): String {
     definedExternally
 }
 
@@ -464,7 +464,7 @@ public actual fun ShortArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun IntArray.contentToString(): String {
+public actual fun IntArray?.contentToString(): String {
     definedExternally
 }
 
@@ -475,7 +475,7 @@ public actual fun IntArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun LongArray.contentToString(): String {
+public actual fun LongArray?.contentToString(): String {
     definedExternally
 }
 
@@ -486,7 +486,7 @@ public actual fun LongArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun FloatArray.contentToString(): String {
+public actual fun FloatArray?.contentToString(): String {
     definedExternally
 }
 
@@ -497,7 +497,7 @@ public actual fun FloatArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun DoubleArray.contentToString(): String {
+public actual fun DoubleArray?.contentToString(): String {
     definedExternally
 }
 
@@ -508,7 +508,7 @@ public actual fun DoubleArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun BooleanArray.contentToString(): String {
+public actual fun BooleanArray?.contentToString(): String {
     definedExternally
 }
 
@@ -519,7 +519,7 @@ public actual fun BooleanArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @library("arrayToString")
-public actual fun CharArray.contentToString(): String {
+public actual fun CharArray?.contentToString(): String {
     definedExternally
 }
 

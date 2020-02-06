@@ -440,7 +440,7 @@ public actual inline fun <T> Array<out T>.contentDeepToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boolean {
+public actual inline infix fun <T> Array<out T>?.contentEquals(other: Array<out T>?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -453,7 +453,7 @@ public actual inline infix fun <T> Array<out T>.contentEquals(other: Array<out T
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
+public actual inline infix fun ByteArray?.contentEquals(other: ByteArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -466,7 +466,7 @@ public actual inline infix fun ByteArray.contentEquals(other: ByteArray): Boolea
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
+public actual inline infix fun ShortArray?.contentEquals(other: ShortArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -479,7 +479,7 @@ public actual inline infix fun ShortArray.contentEquals(other: ShortArray): Bool
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun IntArray.contentEquals(other: IntArray): Boolean {
+public actual inline infix fun IntArray?.contentEquals(other: IntArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -492,7 +492,7 @@ public actual inline infix fun IntArray.contentEquals(other: IntArray): Boolean 
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun LongArray.contentEquals(other: LongArray): Boolean {
+public actual inline infix fun LongArray?.contentEquals(other: LongArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -505,7 +505,7 @@ public actual inline infix fun LongArray.contentEquals(other: LongArray): Boolea
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
+public actual inline infix fun FloatArray?.contentEquals(other: FloatArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -518,7 +518,7 @@ public actual inline infix fun FloatArray.contentEquals(other: FloatArray): Bool
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
+public actual inline infix fun DoubleArray?.contentEquals(other: DoubleArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -531,7 +531,7 @@ public actual inline infix fun DoubleArray.contentEquals(other: DoubleArray): Bo
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean {
+public actual inline infix fun BooleanArray?.contentEquals(other: BooleanArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -544,7 +544,7 @@ public actual inline infix fun BooleanArray.contentEquals(other: BooleanArray): 
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline infix fun CharArray.contentEquals(other: CharArray): Boolean {
+public actual inline infix fun CharArray?.contentEquals(other: CharArray?): Boolean {
     return java.util.Arrays.equals(this, other)
 }
 
@@ -553,7 +553,7 @@ public actual inline infix fun CharArray.contentEquals(other: CharArray): Boolea
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun <T> Array<out T>.contentHashCode(): Int {
+public actual inline fun <T> Array<out T>?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -562,7 +562,7 @@ public actual inline fun <T> Array<out T>.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun ByteArray.contentHashCode(): Int {
+public actual inline fun ByteArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -571,7 +571,7 @@ public actual inline fun ByteArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun ShortArray.contentHashCode(): Int {
+public actual inline fun ShortArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -580,7 +580,7 @@ public actual inline fun ShortArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun IntArray.contentHashCode(): Int {
+public actual inline fun IntArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -589,7 +589,7 @@ public actual inline fun IntArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun LongArray.contentHashCode(): Int {
+public actual inline fun LongArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -598,7 +598,7 @@ public actual inline fun LongArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun FloatArray.contentHashCode(): Int {
+public actual inline fun FloatArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -607,7 +607,7 @@ public actual inline fun FloatArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun DoubleArray.contentHashCode(): Int {
+public actual inline fun DoubleArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -616,7 +616,7 @@ public actual inline fun DoubleArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun BooleanArray.contentHashCode(): Int {
+public actual inline fun BooleanArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -625,7 +625,7 @@ public actual inline fun BooleanArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun CharArray.contentHashCode(): Int {
+public actual inline fun CharArray?.contentHashCode(): Int {
     return java.util.Arrays.hashCode(this)
 }
 
@@ -636,7 +636,7 @@ public actual inline fun CharArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun <T> Array<out T>.contentToString(): String {
+public actual inline fun <T> Array<out T>?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -647,7 +647,7 @@ public actual inline fun <T> Array<out T>.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun ByteArray.contentToString(): String {
+public actual inline fun ByteArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -658,7 +658,7 @@ public actual inline fun ByteArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun ShortArray.contentToString(): String {
+public actual inline fun ShortArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -669,7 +669,7 @@ public actual inline fun ShortArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun IntArray.contentToString(): String {
+public actual inline fun IntArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -680,7 +680,7 @@ public actual inline fun IntArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun LongArray.contentToString(): String {
+public actual inline fun LongArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -691,7 +691,7 @@ public actual inline fun LongArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun FloatArray.contentToString(): String {
+public actual inline fun FloatArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -702,7 +702,7 @@ public actual inline fun FloatArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun DoubleArray.contentToString(): String {
+public actual inline fun DoubleArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -713,7 +713,7 @@ public actual inline fun DoubleArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun BooleanArray.contentToString(): String {
+public actual inline fun BooleanArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 
@@ -724,7 +724,7 @@ public actual inline fun BooleanArray.contentToString(): String {
  */
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
-public actual inline fun CharArray.contentToString(): String {
+public actual inline fun CharArray?.contentToString(): String {
     return java.util.Arrays.toString(this)
 }
 

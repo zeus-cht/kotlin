@@ -6046,7 +6046,7 @@ public expect fun <T> Array<out T>.contentDeepToString(): String
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boolean
+public expect infix fun <T> Array<out T>?.contentEquals(other: Array<out T>?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6056,7 +6056,7 @@ public expect infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boo
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun ByteArray.contentEquals(other: ByteArray): Boolean
+public expect infix fun ByteArray?.contentEquals(other: ByteArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6066,7 +6066,7 @@ public expect infix fun ByteArray.contentEquals(other: ByteArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun ShortArray.contentEquals(other: ShortArray): Boolean
+public expect infix fun ShortArray?.contentEquals(other: ShortArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6076,7 +6076,7 @@ public expect infix fun ShortArray.contentEquals(other: ShortArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun IntArray.contentEquals(other: IntArray): Boolean
+public expect infix fun IntArray?.contentEquals(other: IntArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6086,7 +6086,7 @@ public expect infix fun IntArray.contentEquals(other: IntArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun LongArray.contentEquals(other: LongArray): Boolean
+public expect infix fun LongArray?.contentEquals(other: LongArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6096,7 +6096,7 @@ public expect infix fun LongArray.contentEquals(other: LongArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun FloatArray.contentEquals(other: FloatArray): Boolean
+public expect infix fun FloatArray?.contentEquals(other: FloatArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6106,7 +6106,7 @@ public expect infix fun FloatArray.contentEquals(other: FloatArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean
+public expect infix fun DoubleArray?.contentEquals(other: DoubleArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6116,7 +6116,7 @@ public expect infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean
+public expect infix fun BooleanArray?.contentEquals(other: BooleanArray?): Boolean
 
 /**
  * Returns `true` if the two specified arrays are *structurally* equal to one another,
@@ -6126,61 +6126,61 @@ public expect infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public expect infix fun CharArray.contentEquals(other: CharArray): Boolean
+public expect infix fun CharArray?.contentEquals(other: CharArray?): Boolean
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun <T> Array<out T>.contentHashCode(): Int
+public expect fun <T> Array<out T>?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun ByteArray.contentHashCode(): Int
+public expect fun ByteArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun ShortArray.contentHashCode(): Int
+public expect fun ShortArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun IntArray.contentHashCode(): Int
+public expect fun IntArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun LongArray.contentHashCode(): Int
+public expect fun LongArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun FloatArray.contentHashCode(): Int
+public expect fun FloatArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun DoubleArray.contentHashCode(): Int
+public expect fun DoubleArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun BooleanArray.contentHashCode(): Int
+public expect fun BooleanArray?.contentHashCode(): Int
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public expect fun CharArray.contentHashCode(): Int
+public expect fun CharArray?.contentHashCode(): Int
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6188,7 +6188,7 @@ public expect fun CharArray.contentHashCode(): Int
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun <T> Array<out T>.contentToString(): String
+public expect fun <T> Array<out T>?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6196,7 +6196,7 @@ public expect fun <T> Array<out T>.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun ByteArray.contentToString(): String
+public expect fun ByteArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6204,7 +6204,7 @@ public expect fun ByteArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun ShortArray.contentToString(): String
+public expect fun ShortArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6212,7 +6212,7 @@ public expect fun ShortArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun IntArray.contentToString(): String
+public expect fun IntArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6220,7 +6220,7 @@ public expect fun IntArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun LongArray.contentToString(): String
+public expect fun LongArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6228,7 +6228,7 @@ public expect fun LongArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun FloatArray.contentToString(): String
+public expect fun FloatArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6236,7 +6236,7 @@ public expect fun FloatArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun DoubleArray.contentToString(): String
+public expect fun DoubleArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6244,7 +6244,7 @@ public expect fun DoubleArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun BooleanArray.contentToString(): String
+public expect fun BooleanArray?.contentToString(): String
 
 /**
  * Returns a string representation of the contents of the specified array as if it is [List].
@@ -6252,7 +6252,7 @@ public expect fun BooleanArray.contentToString(): String
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public expect fun CharArray.contentToString(): String
+public expect fun CharArray?.contentToString(): String
 
 /**
  * Copies this array or its subrange into the [destination] array and returns that array.

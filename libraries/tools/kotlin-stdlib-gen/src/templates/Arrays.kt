@@ -81,7 +81,7 @@ object ArrayOps : TemplateGroupBase() {
         }
     }
 
-    val f_contentEquals = fn("contentEquals(other: SELF)") {
+    val f_contentEquals = fn("contentEquals(other: SELF?)") {
         include(ArraysOfObjects, ArraysOfPrimitives, ArraysOfUnsigned)
     } builder {
         since("1.1")
@@ -92,9 +92,10 @@ object ArrayOps : TemplateGroupBase() {
             i.e. contain the same number of the same elements in the same order.
             """
         }
+        receiver("SELF?")
         returns("Boolean")
         if (family == ArraysOfUnsigned) {
-            body { "return storage.contentEquals(other.storage)" }
+            body { "return this?.storage.contentEquals(other?.storage)" }
             return@builder
         }
         doc {
@@ -126,6 +127,7 @@ object ArrayOps : TemplateGroupBase() {
             body {
                 """
                 if (this === other) return true
+                if (this === null || other === null) return false
                 if (size != other.size) return false
                 for (i in indices) {
                     if (${notEq("this[i]", "other[i]")}) return false
@@ -191,9 +193,10 @@ object ArrayOps : TemplateGroupBase() {
             """
         }
         sample("samples.collections.Arrays.ContentOperations.contentToString")
+        receiver("SELF?")
         returns("String")
         if (family == ArraysOfUnsigned) {
-            body { """return joinToString(", ", "[", "]")""" }
+            body { """return this?.joinToString(", ", "[", "]") ?: "null"""" }
             return@builder
         }
         on(Platform.JVM) {
@@ -206,11 +209,11 @@ object ArrayOps : TemplateGroupBase() {
                 body { "definedExternally" }
             }
             on(Backend.IR) {
-                body { """return joinToString(", ", "[", "]")""" }
+                body { """return this?.joinToString(", ", "[", "]") ?: "null"""" }
             }
         }
         on(Platform.Native) {
-            body { """return joinToString(", ", "[", "]")""" }
+            body { """return this?.joinToString(", ", "[", "]") ?: "null"""" }
         }
     }
 
@@ -262,9 +265,10 @@ object ArrayOps : TemplateGroupBase() {
         doc {
             "Returns a hash code based on the contents of this array as if it is [List]."
         }
+        receiver("SELF?")
         returns("Int")
         if (family == ArraysOfUnsigned) {
-            body { "return storage.contentHashCode()" }
+            body { "return this?.storage.contentHashCode()" }
             return@builder
         }
         on(Platform.JVM) {
@@ -283,6 +287,7 @@ object ArrayOps : TemplateGroupBase() {
         on(Platform.Native) {
             body {
                 """
+                if (this === null) return 0
                 var result = 1
                 for (element in this)
                     result = 31 * result + element.hashCode()

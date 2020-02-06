@@ -231,7 +231,7 @@ public actual fun <T> Array<out T>.contentDeepToString(): String {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boolean {
+public actual infix fun <T> Array<out T>?.contentEquals(other: Array<out T>?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -243,7 +243,7 @@ public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boo
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
+public actual infix fun ByteArray?.contentEquals(other: ByteArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -255,7 +255,7 @@ public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
+public actual infix fun ShortArray?.contentEquals(other: ShortArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -267,7 +267,7 @@ public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
+public actual infix fun IntArray?.contentEquals(other: IntArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -279,7 +279,7 @@ public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
+public actual infix fun LongArray?.contentEquals(other: LongArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -291,7 +291,7 @@ public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
+public actual infix fun FloatArray?.contentEquals(other: FloatArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -303,7 +303,7 @@ public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
+public actual infix fun DoubleArray?.contentEquals(other: DoubleArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -315,7 +315,7 @@ public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean {
+public actual infix fun BooleanArray?.contentEquals(other: BooleanArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -327,7 +327,7 @@ public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean
  * For floating point numbers it means that `NaN` is equal to itself and `-0.0` is not equal to `0.0`.
  */
 @SinceKotlin("1.1")
-public actual infix fun CharArray.contentEquals(other: CharArray): Boolean {
+public actual infix fun CharArray?.contentEquals(other: CharArray?): Boolean {
     return contentEqualsInternal(other)
 }
 
@@ -335,7 +335,7 @@ public actual infix fun CharArray.contentEquals(other: CharArray): Boolean {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun <T> Array<out T>.contentHashCode(): Int {
+public actual fun <T> Array<out T>?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -343,7 +343,7 @@ public actual fun <T> Array<out T>.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun ByteArray.contentHashCode(): Int {
+public actual fun ByteArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -351,7 +351,7 @@ public actual fun ByteArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun ShortArray.contentHashCode(): Int {
+public actual fun ShortArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -359,7 +359,7 @@ public actual fun ShortArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun IntArray.contentHashCode(): Int {
+public actual fun IntArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -367,7 +367,7 @@ public actual fun IntArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun LongArray.contentHashCode(): Int {
+public actual fun LongArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -375,7 +375,7 @@ public actual fun LongArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun FloatArray.contentHashCode(): Int {
+public actual fun FloatArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -383,7 +383,7 @@ public actual fun FloatArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun DoubleArray.contentHashCode(): Int {
+public actual fun DoubleArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -391,7 +391,7 @@ public actual fun DoubleArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun BooleanArray.contentHashCode(): Int {
+public actual fun BooleanArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -399,7 +399,7 @@ public actual fun BooleanArray.contentHashCode(): Int {
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-public actual fun CharArray.contentHashCode(): Int {
+public actual fun CharArray?.contentHashCode(): Int {
     return contentHashCodeInternal()
 }
 
@@ -409,8 +409,8 @@ public actual fun CharArray.contentHashCode(): Int {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun <T> Array<out T>.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun <T> Array<out T>?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -419,8 +419,8 @@ public actual fun <T> Array<out T>.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun ByteArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun ByteArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -429,8 +429,8 @@ public actual fun ByteArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun ShortArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun ShortArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -439,8 +439,8 @@ public actual fun ShortArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun IntArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun IntArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -449,8 +449,8 @@ public actual fun IntArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun LongArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun LongArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -459,8 +459,8 @@ public actual fun LongArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun FloatArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun FloatArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -469,8 +469,8 @@ public actual fun FloatArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun DoubleArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun DoubleArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -479,8 +479,8 @@ public actual fun DoubleArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun BooleanArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun BooleanArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -489,8 +489,8 @@ public actual fun BooleanArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-public actual fun CharArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public actual fun CharArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**

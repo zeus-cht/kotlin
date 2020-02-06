@@ -3016,8 +3016,8 @@ public inline fun ShortArray.asUShortArray(): UShortArray {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public infix fun UIntArray.contentEquals(other: UIntArray): Boolean {
-    return storage.contentEquals(other.storage)
+public infix fun UIntArray?.contentEquals(other: UIntArray?): Boolean {
+    return this?.storage.contentEquals(other?.storage)
 }
 
 /**
@@ -3026,8 +3026,8 @@ public infix fun UIntArray.contentEquals(other: UIntArray): Boolean {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public infix fun ULongArray.contentEquals(other: ULongArray): Boolean {
-    return storage.contentEquals(other.storage)
+public infix fun ULongArray?.contentEquals(other: ULongArray?): Boolean {
+    return this?.storage.contentEquals(other?.storage)
 }
 
 /**
@@ -3036,8 +3036,8 @@ public infix fun ULongArray.contentEquals(other: ULongArray): Boolean {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public infix fun UByteArray.contentEquals(other: UByteArray): Boolean {
-    return storage.contentEquals(other.storage)
+public infix fun UByteArray?.contentEquals(other: UByteArray?): Boolean {
+    return this?.storage.contentEquals(other?.storage)
 }
 
 /**
@@ -3046,8 +3046,8 @@ public infix fun UByteArray.contentEquals(other: UByteArray): Boolean {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public infix fun UShortArray.contentEquals(other: UShortArray): Boolean {
-    return storage.contentEquals(other.storage)
+public infix fun UShortArray?.contentEquals(other: UShortArray?): Boolean {
+    return this?.storage.contentEquals(other?.storage)
 }
 
 /**
@@ -3055,8 +3055,8 @@ public infix fun UShortArray.contentEquals(other: UShortArray): Boolean {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UIntArray.contentHashCode(): Int {
-    return storage.contentHashCode()
+public fun UIntArray?.contentHashCode(): Int {
+    return this?.storage.contentHashCode()
 }
 
 /**
@@ -3064,8 +3064,8 @@ public fun UIntArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun ULongArray.contentHashCode(): Int {
-    return storage.contentHashCode()
+public fun ULongArray?.contentHashCode(): Int {
+    return this?.storage.contentHashCode()
 }
 
 /**
@@ -3073,8 +3073,8 @@ public fun ULongArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UByteArray.contentHashCode(): Int {
-    return storage.contentHashCode()
+public fun UByteArray?.contentHashCode(): Int {
+    return this?.storage.contentHashCode()
 }
 
 /**
@@ -3082,8 +3082,8 @@ public fun UByteArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UShortArray.contentHashCode(): Int {
-    return storage.contentHashCode()
+public fun UShortArray?.contentHashCode(): Int {
+    return this?.storage.contentHashCode()
 }
 
 /**
@@ -3093,8 +3093,8 @@ public fun UShortArray.contentHashCode(): Int {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UIntArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public fun UIntArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -3104,8 +3104,8 @@ public fun UIntArray.contentToString(): String {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun ULongArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public fun ULongArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -3115,8 +3115,8 @@ public fun ULongArray.contentToString(): String {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UByteArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public fun UByteArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
@@ -3126,8 +3126,8 @@ public fun UByteArray.contentToString(): String {
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
-public fun UShortArray.contentToString(): String {
-    return joinToString(", ", "[", "]")
+public fun UShortArray?.contentToString(): String {
+    return this?.joinToString(", ", "[", "]") ?: "null"
 }
 
 /**
