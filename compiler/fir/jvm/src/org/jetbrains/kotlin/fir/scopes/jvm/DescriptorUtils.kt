@@ -94,6 +94,10 @@ private fun StringBuilder.appendConeType(coneType: ConeKotlinType) {
             }
             append(coneType.lookupTag.name)
         }
+        is ConeFlexibleType -> {
+            appendConeType(coneType.lowerBound)
+            return
+        }
     }
     append(";")
 }
