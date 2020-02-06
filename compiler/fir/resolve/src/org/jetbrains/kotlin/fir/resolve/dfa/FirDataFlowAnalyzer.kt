@@ -518,22 +518,19 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
                 ?.withNullability(ConeNullability.NOT_NULL)
                 ?: return@let
 
-            when (val variable = variableStorage.getOrCreateVariable(receiver)) {
-                is RealVariable -> {
-                    if (shouldFork) {
-                        flow = logicSystem.forkFlow(flow)
-                    }
-                    flow.addTypeStatement(variable typeEq type)
+            val variable = variableStorage.getOrCreateVariable(receiver)
+            if (variable is RealVariable) {
+                if (shouldFork) {
+                    flow = logicSystem.forkFlow(flow)
                 }
-                is SyntheticVariable -> {
-                    flow = logicSystem.approveStatementsInsideFlow(
-                        flow,
-                        variable notEq null,
-                        shouldFork,
-                        shouldRemoveSynthetics = true
-                    )
-                }
+                flow.addTypeStatement(variable typeEq type)
             }
+            flow = logicSystem.approveStatementsInsideFlow(
+                flow,
+                variable notEq null,
+                shouldFork,
+                shouldRemoveSynthetics = true
+            )
         }
 
         node.flow = flow
@@ -661,9 +658,8 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         variableStorage.getOrCreateRealVariable(initializer.symbol, initializer)?.let { initializerVariable ->
             if (initializerVariable.isStable) {
                 variableStorage.attachSymbolToVariable(variable.symbol, initializerVariable)
-            } else {
-                node.flow.addImplication((propertyVariable notEq null) implies (initializerVariable notEq null))
             }
+            node.flow.addImplication((propertyVariable notEq null) implies (initializerVariable notEq null))
         }
 
         if (!isVariableDeclaration) {
