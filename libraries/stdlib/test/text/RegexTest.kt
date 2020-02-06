@@ -48,6 +48,10 @@ class RegexTest {
 
         val noMatch = last.next()
         assertEquals(null, noMatch)
+
+        assertFailsWith<IndexOutOfBoundsException> { p.find(input, -1) }
+        assertFailsWith<IndexOutOfBoundsException> { p.find(input, input.length + 1) }
+        assertEquals(null, p.find(input, input.length))
     }
 
     @Test fun matchIgnoreCase() {
@@ -71,10 +75,6 @@ class RegexTest {
         assertFailsWith<IndexOutOfBoundsException> { pattern.findAll(input, -1) }
         assertFailsWith<IndexOutOfBoundsException> { pattern.findAll(input, input.length + 1) }
         assertEquals(emptyList(), pattern.findAll(input, input.length).toList())
-
-        assertFailsWith<IndexOutOfBoundsException> { pattern.find(input, -1) }
-        assertFailsWith<IndexOutOfBoundsException> { pattern.find(input, input.length + 1) }
-        assertEquals(null, pattern.find(input, input.length))
     }
 
     @Test fun matchAllSequence() {
@@ -85,12 +85,7 @@ class RegexTest {
         assertEquals(input, matches.joinToString("") { it.value })
         assertEquals(2, matches.size)
 
-        assertFailsWith<IndexOutOfBoundsException> { pattern.findAll(input, -1) }
-        assertFailsWith<IndexOutOfBoundsException> { pattern.findAll(input, input.length + 1) }
         assertEquals("", pattern.findAll(input, input.length).single().value)
-
-        assertFailsWith<IndexOutOfBoundsException> { pattern.find(input, -1) }
-        assertFailsWith<IndexOutOfBoundsException> { pattern.find(input, input.length + 1) }
         assertEquals("", pattern.find(input, input.length)?.value)
     }
 
