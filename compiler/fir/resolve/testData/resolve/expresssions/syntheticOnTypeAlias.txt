@@ -1,0 +1,12 @@
+FILE: test.kt
+    public final typealias KotlinClass = R|JavaClass|
+    public final typealias Strategy = R|(JavaClass) -> kotlin/Boolean|
+    public final fun foo(kc: R|KotlinClass|): R|kotlin/Unit| {
+        R|<local>/kc|.R|/JavaClass.foo|
+    }
+    public final fun getStrategy(): R|Strategy| {
+        ^getStrategy fun <anonymous>(klass: R|JavaClass|): R|kotlin/Boolean| {
+            ^ ==(R|<local>/klass|.R|/JavaClass.foo|, Int(42))
+        }
+
+    }
