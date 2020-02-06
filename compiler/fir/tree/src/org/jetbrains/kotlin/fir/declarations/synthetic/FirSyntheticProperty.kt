@@ -52,7 +52,7 @@ class FirSyntheticProperty private constructor(
     )
 
     override val source: FirSourceElement?
-        get() = null
+        get() = getter.source
 
     override val initializer: FirExpression?
         get() = null
