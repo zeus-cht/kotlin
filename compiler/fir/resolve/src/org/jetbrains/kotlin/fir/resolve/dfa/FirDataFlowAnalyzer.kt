@@ -670,16 +670,7 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         }
 
         if (!isVariableDeclaration) {
-            val initializerType = initializer.typeRef.coneTypeUnsafe<ConeKotlinType>()
-            node.flow.addTypeStatement(propertyVariable typeEq initializerType)
-            if (initializerType.nullability == ConeNullability.NOT_NULL) {
-                logicSystem.approveStatementsInsideFlow(
-                    node.flow,
-                    propertyVariable notEq null,
-                    shouldRemoveSynthetics = true,
-                    shouldForkFlow = false
-                )
-            }
+            node.flow.addTypeStatement(propertyVariable typeEq initializer.typeRef.coneTypeUnsafe<ConeKotlinType>())
         }
     }
 
