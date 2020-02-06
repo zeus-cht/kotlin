@@ -122,7 +122,7 @@ val INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION = object : CallableDescriptor.UserDa
 @JvmField
 val INITIAL_SUSPEND_DESCRIPTOR_FOR_DO_RESUME = object : CallableDescriptor.UserDataKey<FunctionDescriptor> {}
 
-val CONTINUATION_PARAMETER_NAME = Name.identifier("continuation")
+val CONTINUATION_PARAMETER_NAME = Name.identifier(SUSPEND_FUNCTION_COMPLETION_PARAMETER_NAME)
 
 const val CONTINUATION_VARIABLE_NAME = "\$continuation"
 
