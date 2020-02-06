@@ -5,6 +5,7 @@
 
 package test.collections
 
+import test.text.isAsciiLetter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -31,6 +32,10 @@ class ScanTest {
             assertEquals(expected, LongArray(size) { it.toLong() }.scan("") { acc, e -> acc + e })
             assertEquals(expected, FloatArray(size) { it.toFloat() }.scan("") { acc, e -> acc + e.toInt() })
             assertEquals(expected, DoubleArray(size) { it.toDouble() }.scan("") { acc, e -> acc + e.toInt() })
+            assertEquals(
+                expected.map { it.map { c -> c.toInt() % 2 == 0 }.joinToString(separator = "") },
+                BooleanArray(size) { it % 2 == 0 }.scan("") { acc, e -> acc + e }
+            )
 
             // Unsigned Arrays
             assertEquals(expected, UByteArray(size) { it.toUByte() }.scan("") { acc, e -> acc + e })
@@ -95,6 +100,10 @@ class ScanTest {
             assertEquals(
                 expected,
                 DoubleArray(size) { it.toDouble() }.scanIndexed("+") { index, acc, e -> "$acc[$index: ${'a' + e.toInt()}]" }
+            )
+            assertEquals(
+                expected.map { it.map { c -> if (c.isAsciiLetter()) c.toInt() % 2 != 0 else c }.joinToString(separator = "") },
+                BooleanArray(size) { it % 2 == 0 }.scanIndexed("+") { index, acc, e -> "$acc[$index: $e]" }
             )
 
             // Unsigned Arrays
@@ -172,6 +181,10 @@ class ScanTest {
                 expected.map { it.toDouble() },
                 DoubleArray(size) { it.toDouble() }.scanReduce { acc, e -> acc + e.toInt() }
             )
+            assertEquals(
+                expected.indices.map { it % 2 == 0 },
+                BooleanArray(size) { true }.scanReduce { acc, e -> acc != e }
+            )
 
             // Unsigned Arrays
             assertEquals(
@@ -246,6 +259,10 @@ class ScanTest {
             assertEquals(
                 expected.map { it.toDouble() },
                 DoubleArray(size) { it.toDouble() }.scanReduceIndexed { index, acc, e -> index * (acc + e) }
+            )
+            assertEquals(
+                expected.indices.map { it % 2 == 0 },
+                BooleanArray(size) { true }.scanReduceIndexed { index, acc, e -> acc != e && index % 2 == 0 }
             )
 
             // Unsigned Arrays
