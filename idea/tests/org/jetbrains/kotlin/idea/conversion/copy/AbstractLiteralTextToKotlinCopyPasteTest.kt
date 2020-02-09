@@ -26,13 +26,13 @@ abstract class AbstractLiteralTextToKotlinCopyPasteTest : AbstractCopyPasteTest(
         if (!myFixture.editor.selectionModel.hasSelection())
             myFixture.editor.selectionModel.setSelection(0, fileText.length)
 
-        forceCheckForResolveInDispatchThreadInTests {
+        forceCheckForResolveInDispatchThreadInTests(project) {
             myFixture.performEditorAction(IdeActions.ACTION_COPY)
         }
 
         configureTargetFile(targetFileName)
 
-        forceCheckForResolveInDispatchThreadInTests {
+        forceCheckForResolveInDispatchThreadInTests(project) {
             myFixture.performEditorAction(IdeActions.ACTION_PASTE)
         }
 

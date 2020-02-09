@@ -177,7 +177,7 @@ abstract class AbstractQuickFixTest : KotlinLightCodeInsightFixtureTestCase(), Q
             }
 
             val stubComparisonFailure: ComparisonFailure? = try {
-                forceCheckForResolveInDispatchThreadInTests(writeActionResolveHandler) {
+                forceCheckForResolveInDispatchThreadInTests(project, writeActionResolveHandler) {
                     myFixture.launchAction(intention)
                 }
                 null

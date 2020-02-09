@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.idea.references
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.fir.FirSession
@@ -26,7 +27,6 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.*
-import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
@@ -65,7 +65,12 @@ abstract class AbstractKtReference<T : KtElement>(element: T) : PsiPolyVariantRe
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
         @Suppress("UNCHECKED_CAST")
         val kotlinResolver = KOTLIN_RESOLVER as ResolveCache.PolyVariantResolver<AbstractKtReference<T>>
-        return ResolveCache.getInstance(expression.project).resolveWithCaching(this, kotlinResolver, false, incompleteCode)
+        return if (enableResolverCache) {
+            ResolveCache.getInstance(expression.project)
+                .resolveWithCaching(this, kotlinResolver, false, incompleteCode) as Array<ResolveResult>
+        } else {
+            kotlinResolver.resolve(this, incompleteCode)
+        }
     }
 
     override fun isReferenceTo(element: PsiElement): Boolean {
@@ -93,6 +98,12 @@ abstract class AbstractKtReference<T : KtElement>(element: T) : PsiPolyVariantRe
     override fun toString() = this::class.java.simpleName + ": " + expression.text
 
     companion object {
+        var enableResolverCache: Boolean = true
+            @TestOnly
+            set(value) {
+                field = value
+            }
+
         private object FirReferenceResolveHelper {
             fun FirResolvedTypeRef.toTargetPsi(session: FirSession): PsiElement? {
                 val type = type as? ConeLookupTagBasedType ?: return null

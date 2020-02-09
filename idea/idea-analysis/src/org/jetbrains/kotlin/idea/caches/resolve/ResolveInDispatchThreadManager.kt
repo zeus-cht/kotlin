@@ -7,8 +7,11 @@ package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.psi.impl.source.resolve.ResolveCache
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.references.AbstractKtReference
 
 /**
  * Temporary allow resolve in dispatch thread.
@@ -36,7 +39,8 @@ fun <T> allowCachedResolveInDispatchThread(runnable: () -> T): T {
  * Force resolve check in tests as it disabled by default.
  */
 @TestOnly
-fun <T> forceCheckForResolveInDispatchThreadInTests(errorHandler: (() -> Unit)? = null, runnable: () -> T): T {
+fun <T> forceCheckForResolveInDispatchThreadInTests(project: Project, errorHandler: (() -> Unit)? = null, runnable: () -> T): T {
+    ResolveCache.getInstance(project).clearCache(true)
     return ResolveInDispatchThreadManager.runWithForceCheckForResolveInDispatchThreadInTests(errorHandler, runnable)
 }
 
@@ -52,10 +56,14 @@ internal object ResolveInDispatchThreadManager {
     private var isResolveAllowed: Boolean = false
 
     // Guarded by isDispatchThread check
-    private var isForceCheckInTests: Boolean = false
+    private var isForceCheckInTests: Boolean = true // VD: TEMP
 
     // Guarded by isDispatchThread check
     private var errorHandler: (() -> Unit)? = null
+
+    init {
+        AbstractKtReference.enableResolverCache = isForceCheckInTests
+    }
 
     internal fun assertNoResolveInDispatchThread() {
         val application = ApplicationManager.getApplication() ?: return
