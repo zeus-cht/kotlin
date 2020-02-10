@@ -25,7 +25,7 @@ class IdeaFileSystemWizardService : FileSystemWizardService, IdeaWizardService {
             val directory =
                 VfsUtil.createDirectoryIfMissing(directoryPath.toFile().toString())!!
             val virtualFile = directory.createChildData(this, path.fileName.toString())
-            VfsUtil.saveText(virtualFile, text)
+            VfsUtil.saveText(virtualFile, text.replace("\r\n", "\n"))
         }
     }
 }
