@@ -297,8 +297,11 @@ class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransformer) :
                 val conversionTypeRef = resolved.conversionTypeRef
                 val baseTypeArguments = resolved.argument.typeRef.coneTypeSafe<ConeKotlinType>()?.typeArguments
                 val conversionType = conversionTypeRef.coneTypeSafe<ConeKotlinType>()
-                if (conversionType?.typeArguments?.isEmpty() != true || conversionType is ConeTypeParameterType ||
-                    baseTypeArguments?.isEmpty() != false
+                if (conversionType?.typeArguments?.isEmpty() != true ||
+                    conversionType is ConeTypeParameterType ||
+                    baseTypeArguments?.isEmpty() != false ||
+                    (conversionType is ConeClassLikeType &&
+                            (conversionType.lookupTag.toSymbol(session)?.fir as? FirTypeParametersOwner)?.typeParameters?.isEmpty() == true)
                 ) {
                     resolved.resultType = resolved.conversionTypeRef
                 } else {
