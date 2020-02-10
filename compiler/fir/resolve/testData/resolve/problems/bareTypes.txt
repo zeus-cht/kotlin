@@ -6,5 +6,5 @@ FILE: bareTypes.kt
 
     }
     public final fun test(a: R|A<kotlin/String>|): R|kotlin/Unit| {
-        (R|<local>/a| as R|MutableA|).<Inapplicable(INAPPLICABLE): [/MutableA.add]>#(String())
+        (R|<local>/a| as R|MutableA|).R|FakeOverride</MutableA.add: R|kotlin/Unit|>|(String())
     }

@@ -294,7 +294,16 @@ class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransformer) :
                 resolved.resultType = session.builtinTypes.booleanType
             }
             FirOperation.AS -> {
-                resolved.resultType = resolved.conversionTypeRef
+                val conversionTypeRef = resolved.conversionTypeRef
+                val baseTypeArguments = resolved.argument.typeRef.coneTypeSafe<ConeKotlinType>()?.typeArguments
+                val conversionType = conversionTypeRef.coneTypeSafe<ConeKotlinType>()
+                if (conversionType?.typeArguments?.isEmpty() != true || conversionType is ConeTypeParameterType ||
+                    baseTypeArguments?.isEmpty() != false
+                ) {
+                    resolved.resultType = resolved.conversionTypeRef
+                } else {
+                    resolved.resultType = resolved.conversionTypeRef.withReplacedConeType(conversionType.withArguments(baseTypeArguments))
+                }
             }
             FirOperation.SAFE_AS -> {
                 resolved.resultType =

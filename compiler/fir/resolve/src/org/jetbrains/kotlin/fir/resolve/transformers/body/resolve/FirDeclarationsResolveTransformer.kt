@@ -300,6 +300,20 @@ class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransformer) 
         }
     }
 
+    override fun transformAnonymousInitializer(
+        anonymousInitializer: FirAnonymousInitializer,
+        data: ResolutionMode
+    ): CompositeTransformResult<FirDeclaration> {
+        if (implicitTypeOnly) return anonymousInitializer.compose()
+        return withScopeCleanup(localScopes) {
+            dataFlowAnalyzer.enterInitBlock(anonymousInitializer)
+            localScopes.addIfNotNull(primaryConstructorParametersScope)
+            transformDeclaration(anonymousInitializer, ResolutionMode.ContextIndependent).also {
+                dataFlowAnalyzer.exitInitBlock(it.single as FirAnonymousInitializer)
+            }
+        }
+    }
+
     override fun transformSimpleFunction(simpleFunction: FirSimpleFunction, data: ResolutionMode): CompositeTransformResult<FirSimpleFunction> {
         if (simpleFunction.resolvePhase == transformerPhase) return simpleFunction.compose()
         if (simpleFunction.resolvePhase == FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE && transformerPhase == FirResolvePhase.BODY_RESOLVE) {
@@ -375,20 +389,6 @@ class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransformer) 
     override fun transformConstructor(constructor: FirConstructor, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
         if (implicitTypeOnly) return constructor.compose()
         return transformFunction(constructor, data) as CompositeTransformResult<FirDeclaration>
-    }
-
-    override fun transformAnonymousInitializer(
-        anonymousInitializer: FirAnonymousInitializer,
-        data: ResolutionMode
-    ): CompositeTransformResult<FirDeclaration> {
-        if (implicitTypeOnly) return anonymousInitializer.compose()
-        return withScopeCleanup(localScopes) {
-            dataFlowAnalyzer.enterInitBlock(anonymousInitializer)
-            localScopes.addIfNotNull(primaryConstructorParametersScope)
-            transformDeclaration(anonymousInitializer, ResolutionMode.ContextIndependent).also {
-                dataFlowAnalyzer.exitInitBlock(it.single as FirAnonymousInitializer)
-            }
-        }
     }
 
     override fun transformValueParameter(valueParameter: FirValueParameter, data: ResolutionMode): CompositeTransformResult<FirStatement> {

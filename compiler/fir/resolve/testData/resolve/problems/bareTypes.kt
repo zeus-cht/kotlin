@@ -5,5 +5,5 @@ interface MutableA<T> : A<T> {
 }
 
 fun test(a: A<String>) {
-    (a as MutableA).<!INAPPLICABLE_CANDIDATE!>add<!>("")
+    (a as MutableA).add("")
 }
