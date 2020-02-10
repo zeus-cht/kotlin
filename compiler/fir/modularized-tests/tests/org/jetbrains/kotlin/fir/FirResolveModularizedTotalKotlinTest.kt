@@ -47,7 +47,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private var bestStatistics: FirResolveBench.TotalStatistics? = null
     private var bestPass: Int = 0
 
-    private fun runAnalysis(moduleData: ModuleData, environment: KotlinCoreEnvironment, useLightTree: Boolean = false) {
+    private fun runAnalysis(moduleData: ModuleData, environment: KotlinCoreEnvironment, useLightTree: Boolean = true) {
         val project = environment.project
         val ktFiles = environment.getSourceFiles()
 
