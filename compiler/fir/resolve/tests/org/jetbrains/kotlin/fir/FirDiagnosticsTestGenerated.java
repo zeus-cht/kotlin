@@ -1181,11 +1181,6 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
             runTest("compiler/fir/resolve/testData/resolve/problems/propertyFromJavaPlusAssign.kt");
         }
 
-        @TestMetadata("samConversionInConstructorCall.kt")
-        public void testSamConversionInConstructorCall() throws Exception {
-            runTest("compiler/fir/resolve/testData/resolve/problems/samConversionInConstructorCall.kt");
-        }
-
         @TestMetadata("syntheticsVsNormalProperties.kt")
         public void testSyntheticsVsNormalProperties() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/problems/syntheticsVsNormalProperties.kt");
@@ -1288,6 +1283,11 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
         @TestMetadata("runnable.kt")
         public void testRunnable() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/samConversions/runnable.kt");
+        }
+
+        @TestMetadata("samConversionInConstructorCall.kt")
+        public void testSamConversionInConstructorCall() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/samConversions/samConversionInConstructorCall.kt");
         }
 
         @TestMetadata("samSupertype.kt")
