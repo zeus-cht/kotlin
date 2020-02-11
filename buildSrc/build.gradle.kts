@@ -19,10 +19,11 @@ buildscript {
         buildSrcKotlinRepo?.let {
             maven(url = it)
         }
+        mavenLocal()
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9-dev")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$buildSrcKotlinVersion")
         classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver:$buildSrcKotlinVersion")
     }
@@ -67,8 +68,8 @@ rootProject.apply {
     from(rootProject.file("../gradle/versions.gradle.kts"))
 }
 
-val isTeamcityBuild = kotlinBuildProperties.isTeamcityBuild
-val intellijUltimateEnabled by extra(kotlinBuildProperties.intellijUltimateEnabled)
+val isTeamcityBuild = kotlinSharedBuildProperties.isTeamcityBuild
+val intellijUltimateEnabled by extra(kotlinSharedBuildProperties.intellijUltimateEnabled)
 val intellijSeparateSdks by extra(project.getBooleanProperty("intellijSeparateSdks") ?: false)
 val verifyDependencyOutput by extra( getBooleanProperty("kotlin.build.dependency.output.verification") ?: isTeamcityBuild)
 
@@ -90,11 +91,12 @@ repositories {
     extra["buildSrcKotlinRepo"]?.let {
         maven(url = it)
     }
+    mavenLocal()
 }
 
 dependencies {
     implementation(kotlin("stdlib", embeddedKotlinVersion))
-    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9-dev")
 
     implementation("net.rubygrapefruit:native-platform:${property("versions.native-platform")}")
     implementation("net.rubygrapefruit:native-platform-windows-amd64:${property("versions.native-platform")}")

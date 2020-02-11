@@ -9,14 +9,16 @@ import java.net.URI
 
 
 fun Settings.setupBuildCache() {
-    buildCache.local.isEnabled = kotlinBuildProperties.localBuildCacheEnabled
-    kotlinBuildProperties.buildCacheUrl?.let { remoteCacheUrl ->
-        buildCache.remote(HttpBuildCache::class.java) { remoteCache ->
-            remoteCache.url = URI(remoteCacheUrl)
-            remoteCache.isPush = kotlinBuildProperties.pushToBuildCache
-            if (kotlinBuildProperties.buildCacheUser != null && kotlinBuildProperties.buildCachePassword != null) {
-                remoteCache.credentials.username = kotlinBuildProperties.buildCacheUser
-                remoteCache.credentials.password = kotlinBuildProperties.buildCachePassword
+    with(kotlinSharedBuildProperties) {
+        buildCache.local.isEnabled = localBuildCacheEnabled
+        buildCacheUrl?.let { remoteCacheUrl ->
+            buildCache.remote(HttpBuildCache::class.java) { remoteCache ->
+                remoteCache.url = URI(remoteCacheUrl)
+                remoteCache.isPush = pushToBuildCache
+                if (buildCacheUser != null && buildCachePassword != null) {
+                    remoteCache.credentials.username = buildCacheUser
+                    remoteCache.credentials.password = buildCachePassword
+                }
             }
         }
     }

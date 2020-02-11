@@ -15,7 +15,16 @@ interface PropertiesProvider {
     fun getProperty(key: String): Any?
 }
 
-class KotlinBuildProperties(
+/**
+ * A class defining strongly-typed build properties.
+ *
+ * Place in this class only these properties you'd like to share between
+ * settings.gradle[.kts], buildSrc, and plain .gradle[.kts] project files.
+ *
+ * The properties that are used in projects only can be defined
+ * in buildSrc/src/main/kotlin/BuildProperties.kt.
+ */
+open class KotlinSharedBuildProperties(
     private val propertiesProvider: PropertiesProvider
 ) {
     private val localProperties: Properties = Properties()
@@ -27,9 +36,9 @@ class KotlinBuildProperties(
         }
     }
 
-    private operator fun get(key: String): Any? = localProperties.getProperty(key) ?: propertiesProvider.getProperty(key)
+    operator fun get(key: String): Any? = localProperties.getProperty(key) ?: propertiesProvider.getProperty(key)
 
-    private fun getBoolean(key: String, default: Boolean = false): Boolean =
+    fun getBoolean(key: String, default: Boolean = false): Boolean =
         this[key]?.toString()?.trim()?.toBoolean() ?: default
 
     val isJpsBuildEnabled: Boolean = getBoolean("jpsBuild")
@@ -52,11 +61,11 @@ class KotlinBuildProperties(
     val isInJpsBuildIdeaSync: Boolean
         get() = isJpsBuildEnabled && isInIdeaSync
 
-    val includeJava9: Boolean
-        get() = !isInJpsBuildIdeaSync && getBoolean("kotlin.build.java9", true)
-
-    val useBootstrapStdlib: Boolean
-        get() = isInJpsBuildIdeaSync || getBoolean("kotlin.build.useBootstrapStdlib", false)
+//    val includeJava9: Boolean
+//        get() = !isInJpsBuildIdeaSync && getBoolean("kotlin.build.java9", true)
+//
+//    val useBootstrapStdlib: Boolean
+//        get() = isInJpsBuildIdeaSync || getBoolean("kotlin.build.useBootstrapStdlib", false)
 
     private val kotlinUltimateExists: Boolean = propertiesProvider.rootProjectDir.resolve("kotlin-ultimate").exists()
 
@@ -75,28 +84,28 @@ class KotlinBuildProperties(
 
     val includeUltimate: Boolean = kotlinUltimateExists && (isTeamcityBuild || intellijUltimateEnabled)
 
-    val postProcessing: Boolean get() = isTeamcityBuild || getBoolean("kotlin.build.postprocessing", true)
+//    val postProcessing: Boolean get() = isTeamcityBuild || getBoolean("kotlin.build.postprocessing", true)
+//
+//    val relocation: Boolean get() = postProcessing
+//
+//    val proguard: Boolean get() = postProcessing && getBoolean("kotlin.build.proguard", isTeamcityBuild)
+//
+//    val jarCompression: Boolean get() = getBoolean("kotlin.build.jar.compression", isTeamcityBuild)
+//
+    internal val buildCacheUrl: String? = get("kotlin.build.cache.url") as String?
 
-    val relocation: Boolean get() = postProcessing
+    internal val pushToBuildCache: Boolean = getBoolean("kotlin.build.cache.push", isTeamcityBuild)
 
-    val proguard: Boolean get() = postProcessing && getBoolean("kotlin.build.proguard", isTeamcityBuild)
-
-    val jarCompression: Boolean get() = getBoolean("kotlin.build.jar.compression", isTeamcityBuild)
-
-    val buildCacheUrl: String? = get("kotlin.build.cache.url") as String?
-
-    val pushToBuildCache: Boolean = getBoolean("kotlin.build.cache.push", isTeamcityBuild)
-
-    val localBuildCacheEnabled: Boolean = getBoolean("kotlin.build.cache.local.enabled", !isTeamcityBuild)
+    internal val localBuildCacheEnabled: Boolean = getBoolean("kotlin.build.cache.local.enabled", !isTeamcityBuild)
 
     val buildScanServer: String? = get("kotlin.build.scan.url") as String?
 
-    val buildCacheUser: String? = get("kotlin.build.cache.user") as String?
+    internal val buildCacheUser: String? = get("kotlin.build.cache.user") as String?
 
-    val buildCachePassword: String? = get("kotlin.build.cache.password") as String?
+    internal val buildCachePassword: String? = get("kotlin.build.cache.password") as String?
 }
 
-private const val extensionName = "kotlinBuildProperties"
+private const val extensionName = "kotlinSharedBuildProperties"
 
 class ProjectProperties(val project: Project) : PropertiesProvider {
     override val rootProjectDir: File
@@ -105,9 +114,9 @@ class ProjectProperties(val project: Project) : PropertiesProvider {
     override fun getProperty(key: String): Any? = project.findProperty(key)
 }
 
-val Project.kotlinBuildProperties: KotlinBuildProperties
-    get() = rootProject.extensions.findByName(extensionName) as KotlinBuildProperties?
-        ?: KotlinBuildProperties(ProjectProperties(rootProject)).also {
+val Project.kotlinSharedBuildProperties: KotlinSharedBuildProperties
+    get() = rootProject.extensions.findByName(extensionName) as KotlinSharedBuildProperties?
+        ?: KotlinSharedBuildProperties(ProjectProperties(rootProject)).also {
             rootProject.extensions.add(extensionName, it)
         }
 
@@ -121,10 +130,10 @@ class SettingsProperties(val settings: Settings) : PropertiesProvider {
     }
 }
 
-fun getKotlinBuildPropertiesForSettings(settings: Any) = (settings as Settings).kotlinBuildProperties
+fun getKotlinBuildPropertiesForSettings(settings: Any) = (settings as Settings).kotlinSharedBuildProperties
 
-val Settings.kotlinBuildProperties: KotlinBuildProperties
-    get() = extensions.findByName(extensionName) as KotlinBuildProperties?
-        ?: KotlinBuildProperties(SettingsProperties(this)).also {
+val Settings.kotlinSharedBuildProperties: KotlinSharedBuildProperties
+    get() = extensions.findByName(extensionName) as KotlinSharedBuildProperties?
+        ?: KotlinSharedBuildProperties(SettingsProperties(this)).also {
             extensions.add(extensionName, it)
         }

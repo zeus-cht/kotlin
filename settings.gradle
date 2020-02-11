@@ -25,9 +25,10 @@ buildscript {
         } else {
             maven { url "https://kotlin.bintray.com/kotlin-dependencies" }
         }
+        mavenLocal()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9-dev")
     }
 }
 
@@ -35,7 +36,7 @@ plugins {
     id "com.gradle.enterprise" version "3.1.1"
 }
 
-def buildProperties = BuildPropertiesKt.getKotlinBuildPropertiesForSettings(settings)
+def buildProperties = SharedBuildPropertiesKt.getKotlinBuildPropertiesForSettings(settings)
 def projectVersions = file("./gradle/versions.properties").text
 
 gradleEnterprise {
