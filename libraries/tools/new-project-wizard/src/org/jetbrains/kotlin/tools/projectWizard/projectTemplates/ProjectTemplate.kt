@@ -110,7 +110,7 @@ object CustomSingleplatformProjectTemplate : ProjectTemplate() {
 }
 
 object CustomMultiplatformProjectTemplate : ProjectTemplate() {
-    override val title = "Empty MultiPlatform Project"
+    override val title = "Empty Multiplatform Project"
     override val htmlDescription = title
     override val suggestedProjectName = "myKotlinMultiplatformProject"
     override val projectKind = ProjectKind.Multiplatform
