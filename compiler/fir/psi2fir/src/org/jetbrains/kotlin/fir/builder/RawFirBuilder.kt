@@ -1252,71 +1252,73 @@ class RawFirBuilder(session: FirSession, val baseScopeProvider: FirScopeProvider
                 val rangeVal =
                     generateTemporaryVariable(baseSession, rangeSource, Name.special("<range>"), ktRangeExpression)
                 statements += rangeVal
-                val iteratorVal = generateTemporaryVariable(
-                    baseSession, rangeSource, Name.special("<iterator>"),
-                    buildFunctionCall {
-                        source = loopSource
-                        calleeReference = buildSimpleNamedReference {
+                statements += buildBlock {
+                    val iteratorVal = generateTemporaryVariable(
+                        baseSession, rangeSource, Name.special("<iterator>"),
+                        buildFunctionCall {
                             source = loopSource
-                            name = Name.identifier("iterator")
-                        }
-                        explicitReceiver = generateResolvedAccessExpression(rangeSource, rangeVal)
-                    },
-                )
-                statements += iteratorVal
-                statements += FirWhileLoopBuilder().apply {
-                    source = loopSource
-                    condition = buildFunctionCall {
-                        source = loopSource
-                        calleeReference = buildSimpleNamedReference {
-                            source = loopSource
-                            name = Name.identifier("hasNext")
-                        }
-                        explicitReceiver = generateResolvedAccessExpression(loopSource, iteratorVal)
-                    }
-                }.configure {
-                    // NB: just body.toFirBlock() isn't acceptable here because we need to add some statements
-                    val blockBuilder = when (val body = expression.body) {
-                        is KtBlockExpression -> configureBlockWithoutBuilding(body)
-                        null -> FirBlockBuilder()
-                        else -> FirBlockBuilder().apply {
-                            source = body.toFirSourceElement()
-                            statements += body.toFirStatement()
-                        }
-                    }
-                    if (ktParameter != null) {
-                        val multiDeclaration = ktParameter.destructuringDeclaration
-                        val firLoopParameter = generateTemporaryVariable(
-                            session = baseSession, source = expression.loopParameter?.toFirSourceElement(),
-                            name = if (multiDeclaration != null) Name.special("<destruct>") else ktParameter.nameAsSafeName,
-                            initializer = buildFunctionCall {
+                            calleeReference = buildSimpleNamedReference {
                                 source = loopSource
-                                calleeReference = buildSimpleNamedReference {
-                                    source = loopSource
-                                    name = Name.identifier("next")
-                                }
-                                explicitReceiver = generateResolvedAccessExpression(loopSource, iteratorVal)
-                            },
-                            typeRef = ktParameter.typeReference.toFirOrImplicitType(),
-                        )
-                        if (multiDeclaration != null) {
-                            val destructuringBlock = generateDestructuringBlock(
-                                session = baseSession,
-                                multiDeclaration = multiDeclaration,
-                                container = firLoopParameter,
-                                tmpVariable = true,
-                                extractAnnotationsTo = { extractAnnotationsTo(it) },
-                            ) { toFirOrImplicitType() }
-                            if (destructuringBlock is FirBlock) {
-                                for ((index, statement) in destructuringBlock.statements.withIndex()) {
-                                    blockBuilder.statements.add(index, statement)
-                                }
+                                name = Name.identifier("iterator")
                             }
-                        } else {
-                            blockBuilder.statements.add(0, firLoopParameter)
+                            explicitReceiver = generateResolvedAccessExpression(rangeSource, rangeVal)
+                        },
+                    )
+                    statements += iteratorVal
+                    statements += FirWhileLoopBuilder().apply {
+                        source = loopSource
+                        condition = buildFunctionCall {
+                            source = loopSource
+                            calleeReference = buildSimpleNamedReference {
+                                source = loopSource
+                                name = Name.identifier("hasNext")
+                            }
+                            explicitReceiver = generateResolvedAccessExpression(loopSource, iteratorVal)
                         }
+                    }.configure {
+                        // NB: just body.toFirBlock() isn't acceptable here because we need to add some statements
+                        val blockBuilder = when (val body = expression.body) {
+                            is KtBlockExpression -> configureBlockWithoutBuilding(body)
+                            null -> FirBlockBuilder()
+                            else -> FirBlockBuilder().apply {
+                                source = body.toFirSourceElement()
+                                statements += body.toFirStatement()
+                            }
+                        }
+                        if (ktParameter != null) {
+                            val multiDeclaration = ktParameter.destructuringDeclaration
+                            val firLoopParameter = generateTemporaryVariable(
+                                session = baseSession, source = expression.loopParameter?.toFirSourceElement(),
+                                name = if (multiDeclaration != null) Name.special("<destruct>") else ktParameter.nameAsSafeName,
+                                initializer = buildFunctionCall {
+                                    source = loopSource
+                                    calleeReference = buildSimpleNamedReference {
+                                        source = loopSource
+                                        name = Name.identifier("next")
+                                    }
+                                    explicitReceiver = generateResolvedAccessExpression(loopSource, iteratorVal)
+                                },
+                                typeRef = ktParameter.typeReference.toFirOrImplicitType(),
+                            )
+                            if (multiDeclaration != null) {
+                                val destructuringBlock = generateDestructuringBlock(
+                                    session = baseSession,
+                                    multiDeclaration = multiDeclaration,
+                                    container = firLoopParameter,
+                                    tmpVariable = true,
+                                    extractAnnotationsTo = { extractAnnotationsTo(it) },
+                                ) { toFirOrImplicitType() }
+                                if (destructuringBlock is FirBlock) {
+                                    for ((index, statement) in destructuringBlock.statements.withIndex()) {
+                                        blockBuilder.statements.add(index, statement)
+                                    }
+                                }
+                            } else {
+                                blockBuilder.statements.add(0, firLoopParameter)
+                            }
+                        }
+                        blockBuilder.build()
                     }
-                    blockBuilder.build()
                 }
             }
         }

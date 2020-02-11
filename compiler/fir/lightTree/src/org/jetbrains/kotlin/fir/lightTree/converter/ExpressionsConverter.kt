@@ -830,52 +830,54 @@ class ExpressionsConverter(
             val rangeVal =
                 generateTemporaryVariable(this@ExpressionsConverter.baseSession, null, Name.special("<range>"), rangeExpression)
             statements += rangeVal
-            val iteratorVal = generateTemporaryVariable(
-                this@ExpressionsConverter.baseSession, null, Name.special("<iterator>"),
-                buildFunctionCall {
-                    calleeReference = buildSimpleNamedReference { name = Name.identifier("iterator") }
-                    explicitReceiver = generateResolvedAccessExpression(null, rangeVal)
-                }
-            )
-            statements += iteratorVal
-            statements += FirWhileLoopBuilder().apply {
-                source = forLoop.toFirSourceElement()
-                condition = buildFunctionCall {
-                    calleeReference = buildSimpleNamedReference { name = Name.identifier("hasNext") }
-                    explicitReceiver = generateResolvedAccessExpression(null, iteratorVal)
-                }
-            }.configure {
-                // NB: just body.toFirBlock() isn't acceptable here because we need to add some statements
-                buildBlock block@{
-                    source = blockNode?.toFirSourceElement()
-                    statements += convertLoopBody(blockNode).statements
-                    if (parameter == null) return@block
-                    val multiDeclaration = parameter!!.destructuringDeclaration
-                    val firLoopParameter = generateTemporaryVariable(
-                        this@ExpressionsConverter.baseSession, null,
-                        if (multiDeclaration != null) Name.special("<destruct>") else parameter!!.firValueParameter.name,
-                        buildFunctionCall {
-                            calleeReference = buildSimpleNamedReference { name = Name.identifier("next") }
-                            explicitReceiver = generateResolvedAccessExpression(null, iteratorVal)
-                        },
-                        parameter!!.firValueParameter.returnTypeRef
-                    )
-                    if (multiDeclaration != null) {
-                        val destructuringBlock = generateDestructuringBlock(
-                            this@ExpressionsConverter.baseSession,
-                            multiDeclaration,
-                            firLoopParameter,
-                            tmpVariable = true
-                        )
-                        if (destructuringBlock is FirBlock) {
-                            for ((index, statement) in destructuringBlock.statements.withIndex()) {
-                                statements.add(index, statement)
-                            }
-                        }
-                    } else {
-                        statements.add(0, firLoopParameter)
+            statements += buildBlock {
+                val iteratorVal = generateTemporaryVariable(
+                    this@ExpressionsConverter.baseSession, null, Name.special("<iterator>"),
+                    buildFunctionCall {
+                        calleeReference = buildSimpleNamedReference { name = Name.identifier("iterator") }
+                        explicitReceiver = generateResolvedAccessExpression(null, rangeVal)
                     }
+                )
+                statements += iteratorVal
+                statements += FirWhileLoopBuilder().apply {
+                    source = forLoop.toFirSourceElement()
+                    condition = buildFunctionCall {
+                        calleeReference = buildSimpleNamedReference { name = Name.identifier("hasNext") }
+                        explicitReceiver = generateResolvedAccessExpression(null, iteratorVal)
+                    }
+                }.configure {
+                    // NB: just body.toFirBlock() isn't acceptable here because we need to add some statements
+                    buildBlock block@{
+                        source = blockNode?.toFirSourceElement()
+                        statements += convertLoopBody(blockNode).statements
+                        if (parameter == null) return@block
+                        val multiDeclaration = parameter!!.destructuringDeclaration
+                        val firLoopParameter = generateTemporaryVariable(
+                            this@ExpressionsConverter.baseSession, null,
+                            if (multiDeclaration != null) Name.special("<destruct>") else parameter!!.firValueParameter.name,
+                            buildFunctionCall {
+                                calleeReference = buildSimpleNamedReference { name = Name.identifier("next") }
+                                explicitReceiver = generateResolvedAccessExpression(null, iteratorVal)
+                            },
+                            parameter!!.firValueParameter.returnTypeRef
+                        )
+                        if (multiDeclaration != null) {
+                            val destructuringBlock = generateDestructuringBlock(
+                                this@ExpressionsConverter.baseSession,
+                                multiDeclaration,
+                                firLoopParameter,
+                                tmpVariable = true
+                            )
+                            if (destructuringBlock is FirBlock) {
+                                for ((index, statement) in destructuringBlock.statements.withIndex()) {
+                                    statements.add(index, statement)
+                                }
+                            }
+                        } else {
+                            statements.add(0, firLoopParameter)
+                        }
 
+                    }
                 }
             }
         }

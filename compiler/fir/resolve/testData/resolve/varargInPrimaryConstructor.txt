@@ -10,19 +10,25 @@ FILE: varargInPrimaryConstructor.kt
     }
     public final fun test_1(foo: R|Foo|): R|kotlin/Unit| {
         lval <range>: R|kotlin/Array<out kotlin/String>| = R|<local>/foo|.R|/Foo.strings|
-        lval <iterator>: R|kotlin/collections/Iterator<kotlin/String>| = R|<local>/<range>|.R|FakeOverride<kotlin/Array.iterator: R|kotlin/collections/Iterator<kotlin/String>|>|()
-        while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
-            lval s: R|kotlin/String| = R|<local>/<iterator>|.R|FakeOverride<kotlin/collections/Iterator.next: R|kotlin/String|>|()
-            R|<local>/s|.R|kotlin/String.length|
+         {
+            lval <iterator>: R|kotlin/collections/Iterator<kotlin/String>| = R|<local>/<range>|.R|FakeOverride<kotlin/Array.iterator: R|kotlin/collections/Iterator<kotlin/String>|>|()
+            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                lval s: R|kotlin/String| = R|<local>/<iterator>|.R|FakeOverride<kotlin/collections/Iterator.next: R|kotlin/String|>|()
+                R|<local>/s|.R|kotlin/String.length|
+            }
+
         }
 
     }
     public final fun test_2(vararg strings: R|kotlin/Array<kotlin/String>|): R|kotlin/Unit| {
         lval <range>: R|kotlin/Array<kotlin/String>| = R|<local>/strings|
-        lval <iterator>: R|kotlin/collections/Iterator<kotlin/String>| = R|<local>/<range>|.R|FakeOverride<kotlin/Array.iterator: R|kotlin/collections/Iterator<kotlin/String>|>|()
-        while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
-            lval s: R|kotlin/String| = R|<local>/<iterator>|.R|FakeOverride<kotlin/collections/Iterator.next: R|kotlin/String|>|()
-            R|<local>/s|.R|kotlin/String.length|
+         {
+            lval <iterator>: R|kotlin/collections/Iterator<kotlin/String>| = R|<local>/<range>|.R|FakeOverride<kotlin/Array.iterator: R|kotlin/collections/Iterator<kotlin/String>|>|()
+            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                lval s: R|kotlin/String| = R|<local>/<iterator>|.R|FakeOverride<kotlin/collections/Iterator.next: R|kotlin/String|>|()
+                R|<local>/s|.R|kotlin/String.length|
+            }
+
         }
 
     }
