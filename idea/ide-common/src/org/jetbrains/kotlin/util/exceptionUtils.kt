@@ -42,6 +42,9 @@ class ExceptionWithAttachmentWrapper(val ref: String, vararg val vars: Any? = em
 object EA {
     fun ea141456(vararg vars: Any?) =
         ExceptionWithAttachmentWrapper("EA-141456", vars).catch<IllegalStateException>()
+
+    fun ea219323(vararg vars: Any?) =
+        ExceptionWithAttachmentWrapper("EA-219323", vars).catch<IllegalStateException>()
 }
 
 
