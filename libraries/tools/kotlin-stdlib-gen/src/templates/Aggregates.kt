@@ -1039,6 +1039,8 @@ object Aggregates : TemplateGroupBase() {
     }
 
     private fun scanAccMutationNote(hasInitial: Boolean, f: Family): String {
+        if (!hasInitial && f.isPrimitiveSpecialization) return ""
+
         val initialValueRequirement = if (hasInitial && f == Sequences)
             """The [initial] value should also be immutable (or should not be mutated)
             as it may be passed to [operation] function later because of sequence's lazy nature.
