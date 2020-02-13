@@ -662,6 +662,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
             runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/KJKComplexHierarchyNestedLoop.kt");
         }
 
+        @TestMetadata("qualifierPriority.kt")
+        public void testQualifierPriority() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/qualifierPriority.kt");
+        }
+
         @TestMetadata("weakHashMap.kt")
         public void testWeakHashMap() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/weakHashMap.kt");
