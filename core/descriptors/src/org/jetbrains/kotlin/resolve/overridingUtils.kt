@@ -54,6 +54,7 @@ fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
     val result = SmartSet.create<H>()
 
     while (queue.isNotEmpty()) {
+        //
         val nextHandle: H = queue.first()
 
         val conflictedHandles = SmartSet.create<H>()
