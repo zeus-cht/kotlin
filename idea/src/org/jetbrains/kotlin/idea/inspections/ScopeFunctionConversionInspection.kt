@@ -237,12 +237,14 @@ class ConvertScopeFunctionToParameter(counterpartName: String) : ConvertScopeFun
     }
 
     override fun postprocessLambda(lambda: KtLambdaArgument) {
-        ShortenReferences { ShortenReferences.Options(removeThisLabels = true) }.process(lambda) { element ->
+        val filter = { element: PsiElement ->
             if (element is KtThisExpression && element.getLabelName() != null)
                 ShortenReferences.FilterResult.PROCESS
             else
                 ShortenReferences.FilterResult.GO_INSIDE
         }
+
+        ShortenReferences{ ShortenReferences.Options(removeThisLabels = true) }.process(lambda, filter)
     }
 
     private fun needUniqueNameForParameter(
@@ -341,7 +343,7 @@ class ConvertScopeFunctionToReceiver(counterpartName: String) : ConvertScopeFunc
     }
 
     override fun postprocessLambda(lambda: KtLambdaArgument) {
-        ShortenReferences { ShortenReferences.Options(removeThis = true, removeThisLabels = true) }.process(lambda) { element ->
+        val filter = { element: PsiElement ->
             if (element is KtThisExpression && element.getLabelName() != null)
                 ShortenReferences.FilterResult.PROCESS
             else if (element is KtQualifiedExpression && element.receiverExpression is KtThisExpression)
@@ -349,6 +351,7 @@ class ConvertScopeFunctionToReceiver(counterpartName: String) : ConvertScopeFunc
             else
                 ShortenReferences.FilterResult.GO_INSIDE
         }
+        ShortenReferences { ShortenReferences.Options(removeThis = true, removeThisLabels = true) }.process(lambda, filter)
     }
 }
 

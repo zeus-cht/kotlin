@@ -80,8 +80,13 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         }
     }
 
-    override fun importDescriptor(file: KtFile, descriptor: DeclarationDescriptor, forceAllUnderImport: Boolean): ImportDescriptorResult {
-        val importer = Importer(file)
+    override fun importDescriptor(
+        file: KtFile,
+        descriptor: DeclarationDescriptor,
+        actionRunningMode: ActionRunningMode,
+        forceAllUnderImport: Boolean
+    ): ImportDescriptorResult {
+        val importer = Importer(file, actionRunningMode)
         return if (forceAllUnderImport) {
             importer.importDescriptorWithStarImport(descriptor)
         } else {
@@ -90,7 +95,8 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
     }
 
     private inner class Importer(
-        private val file: KtFile
+        private val file: KtFile,
+        private val actionRunningMode: ActionRunningMode
     ) {
         private val resolutionFacade = file.getResolutionFacade()
 
@@ -258,10 +264,9 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             val addedImport = addImport(parentFqName, true)
 
             if (!isAlreadyImported(targetDescriptor, resolutionFacade.getFileResolutionScope(file), targetFqName)) {
-                addedImport.delete()
+                actionRunningMode.runAction { addedImport.delete() }
                 return ImportDescriptorResult.FAIL
             }
-
             dropRedundantExplicitImports(parentFqName)
 
             val conflicts = futureCheckMap
@@ -324,7 +329,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 if (targets.any { it is PackageViewDescriptor }) continue // do not drop import of package
                 val classDescriptor = targets.filterIsInstance<ClassDescriptor>().firstOrNull()
                 importsToCheck.addIfNotNull(classDescriptor?.importableFqName)
-                import.delete()
+                actionRunningMode.runAction { import.delete() }
             }
 
             if (importsToCheck.isNotEmpty()) {
@@ -378,7 +383,9 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private fun KtReferenceExpression.resolveTargets(): Collection<DeclarationDescriptor> =
             this.getImportableTargets(resolutionFacade.analyze(this, BodyResolveMode.PARTIAL))
 
-        private fun addImport(fqName: FqName, allUnder: Boolean): KtImportDirective = addImport(project, file, fqName, allUnder)
+        private fun addImport(fqName: FqName, allUnder: Boolean): KtImportDirective = actionRunningMode.runAction {
+            addImport(project, file, fqName, allUnder)
+        }
     }
 
     companion object {
