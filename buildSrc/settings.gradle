@@ -1,11 +1,5 @@
 pluginManagement {
     repositories {
-        mavenLocal()
-        maven { url "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-bootstrap" }
-        maven { url "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev"}
-        maven { url "https://cache-redirector.jetbrains.com/jcenter.bintray.com" }
-        maven { url "https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies" }
-
         if (cacheRedirectorEnabled == 'true') {
             logger.info("Using cache redirector for settings.gradle pluginManagement")
             maven {
@@ -19,7 +13,6 @@ pluginManagement {
 
 buildscript {
     repositories {
-        mavenLocal()
         if (cacheRedirectorEnabled == 'true') {
             maven { url "https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies" }
         } else {

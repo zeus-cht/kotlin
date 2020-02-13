@@ -90,7 +90,6 @@ repositories {
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
-    maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev")
 }
 
 val intellij by configurations.creating
@@ -147,12 +146,6 @@ dependencies {
 }
 
 val makeIntellijCore = buildIvyRepositoryTask(intellijCore, customDepsOrg, customDepsRepoDir)
-
-//tasks.register<CleanOldStoredDataTask> ("cleanOldStoredData")
-
-tasks.register("showAllRepos") {
-    CleanableStore.stores.forEach {println(it.key)}
-}
 
 val makeIntellijAnnotations by tasks.registering(Copy::class) {
     dependsOn(makeIntellijCore)
