@@ -151,7 +151,6 @@ val makeIntellijAnnotations by tasks.registering(Copy::class) {
     dependsOn(makeIntellijCore)
 
     val intellijCoreRepo = CleanableStore[repoDir.resolve("intellij-core").absolutePath][intellijVersion].use()
-//    val intellijCoreRepo = repoDir.resolve("intellij-core/$intellijVersion")
     from(intellijCoreRepo.resolve("artifacts/annotations.jar"))
 
     val targetDir = CleanableStore[repoDir.resolve(intellijRuntimeAnnotations).absolutePath][intellijVersion].use()
@@ -171,13 +170,6 @@ val makeIntellijAnnotations by tasks.registering(Copy::class) {
             targetDir,
             allowAnnotations = true
         )
-    }
-
-    doLast {
-        //TODO register CleanableStore
-        println("should always run")
-//        org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore[intellijCoreDir]
-//        repoDir.resolve(intellijCoreDir).setLastModified(java.time.Instant.now().toEpochMilli())
     }
 }
 
@@ -239,7 +231,6 @@ tasks.register<Delete>("cleanLegacy") {
 }
 
 tasks.named<Delete>("clean") {
-    //TODO specify repos to clean? Use CleanDataTask
     delete(customDepsRepoDir)
 }
 
