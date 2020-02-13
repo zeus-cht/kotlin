@@ -931,6 +931,11 @@ public class FormatterTestGenerated extends AbstractFormatterTest {
             public void testKT22346() throws Exception {
                 runTest("idea/testData/formatter/callChain/KT22346.after.kt");
             }
+
+            @TestMetadata("KT36466.after.kt")
+            public void testKT36466() throws Exception {
+                runTest("idea/testData/formatter/callChain/KT36466.after.kt");
+            }
         }
 
         @TestMetadata("idea/testData/formatter/fileAnnotations")

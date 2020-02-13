@@ -123,31 +123,15 @@ abstract class KotlinCommonBlock(
         return nodeSubBlocks
     }
 
-    private fun ASTNode.isQualifiedNode(strict: Boolean = false): Boolean {
-        if (strict) return elementType in QUALIFIED_EXPRESSIONS
-
-        var currentNode: ASTNode? = this
-        while (currentNode != null) {
-            if (currentNode.elementType in QUALIFIED_EXPRESSIONS) return true
-            if (currentNode.elementType != PARENTHESIZED && currentNode.psi?.safeAs<KtPostfixExpression>()
-                    ?.operationToken != EXCLEXCL
-            ) return false
-            currentNode = currentNode.treeParent
-        }
-
-        return false
-    }
-
     private fun splitSubBlocksOnDot(nodeSubBlocks: List<ASTBlock>): List<ASTBlock> {
-        if (node.treeParent?.isQualifiedNode() == true) return nodeSubBlocks
-        if (!canWrapCallChain(node)) return nodeSubBlocks
+        if (node.treeParent?.isQualifier() == true) return nodeSubBlocks
 
         val operationBlockIndex = nodeSubBlocks.indexOfBlockWithType(QUALIFIED_OPERATION)
         if (operationBlockIndex == -1) return nodeSubBlocks
 
         val block = nodeSubBlocks.first()
-        val wrap = createWrapForQualifiedExpression(node)
-        val indent = createIndentForQualifiedExpression(block)
+        val wrap = createWrapForQualifierExpression(node)
+        val indent = createIndentForQualifierExpression(node)
         val newBlock = block.processBlock(indent, wrap)
         return nodeSubBlocks.replaceBlock(newBlock, 0).splitAtIndex(operationBlockIndex, indent, wrap)
     }
@@ -158,21 +142,18 @@ abstract class KotlinCommonBlock(
         @Suppress("UNCHECKED_CAST")
         val subBlocks = subBlocks as List<ASTBlock>
         val elementType = currentNode.elementType
-        val index = when (elementType) {
-            PARENTHESIZED -> subBlocks.indexOfFirst { block ->
-                val type = block.requireNode().elementType
-                type != LPAR && type !in WHITE_SPACE_OR_COMMENT_BIT_SET
-            }
-            POSTFIX_EXPRESSION, in QUALIFIED_EXPRESSIONS -> 0
-            else -> return this
-        }
+        val index = if (elementType == POSTFIX_EXPRESSION || elementType in QUALIFIED_EXPRESSIONS)
+            0
+        else
+            return this
 
         val resultWrap = if (currentNode.wrapForFirstCallInChainIsAllowed)
-            wrap.takeIf { elementType != PARENTHESIZED } ?: createWrapForQualifiedExpression(currentNode)
+            wrap ?: createWrapForQualifierExpression(currentNode)
         else
             null
 
         val newBlock = subBlocks.elementAt(index).processBlock(indent, resultWrap)
+
         return subBlocks.replaceBlock(newBlock, index).let {
             val operationIndex = subBlocks.indexOfBlockWithType(QUALIFIED_OPERATION)
             if (operationIndex != -1)
@@ -184,23 +165,23 @@ abstract class KotlinCommonBlock(
 
     private fun List<ASTBlock>.replaceBlock(block: ASTBlock, index: Int = 0): List<ASTBlock> = toMutableList().apply { this[index] = block }
 
-    private val ASTNode.wrapForFirstCallInChainIsAllowed
-        get() = settings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN ||
-                settings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP != CommonCodeStyleSettings.WRAP_AS_NEEDED ||
-                firstChildNode?.isQualifiedNode(true) == true
+    private val ASTNode.wrapForFirstCallInChainIsAllowed: Boolean
+        get() = unwrapQualifier()?.isCall == true &&
+                (settings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN || receiverIsCallOrNull())
 
-    private fun createWrapForQualifiedExpression(node: ASTNode): Wrap? = if (node.wrapForFirstCallInChainIsAllowed)
-        Wrap.createWrap(
-            settings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP,
-            settings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN,
-        )
-    else
-        null
+    private fun createWrapForQualifierExpression(node: ASTNode): Wrap? =
+        if (node.wrapForFirstCallInChainIsAllowed && node.isCallChain)
+            Wrap.createWrap(
+                settings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP,
+                true,
+            )
+        else
+            null
 
-    private fun createIndentForQualifiedExpression(block: ASTBlock): Indent {
+    private fun createIndentForQualifierExpression(node: ASTNode): Indent {
         // enforce indent to children when there's a line break before the dot in any call in the chain (meaning that
         // the call chain following that call is indented)
-        val enforceIndentToChildren = anyCallInCallChainIsWrapped(block)
+        val enforceIndentToChildren = anyCallInCallChainIsWrapped(node)
 
         val indentType = if (settings.kotlinCustomSettings.CONTINUATION_INDENT_FOR_CHAINED_CALLS) {
             if (enforceIndentToChildren) Indent.Type.CONTINUATION else Indent.Type.CONTINUATION_WITHOUT_FIRST
@@ -247,29 +228,6 @@ abstract class KotlinCommonBlock(
         )
 
         return subList(0, index) + operationSyntheticBlock
-    }
-
-    private fun anyCallInCallChainIsWrapped(astBlock: ASTBlock): Boolean {
-        var result: ASTBlock? = astBlock
-        while (true) {
-            if (result == null || !isCallBlock(result)) return false
-            val dot = result.node?.findChildByType(QUALIFIED_OPERATION)
-            if (dot != null && hasLineBreakBefore(dot)) {
-                return true
-            }
-            result = result.subBlocks.firstOrNull() as? ASTBlock?
-        }
-    }
-
-    private fun isCallBlock(astBlock: ASTBlock): Boolean {
-        val node = astBlock.requireNode()
-        val lastChildElementType = node.lastChildNode?.elementType
-        return node.isQualifiedNode() && (lastChildElementType == CALL_EXPRESSION || lastChildElementType == REFERENCE_EXPRESSION)
-    }
-
-    private fun canWrapCallChain(node: ASTNode): Boolean {
-        val callChainParent = node.parents().firstOrNull { !it.isQualifiedNode() } ?: return true
-        return callChainParent.elementType !in QUALIFIED_EXPRESSIONS_WITHOUT_WRAP
     }
 
     private fun splitSubBlocksOnElvis(nodeSubBlocks: List<ASTBlock>): List<ASTBlock> {
@@ -827,6 +785,59 @@ abstract class KotlinCommonBlock(
     }
 }
 
+private fun ASTNode.qualifierReceiver(): ASTNode? = unwrapQualifier()?.psi
+    ?.safeAs<KtQualifiedExpression>()
+    ?.receiverExpression
+    ?.node
+    ?.unwrapQualifier()
+
+private tailrec fun ASTNode.unwrapQualifier(): ASTNode? {
+    if (elementType in QUALIFIED_EXPRESSIONS) return this
+
+    val psi = psi as? KtPostfixExpression ?: return null
+    return if (psi.operationToken == EXCLEXCL)
+        psi.baseExpression?.node?.unwrapQualifier()
+    else
+        null
+}
+
+private fun ASTNode.receiverIsCallOrNull(): Boolean = qualifierReceiver()?.isCall == true
+
+private val ASTNode.isCallChain: Boolean
+    get() {
+        val callChainParent = parents().firstOrNull { !it.isQualifier() } ?: return true
+        return callChainParent.elementType !in QUALIFIED_EXPRESSIONS_WITHOUT_WRAP && receiverIsCallOrNull()
+    }
+
+private fun ASTNode.isQualifier(strict: Boolean = false): Boolean {
+    if (strict) return elementType in QUALIFIED_EXPRESSIONS
+
+    var currentNode: ASTNode? = this
+    while (currentNode != null) {
+        if (currentNode.elementType in QUALIFIED_EXPRESSIONS) return true
+        if (currentNode.psi?.safeAs<KtPostfixExpression>()?.operationToken != EXCLEXCL) return false
+
+        currentNode = currentNode.treeParent
+    }
+
+    return false
+}
+
+private val ASTNode.isCall: Boolean
+    get() = unwrapQualifier()?.lastChildNode?.elementType == CALL_EXPRESSION
+
+private fun anyCallInCallChainIsWrapped(node: ASTNode): Boolean {
+    var result: ASTNode? = node
+    while (true) {
+        if (result == null || !result.isCall) return false
+        val dot = result.findChildByType(QUALIFIED_OPERATION)
+        if (dot != null && hasLineBreakBefore(dot)) {
+            return true
+        }
+        result = result.firstChildNode
+    }
+}
+
 private fun ASTNode.isFirstParameter(): Boolean = treePrev?.elementType == LPAR
 
 private fun wrapAfterAnnotation(wrapType: Int): WrappingStrategy {
@@ -983,8 +994,7 @@ private val INDENT_RULES = arrayOf(
 
     strategy("Chained calls")
         .within(QUALIFIED_EXPRESSIONS)
-        .notForType(DOT, SAFE_ACCESS)
-        .forElement { it.treeParent.firstChildNode != it }
+        .forType(EOL_COMMENT, BLOCK_COMMENT, DOC_COMMENT, SHEBANG_COMMENT)
         .continuationIf(KotlinCodeStyleSettings::CONTINUATION_INDENT_FOR_CHAINED_CALLS),
 
     strategy("Colon of delegation list")
