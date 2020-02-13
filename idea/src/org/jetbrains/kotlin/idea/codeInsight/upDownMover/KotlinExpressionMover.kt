@@ -4,15 +4,18 @@
  */
 package org.jetbrains.kotlin.idea.codeInsight.upDownMover
 
+import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.editorActions.moveUpDown.LineRange
 import com.intellij.codeInsight.editorActions.moveUpDown.StatementUpDownMover
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.core.util.isMultiLine
+import org.jetbrains.kotlin.idea.formatter.TrailingCommaHelper
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypesAndPredicate
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.function.Predicate
 
 class KotlinExpressionMover : AbstractKotlinUpDownMover() {
@@ -116,8 +119,14 @@ class KotlinExpressionMover : AbstractKotlinUpDownMover() {
         if (parametersOrArgsToMove != null) {
             val element1 = getLastSiblingOfSameTypeInLine(parametersOrArgsToMove!!.first, editor)
             val element2 = getLastSiblingOfSameTypeInLine(parametersOrArgsToMove!!.second, editor)
-            fixCommaIfNeeded(element1, down && isLastOfItsKind(element2, true))
-            fixCommaIfNeeded(element2, !down && isLastOfItsKind(element1, true))
+            val withTrailingComma = element1.parent
+                ?.safeAs<KtElement>()
+                ?.let {
+                    TrailingCommaHelper.needComma(it, CodeStyle.getSettings(it.project), true)
+                } == true
+
+            fixCommaIfNeeded(element1, down && isLastOfItsKind(element2, true), withTrailingComma)
+            fixCommaIfNeeded(element2, !down && isLastOfItsKind(element1, true), withTrailingComma)
             PsiDocumentManager.getInstance(editor.project!!).doPostponedOperationsAndUnblockDocument(editor.document)
         }
     }
@@ -553,9 +562,9 @@ class KotlinExpressionMover : AbstractKotlinUpDownMover() {
                 null
         }
 
-        private fun fixCommaIfNeeded(element: PsiElement, willBeLast: Boolean) {
+        private fun fixCommaIfNeeded(element: PsiElement, willBeLast: Boolean, withTrailingComma: Boolean) {
             val comma = getComma(element)
-            if (willBeLast && comma != null) {
+            if (willBeLast && comma != null && !withTrailingComma) {
                 comma.delete()
             } else if (!willBeLast && comma == null) {
                 val parent = element.parent!!
