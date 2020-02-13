@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-//        mavenLocal()
+        mavenLocal()
         maven { url "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-bootstrap" }
         maven { url "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev"}
         maven { url "https://cache-redirector.jetbrains.com/jcenter.bintray.com" }
@@ -19,6 +19,7 @@ pluginManagement {
 
 buildscript {
     repositories {
+        mavenLocal()
         if (cacheRedirectorEnabled == 'true') {
             maven { url "https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies" }
         } else {
@@ -26,7 +27,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9")
     }
 }
 

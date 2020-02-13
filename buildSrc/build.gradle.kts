@@ -2,18 +2,13 @@ extra["versions.shadow"] = "5.2.0"
 extra["versions.native-platform"] = "0.14"
 
 buildscript {
-    //TODO move it to single place
-    val bootstrapKotlinVersion = "1.4.0-dev-1148"
-
-    //val bootstrapKotlinRepo = "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-bootstrap"
-    val bootstrapKotlinRepo = "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev"
 
     val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
 
-    val buildSrcKotlinVersion: String by extra(findProperty("buildSrc.kotlin.version")?.toString() ?: bootstrapKotlinVersion)
-    val buildSrcKotlinRepo: String? by extra(findProperty("buildSrc.kotlin.repo") as String? ?: bootstrapKotlinRepo)
+    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
 
     repositories {
+        mavenLocal()
         if (cacheRedirectorEnabled) {
             maven("https://cache-redirector.jetbrains.com/jcenter.bintray.com")
             maven("https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies")
@@ -22,22 +17,21 @@ buildscript {
             maven("https://kotlin.bintray.com/kotlin-dependencies")
         }
 
-        buildSrcKotlinRepo?.let {
+        project.bootstrapKotlinRepo?.let {
             maven(url = it)
         }
-
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$buildSrcKotlinVersion")
-        classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver:$buildSrcKotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${project.bootstrapKotlinVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver:${project.bootstrapKotlinVersion}")
     }
 }
 
 val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
 
-logger.info("buildSrcKotlinVersion: " + extra["buildSrcKotlinVersion"])
+logger.info("buildSrcKotlinVersion: " + extra["bootstrapKotlinVersion"])
 logger.info("buildSrc kotlin compiler version: " + org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION)
 logger.info("buildSrc stdlib version: " + KotlinVersion.CURRENT)
 
@@ -90,18 +84,19 @@ extra["customDepsOrg"] = "kotlin.build"
 
 repositories {
     jcenter()
+    mavenLocal()
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
     maven("https://kotlin.bintray.com/kotlin-dependencies")
     gradlePluginPortal()
 
-    extra["buildSrcKotlinRepo"]?.let {
+    extra["bootstrapKotlinRepo"]?.let {
         maven(url = it)
     }
 }
 
 dependencies {
     implementation(kotlin("stdlib", embeddedKotlinVersion))
-    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9")
 
     implementation("net.rubygrapefruit:native-platform:${property("versions.native-platform")}")
     implementation("net.rubygrapefruit:native-platform-windows-amd64:${property("versions.native-platform")}")

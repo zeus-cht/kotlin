@@ -6,7 +6,7 @@ kotlin.compiler.effectSystemEnabled=true
 kotlin.compiler.newInferenceEnabled=true
 #maven.repository.mirror=http://repository.jetbrains.com/remote-repos/
 #bootstrap.kotlin.repo=https://dl.bintray.com/kotlin/kotlin-dev
-#bootstrap.kotlin.version=1.1.50-dev-1451
+bootstrap.kotlin.version=1.4.0-dev-1148
 #signingRequired=true
 
 intellijUltimateEnabled=false

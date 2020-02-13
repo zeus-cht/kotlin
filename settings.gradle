@@ -20,6 +20,7 @@ pluginManagement {
 
 buildscript {
     repositories {
+        mavenLocal()
         if (cacheRedirectorEnabled == 'true') {
             maven { url "https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-dependencies" }
         } else {
@@ -27,7 +28,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.8")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.9")
     }
 }
 
