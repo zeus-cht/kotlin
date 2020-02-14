@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.idea.stubindex;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -23,8 +24,10 @@ import com.intellij.psi.stubs.StubOutputStream;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.config.AppendJavaSourceRootsHandlerKeyKt;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassInfo;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
+import org.jetbrains.kotlin.idea.project.PlatformKt;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.name.FqName;
@@ -139,6 +142,9 @@ public class IdeStubIndexService extends StubIndexService {
 
     @Override
     public void indexFunction(@NotNull KotlinFunctionStub stub, @NotNull IndexSink sink) {
+        Project project = stub.getPsi().getProject();
+        project.putUserData(AppendJavaSourceRootsHandlerKeyKt.getLANGUAGE_VERSION_SETTINGS_KEY2(), PlatformKt.getLanguageVersionSettings(stub.getPsi()));
+
         String name = stub.getName();
         if (name != null) {
             sink.occurrence(KotlinFunctionShortNameIndex.getInstance().getKey(), name);

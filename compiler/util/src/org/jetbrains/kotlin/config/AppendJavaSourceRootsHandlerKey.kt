@@ -17,6 +17,10 @@
 package org.jetbrains.kotlin.config
 
 import com.intellij.openapi.util.Key
+import com.intellij.psi.util.CachedValue
 import java.io.File
+
+val LANGUAGE_VERSION_SETTINGS_KEY = Key.create<CachedValue<LanguageVersionSettings>>("LANGUAGE_VERSION_SETTINGS")
+val LANGUAGE_VERSION_SETTINGS_KEY2 = Key.create<LanguageVersionSettings>("LANGUAGE_VERSION_SETTINGS")
 
 val APPEND_JAVA_SOURCE_ROOTS_HANDLER_KEY = Key<(List<File>) -> Unit>("AppendJavaSourceRootsHandlerKey")

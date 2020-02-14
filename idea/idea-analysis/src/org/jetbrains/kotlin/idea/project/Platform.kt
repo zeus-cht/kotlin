@@ -158,7 +158,7 @@ fun Project.getLanguageVersionSettings(
     )
 }
 
-private val LANGUAGE_VERSION_SETTINGS = Key.create<CachedValue<LanguageVersionSettings>>("LANGUAGE_VERSION_SETTINGS")
+private val LANGUAGE_VERSION_SETTINGS = LANGUAGE_VERSION_SETTINGS_KEY
 
 val Module.languageVersionSettings: LanguageVersionSettings
     get() {

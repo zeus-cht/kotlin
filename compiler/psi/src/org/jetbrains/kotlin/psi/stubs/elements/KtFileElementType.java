@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.psi.stubs.elements;
 
 import com.intellij.lang.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.StubBuilder;
@@ -81,7 +83,8 @@ public class KtFileElementType extends IStubFileElementType<KotlinFileStub> {
         Language languageForParser = getLanguageForParser(psi);
         PsiBuilder builder = PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, languageForParser, chameleon.getChars());
         KotlinParser parser = (KotlinParser) LanguageParserDefinitions.INSTANCE.forLanguage(languageForParser).createParser(project);
-        return parser.parse(this, builder, psi.getContainingFile()).getFirstChildNode();
+
+        return parser.parse(this, builder, chameleon, psi.getContainingFile()).getFirstChildNode();
     }
 
     @Override

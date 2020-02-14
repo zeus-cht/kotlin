@@ -19,13 +19,21 @@ package org.jetbrains.kotlin.parsing;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPsiElementPointer;
+import kotlin.Pair;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.diagnostics.ParserErrors;
+import org.jetbrains.kotlin.lexer.KotlinLexer;
 import org.jetbrains.kotlin.lexer.KtKeywordToken;
 import org.jetbrains.kotlin.lexer.KtTokens;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.jetbrains.kotlin.KtNodeTypes.*;
 import static org.jetbrains.kotlin.lexer.KtTokens.*;
@@ -35,6 +43,7 @@ import static org.jetbrains.kotlin.parsing.KotlinWhitespaceAndCommentsBindersKt.
 
 public class KotlinParsing extends AbstractKotlinParsing {
     private static final Logger LOG = Logger.getInstance(KotlinParsing.class);
+    static SmartPsiElementPointer<PsiElement> LOG2 = null;
 
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(
             TYPE_ALIAS_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD, OBJECT_KEYWORD,
@@ -90,6 +99,8 @@ public class KotlinParsing extends AbstractKotlinParsing {
         };
         return kotlinParsing;
     }
+
+    public final Map<Pair<IElementType, Integer>, ParserErrors> errors = new HashMap<>();
 
     private KotlinExpressionParsing myExpressionParsing;
 
@@ -2237,10 +2248,17 @@ public class KotlinParsing extends AbstractKotlinParsing {
 
     private void recoverOnPlatformTypeSuffix() {
         // Recovery for platform types
-        if (at(EXCL) && !WHITE_SPACE_OR_COMMENT_BIT_SET.contains(myBuilder.rawLookup(-1))) {
+        boolean a = WHITE_SPACE_OR_COMMENT_BIT_SET.contains(myBuilder.rawLookup(-1));
+        if (at(EXCL) && !a) {
             PsiBuilder.Marker error = mark();
             advance(); // EXCL
             error.error("Unexpected token");
+        } else if (at(EXCL) && a) {
+            int t = ((KotlinLexer) ((SemanticWhitespaceAwarePsiBuilderImpl)myBuilder).delegateImpl.getLexer()).getCurrentPosition().getOffset();
+            int t2 = ((SemanticWhitespaceAwarePsiBuilderImpl)myBuilder).delegateImpl.getCurrentOffset();
+            int t3 = this.myBuilder.getCurrentOffset();
+            //Errors.EXCLAMATION_MARK_AFTER_TYPE.on(EXCL, t3);
+            errors.put(new Pair<>(EXCL, t3), ParserErrors.EXCLAMATION_MARK_AFTER_TYPE);
         }
     }
 
