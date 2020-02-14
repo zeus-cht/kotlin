@@ -124,7 +124,7 @@ abstract class KotlinCommonBlock(
     }
 
     private fun splitSubBlocksOnDot(nodeSubBlocks: List<ASTBlock>): List<ASTBlock> {
-        if (node.treeParent?.isQualifier() == true) return nodeSubBlocks
+        if (node.treeParent?.isQualifier == true || node.isCallChainWithoutWrap) return nodeSubBlocks
 
         val operationBlockIndex = nodeSubBlocks.indexOfBlockWithType(QUALIFIED_OPERATION)
         if (operationBlockIndex == -1) return nodeSubBlocks
@@ -142,11 +142,9 @@ abstract class KotlinCommonBlock(
         @Suppress("UNCHECKED_CAST")
         val subBlocks = subBlocks as List<ASTBlock>
         val elementType = currentNode.elementType
-        val index = if (elementType == POSTFIX_EXPRESSION || elementType in QUALIFIED_EXPRESSIONS)
-            0
-        else
-            return this
+        if (elementType != POSTFIX_EXPRESSION && elementType !in QUALIFIED_EXPRESSIONS) return this
 
+        val index = 0
         val resultWrap = if (currentNode.wrapForFirstCallInChainIsAllowed)
             wrap ?: createWrapForQualifierExpression(currentNode)
         else
@@ -166,14 +164,16 @@ abstract class KotlinCommonBlock(
     private fun List<ASTBlock>.replaceBlock(block: ASTBlock, index: Int = 0): List<ASTBlock> = toMutableList().apply { this[index] = block }
 
     private val ASTNode.wrapForFirstCallInChainIsAllowed: Boolean
-        get() = unwrapQualifier()?.isCall == true &&
-                (settings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN || receiverIsCallOrNull())
+        get() {
+            if (unwrapQualifier()?.isCall != true) return false
+            return settings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN || receiverIsCall()
+        }
 
     private fun createWrapForQualifierExpression(node: ASTNode): Wrap? =
-        if (node.wrapForFirstCallInChainIsAllowed && node.isCallChain)
+        if (node.wrapForFirstCallInChainIsAllowed && node.receiverIsCall())
             Wrap.createWrap(
                 settings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP,
-                true,
+                true /* wrapFirstElement */,
             )
         else
             null
@@ -795,33 +795,31 @@ private tailrec fun ASTNode.unwrapQualifier(): ASTNode? {
     if (elementType in QUALIFIED_EXPRESSIONS) return this
 
     val psi = psi as? KtPostfixExpression ?: return null
-    return if (psi.operationToken == EXCLEXCL)
-        psi.baseExpression?.node?.unwrapQualifier()
-    else
-        null
+    if (psi.operationToken != EXCLEXCL) return null
+
+    return psi.baseExpression?.node?.unwrapQualifier()
 }
 
-private fun ASTNode.receiverIsCallOrNull(): Boolean = qualifierReceiver()?.isCall == true
+private fun ASTNode.receiverIsCall(): Boolean = qualifierReceiver()?.isCall == true
 
-private val ASTNode.isCallChain: Boolean
+private val ASTNode.isCallChainWithoutWrap: Boolean
     get() {
-        val callChainParent = parents().firstOrNull { !it.isQualifier() } ?: return true
-        return callChainParent.elementType !in QUALIFIED_EXPRESSIONS_WITHOUT_WRAP && receiverIsCallOrNull()
+        val callChainParent = parents().firstOrNull { !it.isQualifier } ?: return true
+        return callChainParent.elementType in QUALIFIED_EXPRESSIONS_WITHOUT_WRAP
     }
 
-private fun ASTNode.isQualifier(strict: Boolean = false): Boolean {
-    if (strict) return elementType in QUALIFIED_EXPRESSIONS
+private val ASTNode.isQualifier: Boolean
+    get() {
+        var currentNode: ASTNode? = this
+        while (currentNode != null) {
+            if (currentNode.elementType in QUALIFIED_EXPRESSIONS) return true
+            if (currentNode.psi?.safeAs<KtPostfixExpression>()?.operationToken != EXCLEXCL) return false
 
-    var currentNode: ASTNode? = this
-    while (currentNode != null) {
-        if (currentNode.elementType in QUALIFIED_EXPRESSIONS) return true
-        if (currentNode.psi?.safeAs<KtPostfixExpression>()?.operationToken != EXCLEXCL) return false
+            currentNode = currentNode.treeParent
+        }
 
-        currentNode = currentNode.treeParent
+        return false
     }
-
-    return false
-}
 
 private val ASTNode.isCall: Boolean
     get() = unwrapQualifier()?.lastChildNode?.elementType == CALL_EXPRESSION
