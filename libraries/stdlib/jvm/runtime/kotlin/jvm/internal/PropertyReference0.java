@@ -7,12 +7,18 @@ package kotlin.jvm.internal;
 
 import kotlin.SinceKotlin;
 import kotlin.reflect.KCallable;
+import kotlin.reflect.KDeclarationContainer;
 import kotlin.reflect.KProperty0;
 
 @SuppressWarnings({"rawtypes", "NullableProblems", "unused"})
 public abstract class PropertyReference0 extends PropertyReference implements KProperty0 {
     public PropertyReference0() {
         super();
+    }
+
+    @SinceKotlin(version = "1.4")
+    public PropertyReference0(Object receiver, KDeclarationContainer owner, String name, String signature) {
+        super(receiver, owner, name, signature);
     }
 
     @SinceKotlin(version = "1.1")

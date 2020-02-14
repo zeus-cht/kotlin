@@ -139,6 +139,7 @@ abstract class DefaultLambda(
                 superName: String?,
                 interfaces: Array<out String>?
             ) {
+                // TODO: check all new supertypes
                 isPropertyReference = superName?.startsWith("kotlin/jvm/internal/PropertyReference") ?: false
                 isFunctionReference = "kotlin/jvm/internal/FunctionReference" == superName
 
