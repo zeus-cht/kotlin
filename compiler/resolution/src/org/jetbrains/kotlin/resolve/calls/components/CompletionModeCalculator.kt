@@ -52,7 +52,7 @@ class CompletionModeCalculator {
         private val candidate: KotlinResolutionCandidate,
         private val returnType: UnwrappedType?,
         private val csCompleterContext: CsCompleterContext,
-        private val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle
+        private val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle,
     ) {
         private enum class FixationDirection {
             TO_SUBTYPE, EQUALITY
@@ -192,13 +192,28 @@ class CompletionModeCalculator {
             val constraints = variableWithConstraints.constraints
             val variable = variableWithConstraints.typeVariable
 
-            // todo check correctness for @Exact
-            return constraints.isNotEmpty() && constraints.any { constraint ->
-                constraint.hasRequiredKind(direction)
-                        && isProperType(constraint.type)
-                        && !constraint.type.typeConstructor().isIntegerLiteralTypeConstructor()
-                        && !isNothingConstraintForPartiallyAnalyzedVariable(constraint, variable)
+            var iltConstraintPresent = false
+            var properConstraintPresent = false
+            var nonNothingProperConstraintPresent = false
+
+            for (constraint in constraints) {
+                if (!constraint.hasRequiredKind(direction) || !isProperType(constraint.type))
+                    continue
+
+                if (constraint.type.typeConstructor().isIntegerLiteralTypeConstructor()) {
+                    iltConstraintPresent = true
+                } else if (trivialConstraintTypeInferenceOracle.isSuitableResultedType(constraint.type)) {
+                    properConstraintPresent = true
+                    nonNothingProperConstraintPresent = true
+                } else if (!isLowerConstraintForPartiallyAnalyzedVariable(constraint, variable)) {
+                    properConstraintPresent = true
+                }
             }
+
+            if (!properConstraintPresent) return false
+
+            // To prevent early completion into Int without context
+            return !iltConstraintPresent || nonNothingProperConstraintPresent
         }
 
         private fun Constraint.hasRequiredKind(direction: FixationDirection) = when (direction) {
@@ -206,13 +221,11 @@ class CompletionModeCalculator {
             FixationDirection.EQUALITY -> kind.isEqual()
         }
 
-        private fun CsCompleterContext.isNothingConstraintForPartiallyAnalyzedVariable(
+        private fun CsCompleterContext.isLowerConstraintForPartiallyAnalyzedVariable(
             constraint: Constraint,
             variable: TypeVariableMarker
         ): Boolean {
-            if (trivialConstraintTypeInferenceOracle.isSuitableResultedType(constraint.type) || !constraint.kind.isLower())
-                return false
-            return postponedAtoms.any { atom ->
+            return constraint.kind.isLower() && postponedAtoms.any { atom ->
                 atom.expectedType?.contains { type -> variable.defaultType() == type } ?: false
             }
         }
