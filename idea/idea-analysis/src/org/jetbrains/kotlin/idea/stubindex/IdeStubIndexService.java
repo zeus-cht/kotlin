@@ -16,15 +16,17 @@
 
 package org.jetbrains.kotlin.idea.stubindex;
 
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
+import com.intellij.util.indexing.IndexingDataKeys;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.config.AppendJavaSourceRootsHandlerKeyKt;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassInfo;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
 import org.jetbrains.kotlin.idea.project.PlatformKt;
@@ -142,9 +144,6 @@ public class IdeStubIndexService extends StubIndexService {
 
     @Override
     public void indexFunction(@NotNull KotlinFunctionStub stub, @NotNull IndexSink sink) {
-        Project project = stub.getPsi().getProject();
-        project.putUserData(AppendJavaSourceRootsHandlerKeyKt.getLANGUAGE_VERSION_SETTINGS_KEY2(), PlatformKt.getLanguageVersionSettings(stub.getPsi()));
-
         String name = stub.getName();
         if (name != null) {
             sink.occurrence(KotlinFunctionShortNameIndex.getInstance().getKey(), name);
@@ -311,5 +310,23 @@ public class IdeStubIndexService extends StubIndexService {
             facadePartNames.add(partNameRef);
         }
         return new KotlinFileStubForIde(null, packageFqNameAsString, isScript, facadeStringRef, partSimpleName, facadePartNames);
+    }
+
+    @Override
+    public LanguageVersionSettings getLanguageVersionSettings(KtFile ktFile) {
+        if (ktFile == null) {
+            return LanguageVersionSettingsImpl.DEFAULT;
+        }
+        if (ktFile.getVirtualFile() != null) {
+            return PlatformKt.getLanguageVersionSettings(ktFile);
+        }
+
+        VirtualFile vFile = ktFile.getUserData(IndexingDataKeys.VIRTUAL_FILE);
+        if (vFile == null) {
+            return LanguageVersionSettingsImpl.DEFAULT;
+        }
+        // приходят левые файлы, напр. jar:///Users/victor/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.3.41/785575d6b699a02527a4ad16f0972fa2c1ee583f/kotlin-stdlib-1.3.41-sources.jar!/kotlin/io/Console.kt
+        // мб проверять, что в скоупе проекта?
+        return PlatformKt.getLanguageVersionSettings(vFile, ktFile.getProject());
     }
 }

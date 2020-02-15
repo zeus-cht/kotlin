@@ -12,11 +12,11 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.kotlin.config.LANGUAGE_VERSION_SETTINGS_KEY2
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.diagnostics.ParserErrors
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.stubs.elements.StubIndexService
 import kotlin.reflect.KFunction1
 
 class KotlinParser : PsiParser {
@@ -47,30 +47,11 @@ class KotlinParser : PsiParser {
 //                KotlinParsing.errors[elementType to offset + position] = value
 //            }
 //            tree.putUserData(errorsSetKey, ParserErrors.EXCLAMATION_MARK_AFTER_TYPE)
-
-            kotlinParsing.errors.run {
-                forEach { (elType, position), value: ParserErrors ->
-                    val psiElement = tree.findLeafElementAt(position)?.psi ?: return@forEach
-                    val x = chameleon
-//                    x.addChild(psiElement.node)
-//                    val gg = SmartPointerManager.getInstance(psiElement.project).createSmartPsiElementPointer(x.psi.lastChild, chameleon.psi.containingFile)
-//                    x.removeChild(psiElement.node)
-
-//                    x.psi.containingFile.putCopyableUserData(errorsSetKey2, value to chameleon.startOffset + position)
-
-                    // SmartPointerManager.getInstance(psiElement.project).createSmartPsiElementPointer(psiElement, chameleon.psi.containingFile)
-                    // chameleon.psi.children[1].children[0].firstChild
-                    // .children[0].children[1].children[1].children[0].firstChild
-                    // element.containingFile.children[2].children[1].children[0].children[1].children[1].children[0].firstChild
-
-                    psiElement.putUserData(errorsSetKey, value)
-                }
-                clear()
-            }
         }
 
         private fun parseFragment(psiBuilder: PsiBuilder, chameleon: ASTNode, parse: KFunction1<KotlinParsing, Unit>): ASTNode {
-            val lvs: LanguageVersionSettings? = psiBuilder.project.getUserData(LANGUAGE_VERSION_SETTINGS_KEY2)
+            val ss = StubIndexService.getInstance()
+            val settings = ss.getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
 
             return KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)).let { kotlinParsing ->
                 parse(kotlinParsing)

@@ -24,6 +24,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.caches.project.getModuleInfoByVirtualFile
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder
@@ -301,3 +303,16 @@ val PsiElement.languageVersionSettings: LanguageVersionSettings
         }
         return IDELanguageSettingsProvider.getLanguageVersionSettings(this.getModuleInfo(), project)
     }
+
+fun getLanguageVersionSettings(virtualFile: VirtualFile, project: Project): LanguageVersionSettings {
+    if (ServiceManager.getService(project, ProjectFileIndex::class.java) == null) {
+        return LanguageVersionSettingsImpl.DEFAULT
+    }
+    val moduleInfo = getModuleInfoByVirtualFile(project, virtualFile)
+
+    return if (moduleInfo == null) {
+         LanguageVersionSettingsImpl.DEFAULT // lvs for project
+    } else {
+        IDELanguageSettingsProvider.getLanguageVersionSettings(moduleInfo, project)
+    }
+}
