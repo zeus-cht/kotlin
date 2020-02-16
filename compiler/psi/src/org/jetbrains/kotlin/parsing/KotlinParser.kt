@@ -12,6 +12,7 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl.Companion.DEFAULT
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.stubs.elements.StubIndexService
@@ -23,10 +24,7 @@ class KotlinParser : PsiParser {
     // we need this method because we need psiFile
     fun parse(iElementType: IElementType?, psiBuilder: PsiBuilder, chameleon: ASTNode, psiFile: PsiFile): ASTNode {
         val languageVersionSettings = getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
-        if (languageVersionSettings == null) {
-            println(1)
-        }
-        val ktParsing = KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder))
+        val ktParsing = KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder), languageVersionSettings)
         val extension = FileUtilRt.getExtension(psiFile.name)
 
         if (extension.isEmpty() || extension == KotlinFileType.EXTENSION || psiFile is KtFile && psiFile.isCompiled) {
@@ -39,23 +37,19 @@ class KotlinParser : PsiParser {
     }
 
     companion object {
-        private fun getLanguageVersionSettings(ktFile: KtFile?): LanguageVersionSettings? {
-            if (ktFile == null) return null
+        private fun getLanguageVersionSettings(ktFile: KtFile?): LanguageVersionSettings {
+            if (ktFile == null) return DEFAULT
 
-            val stubIndexService = StubIndexService.getInstance()
-            return stubIndexService.getLanguageVersionSettings(ktFile)
+            return StubIndexService.getInstance().getLanguageVersionSettings(ktFile) ?: DEFAULT
         }
 
         private fun parseFragment(psiBuilder: PsiBuilder, chameleon: ASTNode, parse: KFunction1<KotlinParsing, Unit>): ASTNode {
             val languageVersionSettings = getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
-            if (languageVersionSettings == null) {
-                println(1)
-            }
+            val kotlinParsing = KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder), languageVersionSettings)
 
-            return KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)).let { kotlinParsing ->
-                parse(kotlinParsing)
-                psiBuilder.treeBuilt
-            }
+            parse(kotlinParsing)
+
+            return psiBuilder.treeBuilt
         }
 
         @JvmStatic
