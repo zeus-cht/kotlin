@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfoByVirtualFile
+import org.jetbrains.kotlin.idea.caches.project.getScriptRelatedModuleInfo
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder
@@ -304,14 +305,15 @@ val PsiElement.languageVersionSettings: LanguageVersionSettings
         return IDELanguageSettingsProvider.getLanguageVersionSettings(this.getModuleInfo(), project)
     }
 
-fun getLanguageVersionSettings(virtualFile: VirtualFile, project: Project): LanguageVersionSettings {
+fun getLanguageVersionSettings(virtualFile: VirtualFile, project: Project): LanguageVersionSettings? {
     if (ServiceManager.getService(project, ProjectFileIndex::class.java) == null) {
         return LanguageVersionSettingsImpl.DEFAULT
     }
-    val moduleInfo = getModuleInfoByVirtualFile(project, virtualFile)
+
+    val moduleInfo = if (virtualFile.extension == "kts") getScriptRelatedModuleInfo(project, virtualFile) else getModuleInfoByVirtualFile(project, virtualFile)
 
     return if (moduleInfo == null) {
-         LanguageVersionSettingsImpl.DEFAULT // lvs for project
+        project.getLanguageVersionSettings()
     } else {
         IDELanguageSettingsProvider.getLanguageVersionSettings(moduleInfo, project)
     }

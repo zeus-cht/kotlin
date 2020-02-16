@@ -8,12 +8,10 @@ package org.jetbrains.kotlin.parsing
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.diagnostics.ParserErrors
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.stubs.elements.StubIndexService
@@ -24,6 +22,10 @@ class KotlinParser : PsiParser {
 
     // we need this method because we need psiFile
     fun parse(iElementType: IElementType?, psiBuilder: PsiBuilder, chameleon: ASTNode, psiFile: PsiFile): ASTNode {
+        val languageVersionSettings = getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
+        if (languageVersionSettings == null) {
+            println(1)
+        }
         val ktParsing = KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder))
         val extension = FileUtilRt.getExtension(psiFile.name)
 
@@ -33,30 +35,26 @@ class KotlinParser : PsiParser {
             ktParsing.parseScript()
         }
 
-        val s = psiBuilder.treeBuilt
-
-        return s.also { tree -> collectErrors(ktParsing, tree, chameleon) }
+        return psiBuilder.treeBuilt
     }
 
     companion object {
-        val errorsSetKey = Key<ParserErrors>("errors")
-        val errorsSetKey2 = Key<Pair<ParserErrors, Int>>("errors2")
+        private fun getLanguageVersionSettings(ktFile: KtFile?): LanguageVersionSettings? {
+            if (ktFile == null) return null
 
-        private fun collectErrors(kotlinParsing: KotlinParsing, tree: ASTNode, chameleon: ASTNode) {
-//            KotlinParsing.errors.forEach { (elementType, position), value: ParserErrors ->
-//                KotlinParsing.errors[elementType to offset + position] = value
-//            }
-//            tree.putUserData(errorsSetKey, ParserErrors.EXCLAMATION_MARK_AFTER_TYPE)
+            val stubIndexService = StubIndexService.getInstance()
+            return stubIndexService.getLanguageVersionSettings(ktFile)
         }
 
         private fun parseFragment(psiBuilder: PsiBuilder, chameleon: ASTNode, parse: KFunction1<KotlinParsing, Unit>): ASTNode {
-            val ss = StubIndexService.getInstance()
-            val settings = ss.getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
+            val languageVersionSettings = getLanguageVersionSettings(chameleon.psi.containingFile as? KtFile)
+            if (languageVersionSettings == null) {
+                println(1)
+            }
 
             return KotlinParsing.createForTopLevel(SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)).let { kotlinParsing ->
                 parse(kotlinParsing)
-                val f = psiBuilder.treeBuilt
-                f.also { tree -> collectErrors(kotlinParsing, tree, chameleon) }
+                psiBuilder.treeBuilt
             }
         }
 
