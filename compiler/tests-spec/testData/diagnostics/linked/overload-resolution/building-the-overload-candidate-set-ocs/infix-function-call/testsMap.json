@@ -36,7 +36,7 @@
         },
         {
           "specVersion": "0.1-268",
-          "casesNumber": 5,
+          "casesNumber": 4,
           "description": "Implicitly imported extension callable without infix modifier",
           "unexpectedBehaviour": false
         }
@@ -58,7 +58,7 @@
         },
         {
           "specVersion": "0.1-268",
-          "casesNumber": 5,
+          "casesNumber": 4,
           "description": "Implicitly imported extension callable without infix modifier",
           "path": "compiler/tests-spec/testData/diagnostics/linked/overload-resolution/building-the-overload-candidate-set-ocs/infix-function-call/p-2/neg/1.1.kt",
           "unexpectedBehaviour": false
