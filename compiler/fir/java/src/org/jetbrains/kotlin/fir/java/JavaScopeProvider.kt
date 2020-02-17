@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.java
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.classId
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.scopes.JavaClassEnhancementScope
 import org.jetbrains.kotlin.fir.java.scopes.JavaClassUseSiteMemberScope
@@ -112,6 +113,14 @@ class JavaScopeProvider(
             )
         }
         return FirStaticScope(enhancementScope)
+    }
+
+    override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
+        return lazyNestedClassifierScope(
+            klass.classId,
+            (klass as FirJavaClass).existingNestedClassifierNames,
+            useSiteSession.firSymbolProvider
+        )
     }
 }
 

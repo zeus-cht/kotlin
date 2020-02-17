@@ -50,7 +50,8 @@ data class CallInfo(
     fun noStubReceiver(): CallInfo =
         if (stubReceiver == null) this else CallInfo(
             callKind, name, explicitReceiver, arguments,
-            isSafeCall, typeArguments, session, containingFile, implicitReceiverStack, expectedType, outerCSBuilder, lhs, null
+            isSafeCall, isPotentialQualifierPart, typeArguments, session,
+            containingFile, implicitReceiverStack, expectedType, outerCSBuilder, lhs, null
         )
 
     fun replaceWithVariableAccess(): CallInfo =

@@ -6,9 +6,7 @@
 package org.jetbrains.kotlin.fir.resolve.calls
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirClass
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.expandedConeType
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
@@ -27,7 +25,26 @@ import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.name.ClassId
 import java.util.ArrayDeque
 
-class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : AbstractExplicitReceiver<FirResolvedQualifier>() {
+
+fun FirClassLikeDeclaration<*>.fullyExpandedClass(useSiteSession: FirSession): FirRegularClass? {
+    if (this is FirTypeAlias) return this.expandedConeType?.lookupTag?.toSymbol(useSiteSession)?.fir?.fullyExpandedClass(useSiteSession)
+    if (this is FirRegularClass) return this
+    error("Not supported: $this")
+}
+
+fun createQualifierReceiver(explicitReceiver: FirResolvedQualifier, useSiteSession: FirSession): QualifierReceiver? {
+    val classId = explicitReceiver.classId ?: return null
+    val classLikeSymbol = useSiteSession.firSymbolProvider.getClassLikeSymbolByFqName(classId) ?: return null
+    val classSymbol = classLikeSymbol.fir.fullyExpandedClass(useSiteSession)?.symbol ?: return null
+    return QualifierReceiver(explicitReceiver, classSymbol)
+}
+
+class QualifierReceiver(
+    override val explicitReceiver: FirResolvedQualifier,
+    val classSymbol: FirRegularClassSymbol
+) : AbstractExplicitReceiver<FirResolvedQualifier>() {
+
+
     private fun collectSuperTypeScopesComposedByDepth(
         klass: FirClass<*>,
         useSiteSession: FirSession,
@@ -69,70 +86,32 @@ class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : A
         return result
     }
 
-    private fun getClassSymbolWithCallableScopes(
-        classId: ClassId,
+    private fun getCallableScopes(
         useSiteSession: FirSession,
         scopeSession: ScopeSession
-    ): Pair<FirClassSymbol<*>?, List<FirScope>> {
-        val symbol = useSiteSession.firSymbolProvider.getClassLikeSymbolByFqName(classId) ?: return null to emptyList()
-        if (symbol is FirTypeAliasSymbol) {
-            val expansionSymbol = symbol.fir.expandedConeType?.lookupTag?.toSymbol(useSiteSession)
-            if (expansionSymbol != null) {
-                return getClassSymbolWithCallableScopes(expansionSymbol.classId, useSiteSession, scopeSession)
-            }
-        } else {
-            return (symbol as? FirClassSymbol<*>)?.let { klassSymbol ->
-                val klass = klassSymbol.fir
-                klassSymbol to run {
-                    val result = mutableListOf<FirScope>()
-                    val provider = klass.scopeProvider
-                    val klassScope = provider.getStaticMemberScopeForCallables(klass, useSiteSession, scopeSession)
-                    if (klassScope != null) {
-                        result += klassScope
-                        if (provider is KotlinScopeProvider) return@run result
-                        result += collectSuperTypeScopesComposedByDepth(klass, useSiteSession, scopeSession)
-                    }
-                    result
-                }
-            } ?: (null to emptyList())
+    ): List<FirScope> {
+        val klass = classSymbol.fir
+        val result = mutableListOf<FirScope>()
+        val provider = klass.scopeProvider
+        val klassScope = provider.getStaticMemberScopeForCallables(klass, useSiteSession, scopeSession)
+        if (klassScope != null) {
+            result += klassScope
+            if (provider is KotlinScopeProvider) return result
+            result += collectSuperTypeScopesComposedByDepth(klass, useSiteSession, scopeSession)
         }
-
-        return null to emptyList()
+        return result
     }
 
-    fun qualifierScopes(useSiteSession: FirSession, scopeSession: ScopeSession): List<FirScope> {
-        val classId = explicitReceiver.classId ?: return emptyList()
+    fun callablesScopes(useSiteSession: FirSession, scopeSession: ScopeSession): List<FirScope> {
+        return getCallableScopes(useSiteSession, scopeSession)
+    }
 
-        val (classSymbol, callableScopes) = getClassSymbolWithCallableScopes(classId, useSiteSession, scopeSession)
-        if (classSymbol != null) {
-            val klass = classSymbol.fir
-            val classifierScope = if ((klass as? FirRegularClass)?.hasLazyNestedClassifiers == false) {
-                nestedClassifierScope(klass)
-            } else {
-                useSiteSession.firSymbolProvider.getNestedClassifierScope(classId)
-            }
-
-            return when {
-                classifierScope == null -> {
-                    callableScopes.map { FirQualifierScope(it, null) }
-                }
-                callableScopes.isEmpty() -> {
-                    listOf(FirQualifierScope(null, classifierScope))
-                }
-                else -> {
-                    listOf(
-                        FirQualifierScope(callableScopes.first(), classifierScope)
-                    ) +
-                            callableScopes.drop(1).map {
-                                FirQualifierScope(it, null)
-                            }
-                }
-            }
-        }
-        return emptyList()
+    fun classifierScope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
+        val klass = classSymbol.fir
+        return klass.scopeProvider.getNestedClassifierScope(klass, useSiteSession, scopeSession)
     }
 
     override fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
-        return FirCompositeScope(qualifierScopes(useSiteSession, scopeSession).toMutableList())
+        return FirCompositeScope(callablesScopes(useSiteSession, scopeSession).toMutableList())
     }
 }
