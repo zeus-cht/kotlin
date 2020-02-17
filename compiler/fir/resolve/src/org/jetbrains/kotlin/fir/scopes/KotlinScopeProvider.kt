@@ -66,7 +66,7 @@ class KotlinScopeProvider(
         scopeSession: ScopeSession
     ): FirScope? {
         return when (klass.classKind) {
-            ClassKind.ENUM_CLASS -> FirStaticScope(declaredMemberScope(klass))
+            ClassKind.ENUM_CLASS -> FirStaticCallablesScope(declaredMemberScope(klass))
             else -> null
         }
     }

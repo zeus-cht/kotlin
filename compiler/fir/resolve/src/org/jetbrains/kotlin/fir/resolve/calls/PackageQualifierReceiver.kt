@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirPackageMemberScope
 import org.jetbrains.kotlin.name.FqName
 
 class PackageQualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : AbstractExplicitReceiver<FirResolvedQualifier>() {
-    override fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
+    fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
         return FirPackageMemberScope(explicitReceiver.packageFqName, useSiteSession)
     }
 }

@@ -75,18 +75,27 @@ class FirTowerResolver(
         return implicitReceivers
     }
 
-    private suspend fun processQualifierScopes(info: CallInfo, qualifierScopes: List<FirScope>) {
+    private suspend fun processQualifierScopes(
+        manager: TowerResolveManager,
+        info: CallInfo, qualifierScopes: List<FirScope>
+    ) {
         for ((depth, qualifierScope) in qualifierScopes.withIndex()) {
             manager.processLevel(
-                ScopeTowerLevel(session, components, qualifierScope), info.noStubReceiver(), TowerGroup.Qualifier(depth)
+                ScopeTowerLevel(session, components, qualifierScope, noInnerConstructors = true),
+                info.noStubReceiver(), TowerGroup.Qualifier(depth)
             )
         }
     }
 
-    private suspend fun processClassifierScope(info: CallInfo, qualifierReceiver: QualifierReceiver?, prioritized: Boolean) {
-        val scope = qualifierReceiver?.classifierScope(session, components.scopeSession) ?: return
+    private suspend fun processClassifierScope(
+        manager: TowerResolveManager,
+        info: CallInfo, qualifierReceiver: QualifierReceiver?, prioritized: Boolean
+    ) {
+        if (qualifierReceiver == null) return
+        if (info.callKind != CallKind.CallableReference && qualifierReceiver.classSymbol != qualifierReceiver.originalSymbol) return
+        val scope = qualifierReceiver.classifierScope(session, components.scopeSession) ?: return
         manager.processLevel(
-            ScopeTowerLevel(session, components, scope), info.noStubReceiver(),
+            ScopeTowerLevel(session, components, scope, noInnerConstructors = true), info.noStubReceiver(),
             if (prioritized) TowerGroup.ClassifierPrioritized else TowerGroup.Classifier
         )
     }
@@ -105,12 +114,12 @@ class FirTowerResolver(
 
         when {
             info.isPotentialQualifierPart -> {
-                processClassifierScope(info, qualifierReceiver, prioritized = true)
-                processQualifierScopes(info, qualifierScopes)
+                processClassifierScope(manager, info, qualifierReceiver, prioritized = true)
+                processQualifierScopes(manager, info, qualifierScopes)
             }
             else -> {
-                processQualifierScopes(info, qualifierScopes)
-                processClassifierScope(info, qualifierReceiver, prioritized = false)
+                processQualifierScopes(manager, info, qualifierScopes)
+                processClassifierScope(manager, info, qualifierReceiver, prioritized = false)
             }
         }
 

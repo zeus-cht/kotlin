@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.name.ClassId
 
 interface Receiver {
-    fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope?
+
 }
 
 interface ReceiverValue : Receiver {
@@ -40,7 +40,7 @@ interface ReceiverValue : Receiver {
 
     val receiverExpression: FirExpression
 
-    override fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? =
+    fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? =
         type.scope(useSiteSession, scopeSession)
 }
 

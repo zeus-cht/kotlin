@@ -167,7 +167,8 @@ class ScopeTowerLevel(
     private val bodyResolveComponents: BodyResolveComponents,
     val scope: FirScope,
     val extensionReceiver: ReceiverValue? = null,
-    private val extensionsOnly: Boolean = false
+    private val extensionsOnly: Boolean = false,
+    private val noInnerConstructors: Boolean = false
 ) : SessionBasedTowerLevel(session) {
     private fun FirCallableSymbol<*>.hasConsistentReceivers(extensionReceiver: Receiver?): Boolean =
         when {
@@ -198,7 +199,7 @@ class ScopeTowerLevel(
                 name,
                 session,
                 bodyResolveComponents,
-                noInnerConstructors = scope is FirQualifierScope
+                noInnerConstructors = noInnerConstructors
             ) { candidate ->
                 empty = false
                 if (candidate.hasConsistentReceivers(extensionReceiver)) {

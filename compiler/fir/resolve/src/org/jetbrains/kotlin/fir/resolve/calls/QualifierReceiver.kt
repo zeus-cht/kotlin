@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirQualifierScope
 import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
@@ -36,12 +37,13 @@ fun createQualifierReceiver(explicitReceiver: FirResolvedQualifier, useSiteSessi
     val classId = explicitReceiver.classId ?: return null
     val classLikeSymbol = useSiteSession.firSymbolProvider.getClassLikeSymbolByFqName(classId) ?: return null
     val classSymbol = classLikeSymbol.fir.fullyExpandedClass(useSiteSession)?.symbol ?: return null
-    return QualifierReceiver(explicitReceiver, classSymbol)
+    return QualifierReceiver(explicitReceiver, classSymbol, classLikeSymbol)
 }
 
 class QualifierReceiver(
     override val explicitReceiver: FirResolvedQualifier,
-    val classSymbol: FirRegularClassSymbol
+    val classSymbol: FirRegularClassSymbol,
+    val originalSymbol: FirClassLikeSymbol<*>
 ) : AbstractExplicitReceiver<FirResolvedQualifier>() {
 
 
@@ -111,7 +113,4 @@ class QualifierReceiver(
         return klass.scopeProvider.getNestedClassifierScope(klass, useSiteSession, scopeSession)
     }
 
-    override fun scope(useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
-        return FirCompositeScope(callablesScopes(useSiteSession, scopeSession).toMutableList())
-    }
 }
