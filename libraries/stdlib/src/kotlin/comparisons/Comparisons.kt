@@ -7,8 +7,6 @@
 
 package kotlin.comparisons
 
-import kotlin.native.concurrent.ThreadLocal
-
 /**
  * Compares two values using the specified functions [selectors] to calculate the result of the comparison.
  * The functions are called sequentially, receive the given values [a] and [b] and return [Comparable]
@@ -307,14 +305,12 @@ private class ReversedComparator<T>(public val comparator: Comparator<T>) : Comp
     fun reversed(): Comparator<T> = comparator
 }
 
-@ThreadLocal
 private object NaturalOrderComparator : Comparator<Comparable<Any>> {
     override fun compare(a: Comparable<Any>, b: Comparable<Any>): Int = a.compareTo(b)
     @Suppress("VIRTUAL_MEMBER_HIDDEN")
     fun reversed(): Comparator<Comparable<Any>> = ReverseOrderComparator
 }
 
-@ThreadLocal
 private object ReverseOrderComparator : Comparator<Comparable<Any>> {
     override fun compare(a: Comparable<Any>, b: Comparable<Any>): Int = b.compareTo(a)
     @Suppress("VIRTUAL_MEMBER_HIDDEN")
