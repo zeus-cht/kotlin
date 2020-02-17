@@ -108,7 +108,7 @@ val nodeJSPlugin by configurations.creating
 val intellijRuntimeAnnotations = "intellij-runtime-annotations"
 
 val dependenciesDir = (findProperty("kotlin.build.dependencies.dir") as String?)?.let(::File)
-    ?:  rootProject.gradle.gradleUserHomeDir.resolve("kotlin-build-dependency")
+    ?:  rootProject.gradle.gradleUserHomeDir.resolve(".kotlin-build-dependency")
 
 val customDepsRepoDir = dependenciesDir.resolve("repo")
 

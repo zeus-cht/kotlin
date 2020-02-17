@@ -84,7 +84,6 @@ extra["customDepsOrg"] = "kotlin.build"
 
 repositories {
     jcenter()
-    mavenLocal()
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
     maven("https://kotlin.bintray.com/kotlin-dependencies")
     gradlePluginPortal()
