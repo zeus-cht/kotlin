@@ -95,6 +95,7 @@ public fun <T> linkedSetOf(vararg elements: T): LinkedHashSet<T> = elements.toCo
  * The returned set is serializable (JVM).
  * @sample samples.collections.Collections.Sets.setOfNotNull
  */
+@SinceKotlin("1.4")
 public fun <T : Any> setOfNotNull(element: T?): Set<T> = if (element != null) setOf(element) else emptySet()
 
 /**
@@ -103,6 +104,7 @@ public fun <T : Any> setOfNotNull(element: T?): Set<T> = if (element != null) se
  * The returned set is serializable (JVM).
  * @sample samples.collections.Collections.Sets.setOfNotNull
  */
+@SinceKotlin("1.4")
 public fun <T : Any> setOfNotNull(vararg elements: T?): Set<T> {
     return elements.filterNotNullTo(LinkedHashSet())
 }
