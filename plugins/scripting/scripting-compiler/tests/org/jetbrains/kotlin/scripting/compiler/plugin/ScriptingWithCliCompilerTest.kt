@@ -50,7 +50,7 @@ class ScriptingWithCliCompilerTest {
     fun testExpression() {
         runWithK2JVMCompiler(
             arrayOf(
-                "-Xexpression",
+                "-expression",
                 "val x = 7; println(x * 6); for (arg in args) println(arg)",
                 "--",
                 "hi",
@@ -64,10 +64,23 @@ class ScriptingWithCliCompilerTest {
     fun testExpressionWithComma() {
         runWithK2JVMCompiler(
             arrayOf(
-                "-Xexpression",
+                "-expression",
                 "listOf(1,2)"
             ),
             listOf("\\[1, 2\\]")
+        )
+    }
+
+    @Test
+    fun testJdkModules() {
+        // actually tests anything on JDKs 9+, on pre-9 it always works because JDK is not modularized anyway
+        runWithKotlinc(
+            arrayOf(
+                "-Xadd-modules=java.sql",
+                "-expression",
+                "println(javax.sql.DataSource::class.java)"
+            ),
+            listOf("interface javax.sql.DataSource")
         )
     }
 

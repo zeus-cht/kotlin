@@ -417,7 +417,10 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
         if (this is ConeTypeParameterType /* || is TypeVariable */)
             return hasNullableSuperType(type)
 
-        // TODO: Intersection types
+        if (this is ConeIntersectionType && intersectedTypes.any { it.isNullableType() }) {
+            return true
+        }
+
         return false
     }
 
@@ -458,6 +461,10 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
         return toFirRegularClass()?.isInline == true
     }
 
+    override fun TypeConstructorMarker.isInnerClass(): Boolean {
+        return toFirRegularClass()?.isInner == true
+    }
+
     override fun TypeParameterMarker.getRepresentativeUpperBound(): KotlinTypeMarker {
         require(this is FirTypeParameterSymbol)
         return this.fir.bounds.getOrNull(0)?.let { (it as? FirResolvedTypeRef)?.type }
@@ -479,7 +486,8 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
         getClassFqNameUnsafe()?.startsWith(Name.identifier("kotlin")) == true
 
     override fun TypeConstructorMarker.getClassFqNameUnsafe(): FqNameUnsafe? {
-        return toFirRegularClass()?.symbol?.toLookupTag()?.classId?.asSingleFqName()?.toUnsafe()
+        if (this !is FirClassLikeSymbol<*>) return null
+        return toLookupTag().classId.asSingleFqName().toUnsafe()
     }
 
     override fun TypeParameterMarker.getName() = (this as FirTypeParameterSymbol).name

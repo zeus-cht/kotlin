@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
 import org.jetbrains.kotlin.fir.FirSymbolOwner
 import org.jetbrains.kotlin.fir.expressions.FirResolvable
-import org.jetbrains.kotlin.fir.FirControlFlowGraphOwner
 import org.jetbrains.kotlin.fir.FirTargetElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationStatus
 import org.jetbrains.kotlin.fir.declarations.FirResolvedDeclarationStatus
@@ -24,7 +23,6 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousInitializer
 import org.jetbrains.kotlin.fir.declarations.FirTypedDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirNamedDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.FirTypeParametersOwner
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
@@ -41,7 +39,6 @@ import org.jetbrains.kotlin.fir.declarations.FirSealedClass
 import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirContractDescriptionOwner
-import org.jetbrains.kotlin.fir.declarations.FirMemberFunction
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
@@ -92,6 +89,7 @@ import org.jetbrains.kotlin.fir.expressions.FirWrappedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirLambdaArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirSpreadArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirNamedArgumentExpression
+import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.FirResolvedReifiedParameterReference
 import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
@@ -118,6 +116,7 @@ import org.jetbrains.kotlin.fir.types.FirDynamicTypeRef
 import org.jetbrains.kotlin.fir.types.FirFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.FirResolvedFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
+import org.jetbrains.kotlin.fir.types.FirComposedSuperTypeRef
 import org.jetbrains.kotlin.fir.contracts.FirContractDescription
 
 /*
@@ -160,10 +159,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitElement(resolvable)
     }
 
-    open fun visitControlFlowGraphOwner(controlFlowGraphOwner: FirControlFlowGraphOwner) {
-        visitElement(controlFlowGraphOwner)
-    }
-
     open fun visitTargetElement(targetElement: FirTargetElement) {
         visitElement(targetElement)
     }
@@ -198,10 +193,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     open fun <F : FirCallableDeclaration<F>> visitCallableDeclaration(callableDeclaration: FirCallableDeclaration<F>) {
         visitElement(callableDeclaration)
-    }
-
-    open fun visitNamedDeclaration(namedDeclaration: FirNamedDeclaration) {
-        visitElement(namedDeclaration)
     }
 
     open fun visitTypeParameter(typeParameter: FirTypeParameter) {
@@ -266,10 +257,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     open fun visitContractDescriptionOwner(contractDescriptionOwner: FirContractDescriptionOwner) {
         visitElement(contractDescriptionOwner)
-    }
-
-    open fun <F : FirMemberFunction<F>> visitMemberFunction(memberFunction: FirMemberFunction<F>) {
-        visitElement(memberFunction)
     }
 
     open fun visitSimpleFunction(simpleFunction: FirSimpleFunction) {
@@ -472,6 +459,10 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitElement(namedArgumentExpression)
     }
 
+    open fun visitVarargArgumentsExpression(varargArgumentsExpression: FirVarargArgumentsExpression) {
+        visitElement(varargArgumentsExpression)
+    }
+
     open fun visitResolvedQualifier(resolvedQualifier: FirResolvedQualifier) {
         visitElement(resolvedQualifier)
     }
@@ -576,6 +567,10 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitElement(implicitTypeRef)
     }
 
+    open fun visitComposedSuperTypeRef(composedSuperTypeRef: FirComposedSuperTypeRef) {
+        visitElement(composedSuperTypeRef)
+    }
+
     open fun visitContractDescription(contractDescription: FirContractDescription) {
         visitElement(contractDescription)
     }
@@ -616,10 +611,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitResolvable(resolvable)
     }
 
-    final override fun visitControlFlowGraphOwner(controlFlowGraphOwner: FirControlFlowGraphOwner, data: Nothing?) {
-        visitControlFlowGraphOwner(controlFlowGraphOwner)
-    }
-
     final override fun visitTargetElement(targetElement: FirTargetElement, data: Nothing?) {
         visitTargetElement(targetElement)
     }
@@ -654,10 +645,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     final override fun <F : FirCallableDeclaration<F>> visitCallableDeclaration(callableDeclaration: FirCallableDeclaration<F>, data: Nothing?) {
         visitCallableDeclaration(callableDeclaration)
-    }
-
-    final override fun visitNamedDeclaration(namedDeclaration: FirNamedDeclaration, data: Nothing?) {
-        visitNamedDeclaration(namedDeclaration)
     }
 
     final override fun visitTypeParameter(typeParameter: FirTypeParameter, data: Nothing?) {
@@ -722,10 +709,6 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     final override fun visitContractDescriptionOwner(contractDescriptionOwner: FirContractDescriptionOwner, data: Nothing?) {
         visitContractDescriptionOwner(contractDescriptionOwner)
-    }
-
-    final override fun <F : FirMemberFunction<F>> visitMemberFunction(memberFunction: FirMemberFunction<F>, data: Nothing?) {
-        visitMemberFunction(memberFunction)
     }
 
     final override fun visitSimpleFunction(simpleFunction: FirSimpleFunction, data: Nothing?) {
@@ -928,6 +911,10 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitNamedArgumentExpression(namedArgumentExpression)
     }
 
+    final override fun visitVarargArgumentsExpression(varargArgumentsExpression: FirVarargArgumentsExpression, data: Nothing?) {
+        visitVarargArgumentsExpression(varargArgumentsExpression)
+    }
+
     final override fun visitResolvedQualifier(resolvedQualifier: FirResolvedQualifier, data: Nothing?) {
         visitResolvedQualifier(resolvedQualifier)
     }
@@ -1030,6 +1017,10 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
 
     final override fun visitImplicitTypeRef(implicitTypeRef: FirImplicitTypeRef, data: Nothing?) {
         visitImplicitTypeRef(implicitTypeRef)
+    }
+
+    final override fun visitComposedSuperTypeRef(composedSuperTypeRef: FirComposedSuperTypeRef, data: Nothing?) {
+        visitComposedSuperTypeRef(composedSuperTypeRef)
     }
 
     final override fun visitContractDescription(contractDescription: FirContractDescription, data: Nothing?) {

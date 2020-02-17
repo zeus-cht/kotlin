@@ -76,9 +76,13 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         targets: Collection<KotlinTarget>,
         project: Project
     ): Map<String, KotlinSourceSetImpl> {
-        if (project.properties["import_orphan_source_sets"]?.toString()?.toBoolean() ?: DEFAULT_IMPORT_ORPHAN_SOURCE_SETS) return sourceSets
-        val compiledSourceSets: Collection<String> = targets.flatMap { it.compilations }
-            .flatMap { it.sourceSets }.flatMap { it.dependsOnSourceSets.union(listOf(it.name)) }.distinct()
+        if (try {
+                project.properties["import_orphan_source_sets"]
+            } catch (e: Exception) {
+                null
+            }?.toString()?.toBoolean() ?: DEFAULT_IMPORT_ORPHAN_SOURCE_SETS
+        ) return sourceSets
+        val compiledSourceSets: Collection<String> = targets.flatMap { it.compilations }.flatMap { it.sourceSets }.flatMap { it.dependsOnSourceSets.union(listOf(it.name)) }.distinct()
         sourceSets.filter { !compiledSourceSets.contains(it.key) }.forEach {
             logger.warn("[sync warning] Source set \"${it.key}\" is not compiled with any compilation. This source set is not imported in the IDE.")
         }
@@ -229,6 +233,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val getExperimentalAnnotationsInUse = languageSettingsClass.getMethodOrNull("getExperimentalAnnotationsInUse")
         val getCompilerPluginArguments = languageSettingsClass.getMethodOrNull("getCompilerPluginArguments")
         val getCompilerPluginClasspath = languageSettingsClass.getMethodOrNull("getCompilerPluginClasspath")
+        val getFreeCompilerArgs = languageSettingsClass.getMethodOrNull("getFreeCompilerArgs")
         @Suppress("UNCHECKED_CAST")
         return KotlinLanguageSettingsImpl(
             getLanguageVersion(gradleLanguageSettings) as? String,
@@ -237,7 +242,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             getEnabledLanguageFeatures(gradleLanguageSettings) as? Set<String> ?: emptySet(),
             getExperimentalAnnotationsInUse?.invoke(gradleLanguageSettings) as? Set<String> ?: emptySet(),
             (getCompilerPluginArguments?.invoke(gradleLanguageSettings) as? List<String> ?: emptyList()).toTypedArray(),
-            (getCompilerPluginClasspath?.invoke(gradleLanguageSettings) as? FileCollection)?.files ?: emptySet()
+            (getCompilerPluginClasspath?.invoke(gradleLanguageSettings) as? FileCollection)?.files ?: emptySet(),
+            (getFreeCompilerArgs?.invoke(gradleLanguageSettings) as? List<String>).orEmpty().toTypedArray()
         )
     }
 

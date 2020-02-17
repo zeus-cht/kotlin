@@ -57,7 +57,7 @@ class ModulesToIRsConverter(
         else -> rootPath / module.name
     }
 
-    fun createBuildFiles(): TaskResult<List<BuildFileIR>> = with(data) {
+    fun ValuesReadingContext.createBuildFiles(): TaskResult<List<BuildFileIR>> = with(data) {
         val needExplicitRootBuildFile = !needFlattening
         val parentModuleHasTransitivelySpecifiedKotlinVersion = allModules.any { modules ->
             modules.configurator == AndroidSinglePlatformModuleConfigurator
@@ -82,37 +82,51 @@ class ModulesToIRsConverter(
     }
 
 
-    private fun createBuildFileForModule(
+    private fun ValuesReadingContext.createBuildFileForModule(
         module: Module,
         state: ModulesToIrsState
     ): TaskResult<List<BuildFileIR>> = when (module.kind) {
         ModuleKind.multiplatform -> createMultiplatformModule(module, state)
-        ModuleKind.singleplatform -> createSinglePlatformModule(module, state)
+        ModuleKind.singleplatformJvm, ModuleKind.singleplatformJs -> createSinglePlatformModule(module, state)
         else -> Success(emptyList())
     }
 
-    private fun createSinglePlatformModule(
+    private fun ValuesReadingContext.createSinglePlatformModule(
         module: Module,
         state: ModulesToIrsState
     ): TaskResult<List<BuildFileIR>> = with(data) {
         val modulePath = calculatePathForModule(module, state.parentPath)
         taskRunningContext.mutateProjectStructureByModuleConfigurator(module, modulePath)
         val configurator = module.configurator
-        val dependenciesIRs = module.sourcesets.flatMap { sourceset ->
-            sourceset.dependencies.map { it.toIR(sourceset.sourcesetType.toDependencyType()) }
-        } + configurator.createModuleIRs(data, module)
+        val dependenciesIRs = buildList<BuildSystemIR> {
+            +module.sourcesets.flatMap { sourceset ->
+                sourceset.dependencies.map { it.toIR(sourceset.sourcesetType.toDependencyType()) }
+            }
+            with(configurator) { +createModuleIRs(data, module) }
+            addIfNotNull(
+                configurator.createStdlibType(data, module)?.let { stdlibType ->
+                    KotlinStdlibDependencyIR(
+                        type = stdlibType,
+                        isInMppModule = false,
+                        version = kotlinVersion,
+                        dependencyType = DependencyType.MAIN
+                    )
+                }
+            )
+        }
 
         val moduleIr = SingleplatformModuleIR(
-            module.name,
+            if (modulePath == projectPath) projectName else module.name,
             modulePath,
             dependenciesIRs,
+            module.template,
             module.configurator.moduleType,
+            module,
             module.sourcesets.map { sourceset ->
                 SingleplatformSourcesetIR(
                     sourceset.sourcesetType,
                     modulePath / Defaults.SRC_DIR / sourceset.sourcesetType.name,
                     sourceset.dependencies.map { it.toIR(sourceset.sourcesetType.toDependencyType()) },
-                    sourceset.template,
                     sourceset
                 )
             }
@@ -136,7 +150,7 @@ class ModulesToIRsConverter(
         }.map { it.flatten() + buildFileIr }
     }
 
-    private fun createMultiplatformModule(
+    private fun ValuesReadingContext.createMultiplatformModule(
         module: Module,
         state: ModulesToIrsState
     ): TaskResult<List<BuildFileIR>> = with(data) {
@@ -146,19 +160,8 @@ class ModulesToIRsConverter(
             (subModule.configurator as TargetConfigurator).createTargetIrs(subModule)
         }
 
-        val sourcesetIrs = module.subModules.flatMap { target ->
-            target.sourcesets.map { sourceset ->
-                val sourcesetName = target.name + sourceset.sourcesetType.name.capitalize()
-                SourcesetModuleIR(
-                    sourcesetName,
-                    modulePath / Defaults.SRC_DIR / sourcesetName,
-                    sourceset.dependencies.map { it.toIR(DependencyType.MAIN) },
-                    sourceset.containingModuleType,
-                    sourceset.sourcesetType,
-                    sourceset.template,
-                    sourceset
-                )
-            }
+        val targetModuleIrs = module.subModules.map { target ->
+            createTargetSourceset(target, modulePath)
         }
 
         return BuildFileIR(
@@ -166,12 +169,52 @@ class ModulesToIRsConverter(
             modulePath,
             MultiplatformModulesStructureIR(
                 targetIrs,
-                sourcesetIrs,
+                targetModuleIrs,
                 emptyList()
             ),
             pomIr,
-            createBuildFileIRs(module, state)
+            buildList {
+                +createBuildFileIRs(module, state)
+                module.subModules.forEach { +createBuildFileIRs(it, state) }
+            }
         ).asSingletonList().asSuccess()
+    }
+
+    private fun ValuesReadingContext.createTargetSourceset(target: Module, modulePath: Path): MultiplatformModuleIR {
+        val sourcesetss = target.sourcesets.map { sourceset ->
+            val sourcesetName = target.name + sourceset.sourcesetType.name.capitalize()
+            val sourcesetIrs = buildList<BuildSystemIR> {
+                +sourceset.dependencies.map { it.toIR(sourceset.sourcesetType.toDependencyType()) }
+                if (sourceset.sourcesetType == SourcesetType.main) {
+                    addIfNotNull(
+                        target.configurator.createStdlibType(data, target)?.let { stdlibType ->
+                            KotlinStdlibDependencyIR(
+                                type = stdlibType,
+                                isInMppModule = true,
+                                version = data.kotlinVersion,
+                                dependencyType = DependencyType.MAIN
+                            )
+                        }
+                    )
+                }
+            }
+            MultiplatformSourcesetIR(
+                sourceset.sourcesetType,
+                modulePath / Defaults.SRC_DIR / sourcesetName,
+                target.name,
+                sourcesetIrs,
+                sourceset
+            )
+        }
+        return MultiplatformModuleIR(
+            target.name,
+            modulePath,
+            with(target.configurator) { createModuleIRs(data, target) },
+            target.configurator.moduleType,
+            target.template,
+            target,
+            sourcesetss
+        )
     }
 
     private fun TaskRunningContext.mutateProjectStructureByModuleConfigurator(

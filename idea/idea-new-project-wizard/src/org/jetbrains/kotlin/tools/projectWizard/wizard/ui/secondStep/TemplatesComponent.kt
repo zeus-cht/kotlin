@@ -8,9 +8,10 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.KotlinIcons
+import org.jetbrains.kotlin.idea.projectWizard.UiEditorUsageStats
 import org.jetbrains.kotlin.tools.projectWizard.core.ValuesReadingContext
 import org.jetbrains.kotlin.tools.projectWizard.plugins.templates.TemplatesPlugin
-import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Sourceset
+import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Module
 import org.jetbrains.kotlin.tools.projectWizard.templates.Template
 import org.jetbrains.kotlin.tools.projectWizard.templates.settings
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.*
@@ -20,10 +21,14 @@ import java.awt.*
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class TemplatesComponent(valuesReadingContext: ValuesReadingContext) : DynamicComponent(valuesReadingContext) {
+class TemplatesComponent(
+    valuesReadingContext: ValuesReadingContext,
+    uiEditorUsagesStats: UiEditorUsageStats
+) : DynamicComponent(valuesReadingContext) {
     private val chooseTemplateComponent: ChooseTemplateComponent =
         ChooseTemplateComponent(valuesReadingContext) { template ->
-            sourceset?.template = template
+            uiEditorUsagesStats.moduleTemplatesSet++
+            module?.template = template
             switchState(template)
         }
 
@@ -37,6 +42,8 @@ class TemplatesComponent(valuesReadingContext: ValuesReadingContext) : DynamicCo
                 null
             ) == Messages.OK
         ) {
+            uiEditorUsagesStats.moduleTemplatesRemoved++
+            module?.template = null
             switchState(null)
         }
     }
@@ -46,8 +53,8 @@ class TemplatesComponent(valuesReadingContext: ValuesReadingContext) : DynamicCo
         when (selectedTemplate) {
             null -> panel.add(chooseTemplateComponent.component, BorderLayout.CENTER)
             else -> {
-                if (sourceset != null) {
-                    templateSettingsComponent.setTemplate(sourceset!!, selectedTemplate)
+                if (module != null) {
+                    templateSettingsComponent.setTemplate(module!!, selectedTemplate)
                 }
                 panel.add(templateSettingsComponent.component, BorderLayout.CENTER)
             }
@@ -61,7 +68,7 @@ class TemplatesComponent(valuesReadingContext: ValuesReadingContext) : DynamicCo
 
     override val component: JComponent = panel
 
-    var sourceset: Sourceset? = null
+    var module: Module? = null
         set(value) {
             field = value
             switchState(value?.template)
@@ -95,7 +102,7 @@ class ChooseTemplateComponent(
             TemplatesPlugin::templates.propertyValue
         }
 
-    var selectedModule: Sourceset? = null
+    var selectedModule: Module? = null
         set(value) {
             field = value
             onStateUpdated()
@@ -107,8 +114,7 @@ class ChooseTemplateComponent(
 
     private val availableTemplates
         get() = allTemplates.values.filter { template ->
-            selectedModule!!.containingModuleType in template.moduleTypes
-                    && selectedModule!!.sourcesetType in template.sourcesetTypes
+            selectedModule!!.configurator.moduleType in template.moduleTypes
                     && template.isApplicableTo(selectedModule!!)
         }
 
@@ -204,7 +210,7 @@ class TemplateDescriptionComponent(
     }
 
     private val title = panel {
-        nonDefaultBackgroundColor?.let {  background = it }
+        nonDefaultBackgroundColor?.let { background = it }
         add(titleLabel, BorderLayout.CENTER)
         removeButton?.let { add(it, BorderLayout.EAST) }
     }
@@ -213,7 +219,7 @@ class TemplateDescriptionComponent(
 
     override val component: JComponent by lazy(LazyThreadSafetyMode.NONE) {
         panel {
-            nonDefaultBackgroundColor?.let {  background = it }
+            nonDefaultBackgroundColor?.let { background = it }
             add(title, BorderLayout.NORTH)
             add(descriptionLabel, BorderLayout.CENTER)
         }
@@ -239,7 +245,7 @@ private class TemplateSettingsComponent(
 ) : DynamicComponent(valuesReadingContext) {
     private val templateDescriptionComponent = TemplateDescriptionComponent(
         needRemoveButton = true,
-        nonDefaultBackgroundColor =  UIUtil.getEditorPaneBackground(),
+        nonDefaultBackgroundColor = UIUtil.getEditorPaneBackground(),
         onRemoveButtonClicked = removeTemplate
     ).apply {
         component.bordered(needTopEmptyBorder = false, needBottomEmptyBorder = false)
@@ -249,8 +255,8 @@ private class TemplateSettingsComponent(
         component.bordered()
     }
 
-    fun setTemplate(sourceset: Sourceset, selectedTemplate: Template) {
-        settings.setSettings(selectedTemplate.settings(sourceset))
+    fun setTemplate(module: Module, selectedTemplate: Template) {
+        settings.setSettings(selectedTemplate.settings(module))
         templateDescriptionComponent.updateSelectedTemplate(selectedTemplate)
     }
 

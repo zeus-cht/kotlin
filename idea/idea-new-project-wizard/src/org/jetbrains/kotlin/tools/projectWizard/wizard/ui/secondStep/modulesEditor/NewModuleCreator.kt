@@ -28,7 +28,6 @@ class NewModuleCreator {
             Sourceset(
                 sourcesetType,
                 configurator.moduleType,
-                template = null,
                 dependencies = emptyList()
             )
         }
@@ -37,6 +36,7 @@ class NewModuleCreator {
     fun create(
         target: Module?,
         allowMultiplatform: Boolean,
+        allowSinglepaltformJs: Boolean,
         allowAndroid: Boolean,
         allowIos: Boolean,
         allModules: List<Module>,
@@ -44,6 +44,7 @@ class NewModuleCreator {
     ) = CreateModuleOrTargetPopup.create(
         target = target,
         allowMultiplatform = allowMultiplatform,
+        allowSinglepaltformJs = allowSinglepaltformJs,
         allowAndroid = allowAndroid,
         allowIos = allowIos,
         createTarget = { targetConfigurator ->
@@ -57,7 +58,6 @@ class NewModuleCreator {
                     Sourceset(
                         sourcesetType,
                         ModuleType.jvm,
-                        template = null,
                         dependencies = emptyList()
                     )
                 }
@@ -66,8 +66,9 @@ class NewModuleCreator {
                 name,
                 configurator.moduleKind,
                 configurator,
-                sourcesets,
-                emptyList()
+                template = null,
+                sourcesets = sourcesets,
+                subModules = emptyList()
             )
             createModule(createdModule)
         }

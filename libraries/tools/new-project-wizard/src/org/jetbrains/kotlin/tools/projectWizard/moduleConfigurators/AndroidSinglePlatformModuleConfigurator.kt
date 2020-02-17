@@ -2,6 +2,7 @@ package org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators
 
 import org.jetbrains.kotlin.tools.projectWizard.core.*
 import org.jetbrains.kotlin.tools.projectWizard.core.entity.ModuleConfiguratorSetting
+import org.jetbrains.kotlin.tools.projectWizard.core.service.kotlinVersionKind
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.*
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.AndroidConfigIR
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.BuildScriptDependencyIR
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.tools.projectWizard.plugins.templates.TemplatesPlugi
 import org.jetbrains.kotlin.tools.projectWizard.settings.JavaPackage
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.DefaultRepository
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Module
+import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Repository
 import org.jetbrains.kotlin.tools.projectWizard.settings.javaPackage
 import org.jetbrains.kotlin.tools.projectWizard.settings.version.Version
 import org.jetbrains.kotlin.tools.projectWizard.templates.FileTemplate
@@ -28,11 +30,20 @@ object AndroidSinglePlatformModuleConfigurator : ModuleConfiguratorWithSettings(
     override val moduleType = ModuleType.jvm
     override val id = "android"
     override val suggestedModuleName = "android"
+    override val text = "Android"
     override val greyText = "Requires Android SDK"
 
     val androidSdkPath by pathSetting("Android SDK Path", neededAtPhase = GenerationPhase.PROJECT_GENERATION) {
         shouldExists()
     }
+
+    private fun createRepositories(configurationData: ModuleConfigurationData) =buildList<Repository> {
+        +DefaultRepository.GRADLE_PLUGIN_PORTAL
+        +DefaultRepository.GOOGLE
+        +DefaultRepository.JCENTER
+        addIfNotNull(configurationData.kotlinVersion.kotlinVersionKind.repository)
+    }
+
 
     override fun createBuildFileIRs(configurationData: ModuleConfigurationData, module: Module) =
         buildList<BuildSystemIR> {
@@ -45,28 +56,16 @@ object AndroidSinglePlatformModuleConfigurator : ModuleConfiguratorWithSettings(
             )
             +GradleOnlyPluginByNameIR("kotlin-android-extensions")
             +AndroidConfigIR(configurationData.pomIr.artifactId)
-            +listOf(
-                DefaultRepository.GRADLE_PLUGIN_PORTAL,
-                DefaultRepository.GOOGLE,
-                DefaultRepository.JCENTER
-            ).map(::RepositoryIR)
+            +createRepositories(configurationData).map(::RepositoryIR)
         }
 
     override fun createRootBuildFileIrs(configurationData: ModuleConfigurationData) = buildList<BuildSystemIR> {
-        +listOf(
-            DefaultRepository.GRADLE_PLUGIN_PORTAL,
-            DefaultRepository.GOOGLE,
-            DefaultRepository.JCENTER
-        ).map { BuildScriptRepositoryIR(RepositoryIR(it)) }
+        +createRepositories(configurationData).map { BuildScriptRepositoryIR(RepositoryIR(it)) }
         +listOf(
             RawGradleIR { call("classpath") { +"com.android.tools.build:gradle:3.2.1".quotified } },
             RawGradleIR {
                 call("classpath") {
-                    call("kotlin", forceBrackets = true) {
-                        +"gradle-plugin".quotified
-                        +", "
-                        +configurationData.kotlinVersion.toString().quotified
-                    }
+                    +"org.jetbrains.kotlin:kotlin-gradle-plugin:${configurationData.kotlinVersion}".quotified
                 }
             }
         ).map(::BuildScriptDependencyIR)
@@ -92,7 +91,7 @@ object AndroidSinglePlatformModuleConfigurator : ModuleConfiguratorWithSettings(
         )
     }
 
-    override fun createModuleIRs(configurationData: ModuleConfigurationData, module: Module): List<BuildSystemIR> =
+    override fun ValuesReadingContext.createModuleIRs(configurationData: ModuleConfigurationData, module: Module): List<BuildSystemIR> =
         buildList {
             +ArtifactBasedLibraryDependencyIR(
                 MavenArtifact(DefaultRepository.GOOGLE, "androidx.appcompat", "appcompat"),
@@ -106,14 +105,15 @@ object AndroidSinglePlatformModuleConfigurator : ModuleConfiguratorWithSettings(
                 dependencyType = DependencyType.MAIN
             )
 
-            +KotlinLibraryDependencyIR("stdlib-jdk7", configurationData.kotlinVersion, DependencyType.MAIN)
-
             +ArtifactBasedLibraryDependencyIR(
                 MavenArtifact(DefaultRepository.GOOGLE, "androidx.constraintlayout", "constraintlayout"),
                 version = Version.fromString("1.1.3"),
                 dependencyType = DependencyType.MAIN
             )
         }
+
+    override fun createStdlibType(configurationData: ModuleConfigurationData, module: Module): StdlibType? =
+        StdlibType.StdlibJdk7
 
     override val settings: List<ModuleConfiguratorSetting<*, *>> =
         listOf(androidSdkPath)

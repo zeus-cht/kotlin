@@ -15,7 +15,7 @@ object MppModuleConfigurator : ModuleConfigurator {
     override val moduleKind = ModuleKind.multiplatform
     override val suggestedModuleName = "shared"
     override val id = "multiplatform"
-
+    override val text = "Multiplatform"
     override val canContainSubModules = true
 
     override fun createKotlinPluginIR(configurationData: ModuleConfigurationData, module: Module): KotlinBuildSystemPluginIR? =
@@ -27,15 +27,18 @@ object MppModuleConfigurator : ModuleConfigurator {
 
 
 interface SinglePlatformModuleConfigurator : ModuleConfigurator {
-    override val moduleKind get() = ModuleKind.singleplatform
+    override val moduleKind get() = ModuleKind.singleplatformJvm
 
 }
 
-object JvmSinglePlatformModuleConfigurator : SinglePlatformModuleConfigurator,
+object JvmSinglePlatformModuleConfigurator : ModuleConfiguratorWithTests(),
+    SinglePlatformModuleConfigurator,
     JvmModuleConfigurator {
-    override val moduleType = ModuleType.jvm
+    override val moduleType get() = ModuleType.jvm
     override val suggestedModuleName = "jvm"
     override val id = "JVM Module"
+
+    override fun defaultTestFramework(): KotlinTestFramework = KotlinTestFramework.JUNIT4
 
     override val canContainSubModules = true
 
@@ -49,7 +52,7 @@ object JvmSinglePlatformModuleConfigurator : SinglePlatformModuleConfigurator,
 
 object IOSSinglePlatformModuleConfigurator :
     SinglePlatformModuleConfigurator {
-    override val moduleType = ModuleType.jvm //todo
+    override val moduleType get() = ModuleType.jvm //todo
     override val id = "IOS Module"
     override val suggestedModuleName = "ios"
     override val greyText = "Requires Apple Xcode"

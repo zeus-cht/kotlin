@@ -4,11 +4,12 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.tools.projectWizard.core.buildList
 import org.jetbrains.kotlin.tools.projectWizard.core.entity.*
 import org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators.AndroidSinglePlatformModuleConfigurator
+import org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators.JsSingleplatformModuleConfigurator
+import org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators.MppModuleConfigurator
 import org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators.defaultTarget
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.KotlinPlugin
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ModuleType
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ProjectKind
-import org.jetbrains.kotlin.tools.projectWizard.projectTemplates.MultiplatformLibrary.withTemplate
 import org.jetbrains.kotlin.tools.projectWizard.settings.DisplayableSettingItem
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.*
 import org.jetbrains.kotlin.tools.projectWizard.templates.*
@@ -34,7 +35,7 @@ sealed class ProjectTemplate : DisplayableSettingItem {
         }
 
 
-    fun <T : Template> Sourceset.withTemplate(
+    fun <T : Template> Module.withTemplate(
         template: T,
         createSettings: TemplateSettingsBuilder<T>.() -> Unit = {}
     ) = apply {
@@ -53,15 +54,17 @@ sealed class ProjectTemplate : DisplayableSettingItem {
             JvmConsoleApplication,
             JvmServerJsClient,
             MultiplatformLibrary,
-            AndroidApplication
+            AndroidApplication,
+            NativeConsoleApplication,
+            JsBrowserApplication
         )
     }
 }
 
 class TemplateSettingsBuilder<Q : Template>(
-    val sourceset: Sourceset,
+    val module: Module,
     val template: Q
-) : TemplateEnvironment by SourcesetBasedTemplateEnvironment(template, sourceset) {
+) : TemplateEnvironment by ModuleBasedTemplateEnvironment(template, module) {
     private val settings = mutableListOf<SettingWithValue<*, *>>()
     val setsSettings: List<SettingWithValue<*, *>>
         get() = settings
@@ -86,7 +89,6 @@ private fun ModuleType.createDefaultSourcesets() =
         Sourceset(
             sourcesetType,
             this,
-            template = null,
             dependencies = emptyList()
         )
     }
@@ -135,7 +137,7 @@ object JvmConsoleApplication : ProjectTemplate() {
                     "consoleApp",
                     ModuleType.jvm.createDefaultSourcesets()
                 ).apply {
-                    mainSourceset?.withTemplate(ConsoleJvmApplicationTemplate())
+                    withTemplate(ConsoleJvmApplicationTemplate())
                 }
             )
         )
@@ -157,24 +159,9 @@ object MultiplatformLibrary : ProjectTemplate() {
                 MultiplatformModule(
                     "library",
                     listOf(
-                        ModuleType.common.createDefaultTarget().apply {
-                            testSourceset?.withTemplate(KotlinTestTemplate()) {
-                                template.framework withValue KotlinTestFramework.COMMON
-                                template.generateDummyTest withValue false
-                            }
-                        },
-                        ModuleType.jvm.createDefaultTarget().apply {
-                            testSourceset?.withTemplate(KotlinTestTemplate()) {
-                                template.framework withValue KotlinTestFramework.JUNIT4
-                                template.generateDummyTest withValue false
-                            }
-                        },
-                        ModuleType.js.createDefaultTarget().apply {
-                            testSourceset?.withTemplate(KotlinTestTemplate()) {
-                                template.framework withValue KotlinTestFramework.JS
-                                template.generateDummyTest withValue false
-                            }
-                        },
+                        ModuleType.common.createDefaultTarget(),
+                        ModuleType.jvm.createDefaultTarget(),
+                        ModuleType.js.createDefaultTarget(),
                         ModuleType.native.createDefaultTarget()
                     )
                 )
@@ -194,12 +181,12 @@ object JvmServerJsClient : ProjectTemplate() {
                 "application",
                 listOf(
                     ModuleType.jvm.createDefaultTarget().apply {
-                        mainSourceset?.withTemplate(KtorServerTemplate()) {
+                        withTemplate(KtorServerTemplate()) {
                             template.serverEngine withValue KtorServerEngine.Netty
                         }
                     },
                     ModuleType.js.createDefaultTarget().apply {
-                        mainSourceset?.withTemplate(SimpleJsClientTemplate())
+                        withTemplate(SimpleJsClientTemplate())
                     }
                 )
             )
@@ -221,10 +208,59 @@ object AndroidApplication : ProjectTemplate() {
             KotlinPlugin::modules withValue listOf(
                 Module(
                     "app",
-                    ModuleKind.singleplatform,
+                    ModuleKind.singleplatformJvm,
                     AndroidSinglePlatformModuleConfigurator,
-                    SourcesetType.ALL.map { type ->
-                        Sourceset(type, ModuleType.jvm, template = null, dependencies = emptyList())
+                    template = null,
+                    sourcesets = SourcesetType.ALL.map { type ->
+                        Sourceset(type, ModuleType.jvm, dependencies = emptyList())
+                    },
+                    subModules = emptyList()
+                )
+            )
+        )
+}
+
+object NativeConsoleApplication : ProjectTemplate() {
+    override val title = "Native Console Application"
+    override val htmlDescription = title
+    override val suggestedProjectName = "myNativeConsoleApp"
+    override val projectKind = ProjectKind.Multiplatform
+
+    override val setsPluginSettings: List<SettingWithValue<*, *>>
+        get() = listOf(
+            KotlinPlugin::modules withValue listOf(
+                Module(
+                    "app",
+                    ModuleKind.multiplatform,
+                    MppModuleConfigurator,
+                    template = null,
+                    sourcesets = emptyList(),
+                    subModules = listOf(
+                        ModuleType.native.createDefaultTarget("native").apply {
+                            withTemplate(NativeConsoleApplicationTemplate())
+                        }
+                    )
+                )
+            )
+        )
+}
+
+object JsBrowserApplication : ProjectTemplate() {
+    override val title = "Kotlin/JS Frontend Application"
+    override val htmlDescription = title
+    override val suggestedProjectName = "myKotlinJsApplication"
+    override val projectKind = ProjectKind.Multiplatform
+
+    override val setsPluginSettings: List<SettingWithValue<*, *>>
+        get() = listOf(
+            KotlinPlugin::modules withValue listOf(
+                Module(
+                    "frontend",
+                    ModuleKind.singleplatformJs,
+                    JsSingleplatformModuleConfigurator,
+                    template = SimpleJsClientTemplate(),
+                    sourcesets = SourcesetType.ALL.map { type ->
+                        Sourceset(type, ModuleType.jvm, dependencies = emptyList())
                     },
                     subModules = emptyList()
                 )

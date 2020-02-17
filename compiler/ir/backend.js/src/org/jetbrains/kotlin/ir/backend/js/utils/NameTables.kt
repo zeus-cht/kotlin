@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.common.ir.isMethodOfAny
 import org.jetbrains.kotlin.backend.common.ir.isTopLevel
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
-import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerForBE
+import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrLoop
 import org.jetbrains.kotlin.ir.types.isUnit
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 fun <T> mapToKey(declaration: T): String {
-    return with(JsManglerForBE) {
+    return with(JsManglerIr) {
         if (declaration is IrDeclaration && isPublic(declaration)) {
             declaration.hashedMangle.toString()
         } else if (declaration is Signature) {
@@ -32,7 +32,7 @@ fun <T> mapToKey(declaration: T): String {
     }
 }
 
-fun JsManglerForBE.isPublic(declaration: IrDeclaration) =
+fun JsManglerIr.isPublic(declaration: IrDeclaration) =
     declaration.isExported() && declaration !is IrScript && declaration !is IrVariable && declaration !is IrValueParameter
 
 class NameTable<T>(
@@ -332,6 +332,11 @@ class NameTables(
         val signature = fieldSignature(field)
         val name = memberNames.names[signature] ?: mappedNames[mapToKey(signature)]
 
+        // TODO investigate
+        if (name == null) {
+            return sanitizeName(field.name.asString()) + "__error"
+        }
+
         require(name != null) {
             "Can't find name for member field ${field.render()}"
         }
@@ -346,6 +351,14 @@ class NameTables(
         //       of `invoke` functions in FunctionN interfaces
         if (name == null && signature is ParameterTypeBasedSignature && signature.suggestedName.startsWith("invoke"))
             return signature.suggestedName
+
+        // TODO Add a compiler flag, which enables this behaviour
+        // TODO remove in DCE
+        if (name == null) {
+            return sanitizeName(function.name.asString()) + "__error" // TODO one case is a virtual method of an abstract class with no implementation
+        }
+
+        // TODO report backend error
         require(name != null) {
             "Can't find name for member function ${function.render()}"
         }

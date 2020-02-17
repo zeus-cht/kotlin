@@ -18,8 +18,6 @@ dependencies {
     compileOnly(project(":kotlin-scripting-jvm-host"))
     compileOnly(project(":kotlin-scripting-dependencies"))
     compileOnly(project(":kotlin-script-util"))
-    testCompile(project(":kotlin-scripting-jvm-host"))
-    testCompile(project(":kotlin-script-util"))
     runtime(project(":kotlin-compiler-embeddable"))
     runtime(project(":kotlin-scripting-compiler-embeddable"))
     runtime(project(":kotlin-scripting-jvm-host-embeddable"))
@@ -48,9 +46,6 @@ publish()
 
 noDefaultJar()
 
-val mainKtsRootPackage = "org.jetbrains.kotlin.mainKts"
-val mainKtsRelocatedDepsRootPackage = "$mainKtsRootPackage.relocatedDeps"
-
 val packJar by task<ShadowJar> {
     configurations = emptyList()
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -65,7 +60,7 @@ val packJar by task<ShadowJar> {
 
     if (kotlinBuildProperties.relocation) {
         packagesToRelocate.forEach {
-            relocate(it, "$mainKtsRelocatedDepsRootPackage.$it")
+            relocate(it, "$kotlinEmbeddableRootPackage.$it")
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.ir.getJvmNameFromAnnotation
 import org.jetbrains.kotlin.backend.jvm.ir.hasJvmDefault
 import org.jetbrains.kotlin.backend.jvm.ir.propertyIfAccessor
+import org.jetbrains.kotlin.backend.jvm.lower.*
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.JvmCodegenUtil
@@ -292,10 +293,18 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
             if (valueArgumentsCount > 0) (getValueArgument(0) as? IrConst<*>)?.value as? Boolean ?: true else null
         }
 
+    private fun IrFunctionAccessExpression.computeCalleeParent(): IrClass {
+        if (this is IrCall) {
+            superQualifierSymbol?.let { return it.owner }
+        }
+        return dispatchReceiver?.type?.classOrNull?.owner
+            ?: symbol.owner.parentAsClass // Static call or type parameter
+    }
+
     fun mapToCallableMethod(caller: IrFunction, expression: IrFunctionAccessExpression): IrCallableMethod {
-        val callee = expression.symbol.owner.getOrCreateSuspendFunctionViewIfNeeded(context)
-        val calleeParent = callee.parentAsClass
-        val owner = typeMapper.mapClass(calleeParent)
+        val callee = expression.symbol.owner
+        val calleeParent = expression.computeCalleeParent()
+        val owner = typeMapper.mapOwner(calleeParent)
 
         if (callee !is IrSimpleFunction) {
             check(callee is IrConstructor) { "Function must be a simple function or a constructor: ${callee.render()}" }
@@ -325,6 +334,8 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
         // Do not remap special builtin methods when called from a bridge. The bridges are there to provide the
         // remapped name or signature and forward to the actually declared method.
         if (caller.origin == IrDeclarationOrigin.BRIDGE || caller.origin == IrDeclarationOrigin.BRIDGE_SPECIAL) return null
+        // Do not remap calls to static replacements of inline class methods, since they have completely different signatures.
+        if (callee.origin == JvmLoweredDeclarationOrigin.STATIC_INLINE_CLASS_REPLACEMENT) return null
         val overriddenSpecialBuiltinFunction = callee.descriptor.original.getOverriddenBuiltinReflectingJvmDescriptor()
         if (overriddenSpecialBuiltinFunction != null && !superCall) {
             return mapSignatureSkipGeneric(context.referenceFunction(overriddenSpecialBuiltinFunction.original).owner)

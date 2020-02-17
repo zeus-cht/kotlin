@@ -27,7 +27,7 @@ public class Test {
 
 fun foo(x: B<*>) {
     // TODO: x.foo() now is flexible type instead of raw, because of captured type approximation
-    val q: MutableList<String> = x.foo().<!INAPPLICABLE_CANDIDATE!>getChildrenStubs<!>()
+    val q: MutableList<String> = x.foo().getChildrenStubs()
 
     // Raw(B).field erased to A<Any!>..A<out Any!>?
     Test.rawB.field = A<String>()

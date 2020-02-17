@@ -6212,11 +6212,6 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             runTest("idea/testData/quickfix/deprecatedSymbolUsage/replaceCallWithReceiver.kt");
         }
 
-        @TestMetadata("replaceModToRem.kt")
-        public void testReplaceModToRem() throws Exception {
-            runTest("idea/testData/quickfix/deprecatedSymbolUsage/replaceModToRem.kt");
-        }
-
         @TestMetadata("shortenReferences.kt")
         public void testShortenReferences() throws Exception {
             runTest("idea/testData/quickfix/deprecatedSymbolUsage/shortenReferences.kt");
@@ -6983,6 +6978,11 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             @TestMetadata("onlyAliasDeprecated.kt")
             public void testOnlyAliasDeprecated() throws Exception {
                 runTest("idea/testData/quickfix/deprecatedSymbolUsage/typeAliases/onlyAliasDeprecated.kt");
+            }
+
+            @TestMetadata("stdlibAliased.kt")
+            public void testStdlibAliased() throws Exception {
+                runTest("idea/testData/quickfix/deprecatedSymbolUsage/typeAliases/stdlibAliased.kt");
             }
 
             @TestMetadata("transitiveFromClass.kt")
@@ -11680,6 +11680,44 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
         @TestMetadata("property.kt")
         public void testProperty() throws Exception {
             runTest("idea/testData/quickfix/specifyOverrideExplicitly/property.kt");
+        }
+    }
+
+    @TestMetadata("idea/testData/quickfix/specifyVisibilityInExplicitApiMode")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class SpecifyVisibilityInExplicitApiMode extends AbstractQuickFixTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInSpecifyVisibilityInExplicitApiMode() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/specifyVisibilityInExplicitApiMode"), Pattern.compile("^([\\w\\-_]+)\\.kt$"), null, true);
+        }
+
+        @TestMetadata("class.kt")
+        public void testClass() throws Exception {
+            runTest("idea/testData/quickfix/specifyVisibilityInExplicitApiMode/class.kt");
+        }
+
+        @TestMetadata("companion.kt")
+        public void testCompanion() throws Exception {
+            runTest("idea/testData/quickfix/specifyVisibilityInExplicitApiMode/companion.kt");
+        }
+
+        @TestMetadata("constructor.kt")
+        public void testConstructor() throws Exception {
+            runTest("idea/testData/quickfix/specifyVisibilityInExplicitApiMode/constructor.kt");
+        }
+
+        @TestMetadata("method.kt")
+        public void testMethod() throws Exception {
+            runTest("idea/testData/quickfix/specifyVisibilityInExplicitApiMode/method.kt");
+        }
+
+        @TestMetadata("property.kt")
+        public void testProperty() throws Exception {
+            runTest("idea/testData/quickfix/specifyVisibilityInExplicitApiMode/property.kt");
         }
     }
 

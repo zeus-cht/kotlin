@@ -53,6 +53,11 @@ public class DiagnosticsTestWithJsStdLibGenerated extends AbstractDiagnosticsTes
         runTest("compiler/testData/diagnostics/testsWithJsStdLib/runtimeAnnotations.kt");
     }
 
+    @TestMetadata("unsafeCastFunctionOnDynamicType.kt")
+    public void testUnsafeCastFunctionOnDynamicType() throws Exception {
+        runTest("compiler/testData/diagnostics/testsWithJsStdLib/unsafeCastFunctionOnDynamicType.kt");
+    }
+
     @TestMetadata("wrongMultipleInheritance.kt")
     public void testWrongMultipleInheritance() throws Exception {
         runTest("compiler/testData/diagnostics/testsWithJsStdLib/wrongMultipleInheritance.kt");
@@ -413,11 +418,6 @@ public class DiagnosticsTestWithJsStdLibGenerated extends AbstractDiagnosticsTes
 
         public void testAllFilesPresentInModule() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/testsWithJsStdLib/module"), Pattern.compile("^(.+)\\.kt$"), null, true);
-        }
-
-        @TestMetadata("coroutineProhibitedMigration.kt")
-        public void testCoroutineProhibitedMigration() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithJsStdLib/module/coroutineProhibitedMigration.kt");
         }
 
         @TestMetadata("dualModuleFromUmd.kt")

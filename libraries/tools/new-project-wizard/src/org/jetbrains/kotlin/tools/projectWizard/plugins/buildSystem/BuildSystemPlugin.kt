@@ -6,9 +6,8 @@ import org.jetbrains.kotlin.tools.projectWizard.core.entity.reference
 import org.jetbrains.kotlin.tools.projectWizard.core.service.BuildSystemAvailabilityWizardService
 import org.jetbrains.kotlin.tools.projectWizard.core.service.FileSystemWizardService
 import org.jetbrains.kotlin.tools.projectWizard.core.service.ProjectImportingWizardService
-import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.BuildFileIR
-import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.MultiplatformModulesStructureIR
-import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.render
+import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.*
+import org.jetbrains.kotlin.tools.projectWizard.library.MavenArtifact
 import org.jetbrains.kotlin.tools.projectWizard.phases.GenerationPhase
 import org.jetbrains.kotlin.tools.projectWizard.plugins.StructurePlugin
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.KotlinPlugin
@@ -16,7 +15,12 @@ import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ProjectKind
 import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.BuildFilePrinter
 import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.printBuildFile
 import org.jetbrains.kotlin.tools.projectWizard.plugins.projectPath
+import org.jetbrains.kotlin.tools.projectWizard.plugins.templates.TemplatePlugin
+import org.jetbrains.kotlin.tools.projectWizard.plugins.templates.TemplatesPlugin
 import org.jetbrains.kotlin.tools.projectWizard.settings.DisplayableSettingItem
+import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Repository
+import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.updateBuildFiles
+import java.nio.file.Path
 
 abstract class BuildSystemPlugin(context: Context) : Plugin(context) {
     val type by enumSetting<BuildSystemType>("Build System", GenerationPhase.FIRST_STEP) {
@@ -36,7 +40,31 @@ abstract class BuildSystemPlugin(context: Context) : Plugin(context) {
 
     val buildSystemData by property<List<BuildSystemData>>(emptyList())
 
-    val buildFiles by property<List<BuildFileIR>>(emptyList())
+    val buildFiles by listProperty<BuildFileIR>()
+
+    val pluginRepositoreis by listProperty<Repository>()
+
+    val takeRepositoriesFromDependencies by pipelineTask(GenerationPhase.PROJECT_GENERATION) {
+        runBefore(BuildSystemPlugin::createModules)
+        runAfter(TemplatesPlugin::postApplyTemplatesToModules)
+
+        withAction {
+            updateBuildFiles { buildFile ->
+                val dependenciesOfModule = buildList<LibraryDependencyIR> {
+                    buildFile.modules.modules.forEach { module ->
+                        if (module is SingleplatformModuleIR) module.sourcesets.forEach { sourceset ->
+                            +sourceset.irs.filterIsInstance<LibraryDependencyIR>()
+                        }
+                        +module.irs.filterIsInstance<LibraryDependencyIR>()
+                    }
+                }
+                val repositoriesToAdd = dependenciesOfModule.mapNotNull { dependency ->
+                    dependency.artifact.safeAs<MavenArtifact>()?.repository?.let(::RepositoryIR)
+                }
+                buildFile.withIrs(repositoriesToAdd).asSuccess()
+            }
+        }
+    }
 
     val createModules by pipelineTask(GenerationPhase.PROJECT_GENERATION) {
         runAfter(StructurePlugin::createProjectDir)
@@ -109,11 +137,14 @@ val TaskRunningContext.allModulesPaths
             else -> structure.modules.map { it.path }
         }
         paths.mapNotNull { path ->
-            projectPath.relativize(path).toList().takeIf { it.isNotEmpty() }
+            projectPath.relativize(path)
+                .takeIf { it.toString().isNotBlank() }
+                ?.toList()
+                ?.takeIf { it.isNotEmpty() }
         }
     }
 
 
-val TaskRunningContext.buildSystemType: BuildSystemType
+val ValuesReadingContext.buildSystemType: BuildSystemType
     get() = BuildSystemPlugin::type.reference.settingValue
 

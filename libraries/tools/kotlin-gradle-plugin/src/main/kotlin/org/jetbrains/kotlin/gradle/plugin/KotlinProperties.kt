@@ -19,6 +19,8 @@ package org.jetbrains.kotlin.gradle.plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.NativeCacheKind
+import org.jetbrains.kotlin.gradle.targets.js.JsCompilerType
+import org.jetbrains.kotlin.gradle.targets.js.JsCompilerType.Companion.jsCompilerProperty
 import org.jetbrains.kotlin.gradle.targets.native.DisabledNativeTargetsReporter
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
@@ -94,6 +96,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
     val enableGranularSourceSetsMetadata: Boolean?
         get() = booleanProperty("kotlin.mpp.enableGranularSourceSetsMetadata")
 
+    val enableCompatibilityMetadataVariant: Boolean?
+        get() = booleanProperty("kotlin.mpp.enableCompatibilityMetadataVariant")
+
     val ignoreDisabledNativeTargets: Boolean?
         get() = booleanProperty(DisabledNativeTargetsReporter.DISABLE_WARNING_PROPERTY_NAME)
 
@@ -164,6 +169,12 @@ internal class PropertiesProvider private constructor(private val project: Proje
      */
     val jsDiscoverTypes: Boolean?
         get() = booleanProperty("kotlin.js.experimental.discoverTypes")
+
+    /**
+     * Use Kotlin/JS backend mode
+     */
+    val jsCompiler: JsCompilerType
+        get() = property(jsCompilerProperty)?.let { JsCompilerType.byArgument(it) } ?: JsCompilerType.legacy
 
     private fun propertyWithDeprecatedVariant(propName: String, deprecatedPropName: String): String? {
         val deprecatedProperty = property(deprecatedPropName)

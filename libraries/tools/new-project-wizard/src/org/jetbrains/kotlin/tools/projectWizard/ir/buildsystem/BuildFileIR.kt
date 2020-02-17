@@ -5,14 +5,15 @@ import org.jetbrains.kotlin.tools.projectWizard.core.safeAs
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.*
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.multiplatform.DefaultTargetConfigurationIR
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.multiplatform.TargetConfigurationIR
-import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.gradle.multiplatform.TargetIR
+import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.maven.PluginRepositoryMavenIR
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ModuleSubType
 import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.BuildFilePrinter
 import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.GradlePrinter
 import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.MavenPrinter
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.DefaultRepository
 import java.nio.file.Path
-import javax.xml.transform.Source
+
+interface FileIR : BuildSystemIR, IrsOwner
 
 data class BuildFileIR(
     val name: String,
@@ -20,16 +21,35 @@ data class BuildFileIR(
     val modules: ModulesStructureIR,
     val pom: PomIR,
     override val irs: List<BuildSystemIR>
-) : BuildSystemIR, IrsOwner {
+) : FileIR {
     override fun withReplacedIrs(irs: List<BuildSystemIR>): BuildFileIR = copy(irs = irs)
 
     @Suppress("UNCHECKED_CAST")
     fun withModulesUpdated(updater: (ModuleIR) -> TaskResult<ModuleIR>): TaskResult<BuildFileIR> =
         modules.withModulesUpdated(updater).map { newModules -> copy(modules = newModules) }
 
+    private fun distinctRepositories(): List<RepositoryIR> =
+        irsOfType<RepositoryIR>()
+            .distinctBy(RepositoryIR::repository)
+            .sortedBy { repositoryIR ->
+                if (repositoryIR.repository is DefaultRepository) 0 else 1
+            }
+
+    private fun distinctPluginRepositories(): List<PluginRepositoryMavenIR> =
+        irsOfType<PluginRepositoryMavenIR>()
+            .distinctBy(PluginRepositoryMavenIR::repository)
+            .sortedBy { repositoryIR ->
+                if (repositoryIR.repository is DefaultRepository) 0 else 1
+            }
+
+    private fun distinctImportsOrNull(): List<GradleImportIR>? =
+        irsOfTypeOrNull<GradleImportIR>()
+            ?.distinctBy(GradleImportIR::import)
+            ?.sortedBy(GradleImportIR::import)
+
     override fun BuildFilePrinter.render() = when (this) {
         is GradlePrinter -> {
-            irsOfTypeOrNull<GradleImportIR>()?.let { imports ->
+            distinctImportsOrNull()?.let { imports ->
                 imports.listNl()
                 nl()
                 nl()
@@ -44,13 +64,7 @@ data class BuildFileIR(
             sectionCall("plugins", irsOfType<BuildSystemPluginIR>()); nlIndented()
             pom.render(this); nl()
 
-            irsOfType<RepositoryIR>()
-                .distinctBy { it.repository }
-                .sortedBy { repositoryIR ->
-                    if (repositoryIR.repository is DefaultRepository) 0 else 1
-                }.let {
-                    sectionCall("repositories", it)
-                }
+            sectionCall("repositories", distinctRepositories())
             nl()
             modules.render(this)
             irsOfTypeOrNull<FreeIR>()?.let { freeIrs ->
@@ -69,6 +83,20 @@ data class BuildFileIR(
             node("properties") {
                 singleLineNode("project.build.sourceEncoding") { +"UTF-8" }
                 singleLineNode("kotlin.code.style") { +"official" }
+            }
+
+            distinctRepositories().takeIf { it.isNotEmpty() }?.let { repositories ->
+                nl()
+                node("repositories") {
+                    repositories.listNl()
+                }
+            }
+
+            distinctPluginRepositories().takeIf { it.isNotEmpty() }?.let { repositories ->
+                nl()
+                node("pluginRepositories") {
+                    repositories.listNl()
+                }
             }
 
             val plugins = irsOfType<BuildSystemPluginIR>().takeIf { it.isNotEmpty() }
@@ -97,7 +125,7 @@ val BuildFileIR.sourcesets
     get() = modules.modules.flatMap { module ->
         when (module) {
             is SingleplatformModuleIR -> module.sourcesets
-            is SourcesetModuleIR -> listOf(module as SourcesetIR)
+            is MultiplatformModuleIR -> listOf(module as SourcesetIR)
         }
     }
 
@@ -116,11 +144,11 @@ sealed class ModulesStructureIR : BuildSystemIR, IrsOwner {
 
 data class MultiplatformModulesStructureIR(
     val targets: List<BuildSystemIR>,
-    override val modules: List<SourcesetModuleIR>,
+    override val modules: List<MultiplatformModuleIR>,
     override val irs: List<BuildSystemIR>
 ) : GradleIR, ModulesStructureIR() {
     @Suppress("UNCHECKED_CAST")
-    override fun withModules(modules: List<ModuleIR>) = copy(modules = modules as List<SourcesetModuleIR>)
+    override fun withModules(modules: List<ModuleIR>) = copy(modules = modules as List<MultiplatformModuleIR>)
 
     override fun withReplacedIrs(irs: List<BuildSystemIR>): MultiplatformModulesStructureIR = copy(irs = irs)
 

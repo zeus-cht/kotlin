@@ -19,6 +19,7 @@ val projectsToShadow by extra(listOf(
         ":compiler:backend.jvm",
         ":compiler:ir.backend.common",
         ":compiler:ir.serialization.jvm",
+        ":compiler:ir.serialization.common",
         ":kotlin-build-common",
         ":compiler:cli-common",
         ":compiler:container",
@@ -49,7 +50,6 @@ val projectsToShadow by extra(listOf(
         ":compiler:fir:jvm",
         ":compiler:fir:psi2fir",
         ":compiler:fir:fir2ir",
-        ":idea:fir-view",
         ":compiler:frontend",
         ":compiler:frontend.common",
         ":compiler:frontend.java",
@@ -65,8 +65,9 @@ val projectsToShadow by extra(listOf(
         ":js:js.parser",
         ":js:js.serializer",
         ":js:js.translator",
-        ":kotlin-native:kotlin-native-utils",
-        ":kotlin-native:kotlin-native-library-reader",
+        ":native:kotlin-native-utils",
+        ":native:frontend.native",
+        ":kotlin-gradle-statistics",
         ":compiler:light-classes",
         ":compiler:plugin-api",
         ":kotlin-preloader",
@@ -96,6 +97,7 @@ val projectsToShadow by extra(listOf(
 // Projects published to maven copied to the plugin as separate jars
 val libraryProjects = listOf(
     ":kotlin-reflect",
+    ":kotlin-coroutines-experimental-compat",
     ":kotlin-compiler-client-embeddable",
     ":kotlin-daemon-client",
     ":kotlin-daemon-client-new",
@@ -140,6 +142,7 @@ dependencies {
     embedded(protobufFull())
     embedded(kotlinBuiltins())
 
+    libraries(commonDep("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.2"))
     libraries(commonDep("javax.inject"))
     libraries(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8"))
     libraries(commonDep("org.jetbrains", "markdown"))

@@ -28,25 +28,6 @@ sourceSets {
             "idea-live-templates/tests"
         )
     }
-
-    "performanceTest" {
-        java.srcDirs("performanceTests")
-    }
-}
-
-val performanceTestCompile by configurations
-performanceTestCompile.apply {
-    extendsFrom(configurations["testCompile"])
-}
-
-val performanceTestCompileOnly by configurations
-performanceTestCompileOnly.apply {
-    extendsFrom(configurations["testCompileOnly"])
-}
-
-val performanceTestRuntime by configurations
-performanceTestRuntime.apply {
-    extendsFrom(configurations["testRuntime"])
 }
 
 dependencies {
@@ -79,7 +60,6 @@ dependencies {
     compile(project(":j2k"))
     compile(project(":idea:idea-j2k"))
     compile(project(":idea:formatter"))
-    compile(project(":idea:fir-view"))
     compile(project(":compiler:fir:fir2ir"))
     compile(project(":compiler:fir:resolve"))
     compile(project(":compiler:fir:java"))
@@ -129,8 +109,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompileOnly(intellijPluginDep("coverage"))
 
-    testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
-    testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
+    testRuntime(project(":native:kotlin-native-utils")) { isTransitive = false }
 
     testRuntime(commonDep("org.jetbrains", "markdown"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
@@ -191,17 +170,6 @@ dependencies {
         testRuntime(intellijPluginDep("google-cloud-tools-core-as"))
         testRuntime(intellijPluginDep("google-login-as"))
     }
-
-    if (Ide.AS36()) {
-        testRuntime(intellijPluginDep("android-wizardTemplate-plugin"))
-    }
-
-    performanceTestCompile(sourceSets["test"].output)
-    performanceTestCompile(sourceSets["main"].output)
-    performanceTestCompile(project(":nj2k"))
-    performanceTestCompile(project(":idea:idea-gradle-tooling-api"))
-    performanceTestCompile(intellijPluginDep("gradle"))
-    performanceTestRuntime(sourceSets["performanceTest"].output)
 }
 
 tasks.named<Copy>("processResources") {
@@ -215,35 +183,6 @@ projectTest(parallel = true) {
     workingDir = rootDir
 }
 
-projectTest(taskName = "performanceTest") {
-    dependsOn(":dist")
-    dependsOn(performanceTestRuntime)
-
-    testClassesDirs = sourceSets["performanceTest"].output.classesDirs
-    classpath = performanceTestRuntime + files("${System.getenv("ASYNC_PROFILER_HOME")}/build/async-profiler.jar")
-    workingDir = rootDir
-
-    jvmArgs?.removeAll { it.startsWith("-Xmx") }
-
-    maxHeapSize = "3g"
-    jvmArgs("-Didea.debug.mode=true")
-    jvmArgs("-XX:SoftRefLRUPolicyMSPerMB=50")
-    jvmArgs(
-        "-XX:ReservedCodeCacheSize=240m",
-        "-XX:+UseCompressedOops",
-        "-XX:+UseConcMarkSweepGC"
-    )
-
-    doFirst {
-        systemProperty("idea.home.path", intellijRootDir().canonicalPath)
-        project.findProperty("cacheRedirectorEnabled")?.let {
-            systemProperty("kotlin.test.gradle.import.arguments", "-PcacheRedirectorEnabled=$it")
-        }
-    }
-}
-
-testsJar {
-    from(sourceSets["performanceTest"].output)
-}
-
 configureFormInstrumentation()
+
+testsJar()

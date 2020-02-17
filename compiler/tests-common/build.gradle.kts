@@ -34,6 +34,7 @@ dependencies {
     testCompile(project(":js:js.serializer"))
     testCompile(project(":js:js.frontend"))
     testCompile(project(":js:js.translator"))
+    testCompile(project(":native:frontend.native"))
     testCompileOnly(project(":plugins:android-extensions-compiler"))
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common-jvm6"))
@@ -41,10 +42,22 @@ dependencies {
     testCompile(project(":kotlin-scripting-compiler-impl"))
     testCompile(commonDep("junit:junit"))
     testCompile(androidDxJar()) { isTransitive = false }
+    testCompile(commonDep("com.android.tools:r8"))
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    Platform[193].orLower {
+        testCompile(intellijDep()) { includeJars("openapi", "picocontainer", rootProject = rootProject) }
+    }
+    Platform[201].orHigher {
+        testCompile(intellijDep()) {
+            includeJars(
+                "testFramework",
+                "testFramework.core",
+                rootProject = rootProject
+            )
+        }
+    }
     testCompile(intellijDep()) {
         includeJars(
-            "openapi",
             "jps-model",
             "extensions",
             "util",
@@ -54,7 +67,6 @@ dependencies {
             "idea_rt",
             "guava",
             "trove4j",
-            "picocontainer",
             "asm-all",
             "log4j",
             "jdom",

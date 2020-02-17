@@ -29,13 +29,19 @@ import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetFactory
+import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
+import org.jetbrains.kotlin.gradle.targets.js.JsCompilerType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsPlugin
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.addNpmDependencyExtension
 import org.jetbrains.kotlin.gradle.tasks.KOTLIN_COMPILER_EMBEDDABLE
 import org.jetbrains.kotlin.gradle.tasks.KOTLIN_MODULE_GROUP
+import org.jetbrains.kotlin.gradle.tasks.KOTLIN_KLIB_COMMONIZER_EMBEDDABLE
 import org.jetbrains.kotlin.gradle.testing.internal.KotlinTestsRegistry
 import org.jetbrains.kotlin.gradle.utils.checkGradleCompatibility
 import org.jetbrains.kotlin.gradle.utils.loadPropertyFromResources
+import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
@@ -51,6 +57,9 @@ abstract class KotlinBasePluginWrapper(
         DefaultKotlinSourceSetFactory(project, fileResolver)
 
     override fun apply(project: Project) {
+        val statisticsReporter = KotlinBuildStatsService.getOrCreateInstance(project.gradle)
+        statisticsReporter?.report(StringMetrics.KOTLIN_COMPILER_VERSION, kotlinPluginVersion)
+
         checkGradleCompatibility()
 
         project.configurations.maybeCreate(COMPILER_CLASSPATH_CONFIGURATION_NAME).defaultDependencies {
@@ -60,12 +69,17 @@ abstract class KotlinBasePluginWrapper(
         project.configurations.maybeCreate(NATIVE_COMPILER_PLUGIN_CLASSPATH_CONFIGURATION_NAME).apply {
             isTransitive = false
         }
+        project.configurations.maybeCreate(KLIB_COMMONIZER_CLASSPATH_CONFIGURATION_NAME).defaultDependencies {
+            it.add(project.dependencies.create("$KOTLIN_MODULE_GROUP:$KOTLIN_KLIB_COMMONIZER_EMBEDDABLE:$kotlinPluginVersion"))
+        }
 
         // TODO: consider only set if if daemon or parallel compilation are enabled, though this way it should be safe too
         System.setProperty(org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY, "true")
         val kotlinGradleBuildServices = KotlinGradleBuildServices.getInstance(project.gradle)
 
         kotlinGradleBuildServices.detectKotlinPluginLoadedInMultipleProjects(project, kotlinPluginVersion)
+
+        defineExtension(project)
 
         project.createKotlinExtension(projectExtensionClass).apply {
             fun kotlinSourceSetContainer(factory: NamedDomainObjectFactory<KotlinSourceSet>) =
@@ -90,6 +104,7 @@ abstract class KotlinBasePluginWrapper(
     private fun setupAttributeMatchingStrategy(project: Project) = with(project.dependencies.attributesSchema) {
         KotlinPlatformType.setupAttributesMatchingStrategy(this)
         KotlinUsages.setupAttributesMatchingStrategy(project, this)
+        KotlinJsTarget.setupAttributesMatchingStrategy(project.dependencies.attributesSchema)
         ProjectLocalConfigurations.setupAttributesMatchingStrategy(this)
     }
 
@@ -97,6 +112,9 @@ abstract class KotlinBasePluginWrapper(
         project: Project,
         kotlinGradleBuildServices: KotlinGradleBuildServices
     ): Plugin<Project>
+
+    protected open fun defineExtension(project: Project) {
+    }
 }
 
 open class KotlinPluginWrapper @Inject constructor(
@@ -146,11 +164,26 @@ open class Kotlin2JsPluginWrapper @Inject constructor(
 open class KotlinJsPluginWrapper @Inject constructor(
     fileResolver: FileResolver
 ) : KotlinBasePluginWrapper(fileResolver) {
-    override fun getPlugin(project: Project, kotlinGradleBuildServices: KotlinGradleBuildServices): Plugin<Project> =
-        KotlinJsPlugin(kotlinPluginVersion)
+    override fun getPlugin(project: Project, kotlinGradleBuildServices: KotlinGradleBuildServices): Plugin<Project> {
+        val propertiesProvider = PropertiesProvider(project)
 
-    override val projectExtensionClass: KClass<out KotlinJsProjectExtension>
-        get() = KotlinJsProjectExtension::class
+        return when (propertiesProvider.jsCompiler) {
+            JsCompilerType.ir -> KotlinJsIrPlugin(kotlinPluginVersion)
+            JsCompilerType.legacy -> KotlinJsPlugin(kotlinPluginVersion, false)
+            JsCompilerType.both -> KotlinJsPlugin(kotlinPluginVersion, true)
+        }
+    }
+
+    override lateinit var projectExtensionClass: KClass<out KotlinProjectExtension>
+
+    override fun defineExtension(project: Project) {
+        val propertiesProvider = PropertiesProvider(project)
+
+        projectExtensionClass = when (propertiesProvider.jsCompiler) {
+            JsCompilerType.ir -> KotlinJsIrProjectExtension::class
+            JsCompilerType.legacy, JsCompilerType.both -> KotlinJsProjectExtension::class
+        }
+    }
 
     override fun createTestRegistry(project: Project) = KotlinTestsRegistry(project, "test")
 }

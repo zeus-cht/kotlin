@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.TestsCompilerError
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.common.CommonResolverForModuleFactory
 import org.jetbrains.kotlin.builtins.jvm.JvmBuiltIns
+import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.*
@@ -61,7 +62,9 @@ import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE
 import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE_ALL
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Assert
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
@@ -109,13 +112,14 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             val oldModule = modules[testModule]!!
 
             val languageVersionSettings =
-                if (coroutinesPackage.isNotEmpty())
+                if (coroutinesPackage.isNotEmpty()) {
+                    val isExperimental = coroutinesPackage == DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL.asString()
                     CompilerTestLanguageVersionSettings(
                         DEFAULT_DIAGNOSTIC_TESTS_FEATURES,
-                        if (coroutinesPackage.contains("experimental")) ApiVersion.KOTLIN_1_2 else ApiVersion.KOTLIN_1_3,
-                        if (coroutinesPackage.contains("experimental")) LanguageVersion.KOTLIN_1_2 else LanguageVersion.KOTLIN_1_3
+                        if (isExperimental) ApiVersion.KOTLIN_1_2 else ApiVersion.KOTLIN_1_3,
+                        if (isExperimental) LanguageVersion.KOTLIN_1_2 else LanguageVersion.KOTLIN_1_3
                     )
-                else loadLanguageVersionSettings(testFilesInModule)
+                } else loadLanguageVersionSettings(testFilesInModule)
 
             languageVersionSettingsByModule[testModule] = languageVersionSettings
 
@@ -168,6 +172,15 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         // main checks
         var ok = true
 
+        val diagnosticsFullTextByteArrayStream = ByteArrayOutputStream()
+        val diagnosticsFullTextPrintStream = PrintStream(diagnosticsFullTextByteArrayStream)
+        var shouldCheckDiagnosticsFullText = false
+        val diagnosticsFullTextCollector =
+            GroupingMessageCollector(
+                PrintingMessageCollector(diagnosticsFullTextPrintStream, MessageRenderer.SYSTEM_INDEPENDENT_RELATIVE_PATHS, true),
+                false
+            )
+
         val actualText = StringBuilder()
         for (testFile in files) {
             val module = testFile.module
@@ -182,14 +195,20 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             }
             val moduleDescriptor = modules[module]!!
 
+            val moduleBindingContext = moduleBindings[module]!!
             ok = ok and testFile.getActualText(
-                moduleBindings[module]!!,
+                moduleBindingContext,
                 implementingModulesBindings,
                 actualText,
                 shouldSkipJvmSignatureDiagnostics(groupedByModule) || isCommonModule,
                 languageVersionSettingsByModule[module]!!,
                 moduleDescriptor
             )
+
+            if (testFile.renderDiagnosticsFullText) {
+                shouldCheckDiagnosticsFullText = true
+                AnalyzerWithCompilerReport.reportDiagnostics(moduleBindingContext.diagnostics, diagnosticsFullTextCollector)
+            }
         }
 
         var exceptionFromDynamicCallDescriptorsValidation: Throwable? = null
@@ -198,6 +217,15 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             checkDynamicCallDescriptors(expectedFile, files)
         } catch (e: Throwable) {
             exceptionFromDynamicCallDescriptorsValidation = e
+        }
+
+        if (shouldCheckDiagnosticsFullText) {
+            diagnosticsFullTextCollector.flush()
+            diagnosticsFullTextPrintStream.flush()
+            KotlinTestUtils.assertEqualsToFile(
+                File(FileUtil.getNameWithoutExtension(testDataFile.absolutePath) + ".diag.txt"),
+                String(diagnosticsFullTextByteArrayStream.toByteArray())
+            )
         }
 
         KotlinTestUtils.assertEqualsToFile(getExpectedDiagnosticsFile(testDataFile), actualText.cleanupInferenceDiagnostics()) { s ->
@@ -215,6 +243,22 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             testDataFile, files, groupedByModule, modules, moduleBindings, languageVersionSettingsByModule
         )
         checkOriginalAndFirTestdataIdentity(testDataFile)
+    }
+
+    private class DiagnosticsFullTextMessageCollector : MessageCollector {
+
+
+        override fun clear() {
+            TODO("Not yet implemented")
+        }
+
+        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun hasErrors(): Boolean {
+            TODO("Not yet implemented")
+        }
     }
 
     private fun checkOriginalAndFirTestdataIdentity(testDataFile: File) {

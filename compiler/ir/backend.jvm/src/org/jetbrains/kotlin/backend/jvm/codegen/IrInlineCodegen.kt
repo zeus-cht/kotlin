@@ -1,25 +1,22 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.backend.jvm.codegen
 
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
+import org.jetbrains.kotlin.backend.jvm.lower.suspendFunctionViewOrStub
 import org.jetbrains.kotlin.backend.jvm.ir.isInlineParameter
 import org.jetbrains.kotlin.backend.jvm.ir.isLambda
-import org.jetbrains.kotlin.codegen.IrExpressionLambda
-import org.jetbrains.kotlin.codegen.JvmKotlinType
-import org.jetbrains.kotlin.codegen.StackValue
-import org.jetbrains.kotlin.codegen.ValueKind
 import org.jetbrains.kotlin.codegen.inline.*
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.IrType
@@ -28,6 +25,8 @@ import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.getArgumentsWithIr
 import org.jetbrains.kotlin.ir.util.isSuspend
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.org.objectweb.asm.Type
@@ -43,15 +42,18 @@ class IrInlineCodegen(
     typeParameterMappings: TypeParameterMappings<IrType>,
     sourceCompiler: SourceCompilerForInline,
     reifiedTypeInliner: ReifiedTypeInliner<IrType>
-) : InlineCodegen<ExpressionCodegen>(
-    codegen, state, function.descriptor, methodOwner, signature, typeParameterMappings, sourceCompiler, reifiedTypeInliner
-), IrCallGenerator {
+) :
+    InlineCodegen<ExpressionCodegen>(
+        codegen, state, function.descriptor, methodOwner, signature, typeParameterMappings, sourceCompiler, reifiedTypeInliner
+    ),
+    IrCallGenerator {
+
     override fun generateAssertFieldIfNeeded(info: RootInliningContext) {
         if (info.generateAssertField && (sourceCompiler as IrSourceCompilerForInline).isPrimaryCopy) {
-            codegen.classCodegen.generateAssertFieldIfNeeded()?.let {
+            codegen.classCodegen.generateAssertFieldIfNeeded()?.run {
                 // Generating <clinit> right now, so no longer can insert the initializer into it.
                 // Instead, ask ExpressionCodegen to generate the code for it directly.
-                it.accept(codegen, BlockInfo()).discard()
+                accept(codegen, BlockInfo()).discard()
             }
         }
     }
@@ -77,6 +79,14 @@ class IrInlineCodegen(
         codegen: ExpressionCodegen,
         blockInfo: BlockInfo
     ) {
+        if (codegen.irFunction.isInvokeSuspendOfContinuation()) {
+            // In order to support java interop of inline suspend functions, we generate continuations for these inline suspend functions.
+            // These functions should behave as ordinary suspend functions, i.e. we should not inline the content of the inline function
+            // into continuation.
+            // Thus, we should put its arguments to stack.
+            super.genValueAndPut(irValueParameter, argumentExpression, parameterType, codegen, blockInfo)
+        }
+
         if (irValueParameter.isInlineParameter(
                 /*after transformation inlinable lambda parameter with default value would have nullable type: check default value type first*/
                 irValueParameter.defaultValue?.expression?.type ?: irValueParameter.type
@@ -141,22 +151,48 @@ class IrInlineCodegen(
         invocationParamBuilder.markValueParametersStart()
     }
 
+    private inner class IrInlineCall(
+        private val irFunctionAccessExpression: IrFunctionAccessExpression
+    ) : InlineCall {
+
+        override val calleeDescriptor: CallableDescriptor =
+            irFunctionAccessExpression.symbol.descriptor.original
+
+        override val callElement: PsiElement?
+            get() =
+                codegen.context.psiSourceManager.findPsiElement(irFunctionAccessExpression, function)
+                    ?: codegen.context.psiSourceManager.findPsiElement(function)
+
+        override val id: Any
+            get() = irFunctionAccessExpression
+
+        override fun toString(): String = irFunctionAccessExpression.render()
+    }
+
     override fun genCall(
         callableMethod: IrCallableMethod,
         codegen: ExpressionCodegen,
         expression: IrFunctionAccessExpression
     ) {
-        // TODO port inlining cycle detection to IrFunctionAccessExpression & pass it
-        state.globalInlineContext.enterIntoInlining(null)
+        val inlineCall = IrInlineCall(expression)
+        if (!state.globalInlineContext.enterIntoInlining(inlineCall)) {
+            AsmUtil.genThrow(
+                codegen.v,
+                "java/lang/UnsupportedOperationException",
+                "Call is a part of inline call cycle: ${expression.render()}"
+            )
+            return
+        }
         try {
             performInline(
                 expression.symbol.owner.typeParameters.map { it.symbol },
                 function.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER,
                 false,
-                codegen.typeMapper.typeSystem
+                codegen.typeMapper.typeSystem,
+                false
             )
         } finally {
-            state.globalInlineContext.exitFromInliningOf(null)
+            state.globalInlineContext.exitFromInliningOf(inlineCall)
         }
     }
 
@@ -215,7 +251,7 @@ class IrExpressionLambdaImpl(
             capturedParamDesc(param.name.asString(), typeMapper.mapType(param.type))
         }
 
-    private val loweredMethod = methodSignatureMapper.mapAsmMethod(function.getOrCreateSuspendFunctionViewIfNeeded(context))
+    private val loweredMethod = methodSignatureMapper.mapAsmMethod(function.suspendFunctionViewOrStub(context))
 
     val capturedParamsInDesc: List<Type> = if (isBoundCallableReference) {
         loweredMethod.argumentTypes.take(1)
@@ -238,7 +274,7 @@ class IrExpressionLambdaImpl(
     override val hasDispatchReceiver: Boolean = false
 
     override fun getInlineSuspendLambdaViewDescriptor(): FunctionDescriptor {
-        return function.getOrCreateSuspendFunctionViewIfNeeded(context).descriptor
+        return function.suspendFunctionViewOrStub(context).descriptor
     }
 }
 

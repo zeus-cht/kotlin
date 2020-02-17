@@ -49,7 +49,11 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     @Argument(value = "-no-reflect", description = "Don't automatically include Kotlin reflection into the classpath")
     var noReflect: Boolean by FreezableVar(false)
 
-    @Argument(value = "-Xexpression", description = "Evaluate the given string as a Kotlin script")
+    @Argument(
+        value = "-expression",
+        shortName = "-e",
+        description = "Evaluate the given string as a Kotlin script"
+    )
     var expression: String? by FreezableVar(null)
 
     @Argument(
@@ -88,6 +92,20 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         description = "Check that names of local classes and anonymous objects are the same in the IR backend as in the old backend"
     )
     var irCheckLocalNames: Boolean by FreezableVar(false)
+
+    @Argument(
+        value = "-Xallow-jvm-ir-dependencies",
+        description = "When not using the IR backend, do not report errors on those classes in dependencies, " +
+                "which were compiled by the IR backend"
+    )
+    var allowJvmIrDependencies: Boolean by FreezableVar(false)
+
+    @Argument(
+        value = "-Xir-binary-with-stable-abi",
+        description = "When using the IR backend, produce binaries which can be read by non-IR backend.\n" +
+                "The author is responsible for verifying that the resulting binaries do indeed have the correct ABI"
+    )
+    var isIrWithStableAbi: Boolean by FreezableVar(false)
 
     @Argument(value = "-Xmodule-path", valueDescription = "<path>", description = "Paths where to find Java 9+ modules")
     var javaModulePath: String? by NullableStringFreezableVar(null)
@@ -298,6 +316,13 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     )
     var emitJvmTypeAnnotations: Boolean by FreezableVar(false)
 
+    @Argument(
+        value = "-Xklib",
+        valueDescription = "<path>",
+        description = "Paths to cross-platform libraries in .klib format"
+    )
+    val klibLibraries: String? by NullableStringFreezableVar(null)
+
     override fun configureAnalysisFlags(collector: MessageCollector): MutableMap<AnalysisFlag<*>, Any> {
         val result = super.configureAnalysisFlags(collector)
         result[JvmAnalysisFlags.strictMetadataVersionSemantics] = strictMetadataVersionSemantics
@@ -316,6 +341,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         result[JvmAnalysisFlags.sanitizeParentheses] = sanitizeParentheses
         result[JvmAnalysisFlags.suppressMissingBuiltinsError] = suppressMissingBuiltinsError
         result[JvmAnalysisFlags.irCheckLocalNames] = irCheckLocalNames
+        result[AnalysisFlags.reportErrorsOnIrDependencies] = !useIR && !useFir && !allowJvmIrDependencies
         return result
     }
 
@@ -325,5 +351,19 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
             result[LanguageFeature.StrictJavaNullabilityAssertions] = LanguageFeature.State.ENABLED
         }
         return result
+    }
+
+    override fun checkIrSupport(languageVersionSettings: LanguageVersionSettings, collector: MessageCollector) {
+        if (!useIR) return
+
+        if (languageVersionSettings.languageVersion < LanguageVersion.KOTLIN_1_3
+            || languageVersionSettings.apiVersion < ApiVersion.KOTLIN_1_3
+        ) {
+            collector.report(
+                CompilerMessageSeverity.STRONG_WARNING,
+                "IR backend does not support language or API version lower than 1.3. " +
+                        "This can lead to unexpected behavior or compilation failures"
+            )
+        }
     }
 }

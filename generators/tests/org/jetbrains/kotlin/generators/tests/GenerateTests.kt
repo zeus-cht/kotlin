@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.allopen.AbstractBytecodeListingTestForAllOpen
 import org.jetbrains.kotlin.android.parcel.AbstractParcelBytecodeListingTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidBoxTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidBytecodeShapeTest
+import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidIrBoxTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidSyntheticPropertyDescriptorTest
 import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightClassLoadingTest
 import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightClassSanityTest
@@ -63,6 +64,7 @@ import org.jetbrains.kotlin.idea.debugger.test.AbstractFileRankingTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToDecompiledLibraryTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTestWithJS
+import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateJavaToLibrarySourceTest
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.AbstractClsStubBuilderTest
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.AbstractLoadJavaClsStubTest
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.AbstractCommonDecompiledTextFromJsMetadataTest
@@ -191,7 +193,6 @@ fun main(args: Array<String>) {
             )
             model("stepping/stepOut", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOutTest")
             model("stepping/stepOver", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOverTest")
-            model("stepping/stepOverForce", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOverForceTest")
             model("stepping/filters", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepIntoTest")
             model("stepping/custom", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doCustomTest")
         }
@@ -329,6 +330,10 @@ fun main(args: Array<String>) {
 
         testClass<AbstractNavigateToLibrarySourceTest>(annotations = listOf(muteExtraSuffix(".libsrc"))) {
             model("decompiler/navigation/usercode")
+        }
+
+        testClass<AbstractNavigateJavaToLibrarySourceTest>(annotations = listOf(muteExtraSuffix(".libsrc"))) {
+            model("decompiler/navigation/userJavaCode", pattern = "^(.+)\\.java$")
         }
 
         testClass<AbstractNavigateToLibrarySourceTestWithJS>(annotations = listOf(muteExtraSuffix(".libsrcjs"))) {
@@ -585,8 +590,16 @@ fun main(args: Array<String>) {
         testClass<AbstractFormatterTest> {
             model("formatter", pattern = """^([^\.]+)\.after\.kt.*$""")
             model(
+                "formatter/trailingComma", pattern = """^([^\.]+)\.call\.after\.kt.*$""",
+                testMethod = "doTestCallSite", testClassName = "FormatterCallSite"
+            )
+            model(
                 "formatter", pattern = """^([^\.]+)\.after\.inv\.kt.*$""",
                 testMethod = "doTestInverted", testClassName = "FormatterInverted"
+            )
+            model(
+                "formatter/trailingComma", pattern = """^([^\.]+)\.call\.after\.inv\.kt.*$""",
+                testMethod = "doTestInvertedCallSite", testClassName = "FormatterInvertedCallSite"
             )
         }
 
@@ -1230,6 +1243,13 @@ fun main(args: Array<String>) {
             model("incremental/js", extension = null, excludeParentDirs = true)
         }
 
+        testClass<AbstractIncrementalJsKlibCompilerWithScopeExpansionRunnerTest> {
+            model("incremental/pureKotlin", extension = null, recursive = false)
+            model("incremental/classHierarchyAffected", extension = null, recursive = false)
+            model("incremental/js", extension = null, excludeParentDirs = true)
+            model("incremental/scopeExpansion", extension = null, excludeParentDirs = true)
+        }
+
         testClass<AbstractIncrementalJsCompilerRunnerWithFriendModulesDisabledTest> {
             model("incremental/js/friendsModuleDisabled", extension = null, recursive = false)
         }
@@ -1253,6 +1273,17 @@ fun main(args: Array<String>) {
         testClass<AbstractAndroidBoxTest> {
             model("codegen/android", recursive = false, extension = null, testMethod = "doCompileAgainstAndroidSdkTest")
             model("codegen/android", recursive = false, extension = null, testMethod = "doFakeInvocationTest", testClassName = "Invoke")
+        }
+
+        testClass<AbstractAndroidIrBoxTest> {
+            model(
+                "codegen/android", recursive = false, extension = null, testMethod = "doCompileAgainstAndroidSdkTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "codegen/android", recursive = false, extension = null, testMethod = "doFakeInvocationTest", testClassName = "Invoke",
+                targetBackend = TargetBackend.JVM_IR
+            )
         }
 
         testClass<AbstractAndroidBytecodeShapeTest> {
@@ -1348,7 +1379,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("idea/performanceTests", "idea/testData") {
+    testGroup("idea/performanceTests/test", "idea/testData") {
         testClass<AbstractPerformanceJavaToKotlinCopyPasteConversionTest> {
             model("copyPaste/conversion", testMethod = "doPerfTest", pattern = """^([^\.]+)\.java$""")
         }
@@ -1372,7 +1403,7 @@ fun main(args: Array<String>) {
 
     }
 
-    testGroup("idea/performanceTests", "idea/idea-completion/testData") {
+    testGroup("idea/performanceTests/test", "idea/idea-completion/testData") {
         testClass<AbstractPerformanceCompletionIncrementalResolveTest> {
             model("incrementalResolve", testMethod = "doPerfTest")
         }

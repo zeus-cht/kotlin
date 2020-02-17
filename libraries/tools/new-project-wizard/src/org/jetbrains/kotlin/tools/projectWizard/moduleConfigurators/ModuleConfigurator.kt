@@ -7,9 +7,11 @@ import org.jetbrains.kotlin.tools.projectWizard.core.cached
 import org.jetbrains.kotlin.tools.projectWizard.core.entity.*
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.BuildSystemIR
 import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.KotlinBuildSystemPluginIR
+import org.jetbrains.kotlin.tools.projectWizard.ir.buildsystem.StdlibType
 import org.jetbrains.kotlin.tools.projectWizard.phases.GenerationPhase
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ModuleConfigurationData
 import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.ModuleType
+import org.jetbrains.kotlin.tools.projectWizard.plugins.kotlin.correspondingStdlib
 import org.jetbrains.kotlin.tools.projectWizard.settings.DisplayableSettingItem
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.*
 import org.jetbrains.kotlin.tools.projectWizard.settings.version.Version
@@ -17,22 +19,37 @@ import java.nio.file.Path
 import kotlin.properties.ReadOnlyProperty
 
 
-class ModuleSettingsEnvironment(private val configurator: ModuleConfigurator, private val moduleId: Identificator) {
-    val <V : Any, T : SettingType<V>> ModuleConfiguratorSetting<V, T>.reference
-        get() = ModuleConfiguratorSettingReference(configurator, moduleId, this)
+sealed class ModuleCondifuratorSettingsEnvironment {
+    abstract val <V : Any, T : SettingType<V>> ModuleConfiguratorSetting<V, T>.reference: ModuleConfiguratorSettingReference<V, T>
+}
+
+class ModuleBasedConfiguratorSettingsEnvironment(
+    private val configurator: ModuleConfigurator,
+    private val module: Module
+) : ModuleCondifuratorSettingsEnvironment() {
+    override val <V : Any, T : SettingType<V>> ModuleConfiguratorSetting<V, T>.reference: ModuleConfiguratorSettingReference<V, T>
+        get() = ModuleBasedConfiguratorSettingReference(configurator, module, this)
+}
+
+class IdBasedConfiguratorSettingsEnvironment(
+    private val configurator: ModuleConfigurator,
+    private val moduleId: Identificator
+) : ModuleCondifuratorSettingsEnvironment() {
+    override val <V : Any, T : SettingType<V>> ModuleConfiguratorSetting<V, T>.reference: ModuleConfiguratorSettingReference<V, T>
+        get() = IdBasedConfiguratorSettingReference(configurator, moduleId, this)
 }
 
 fun <T> withSettingsOf(
     moduleId: Identificator,
     configurator: ModuleConfigurator,
-    function: ModuleSettingsEnvironment.() -> T
-): T = function(ModuleSettingsEnvironment(configurator, moduleId))
+    function: ModuleCondifuratorSettingsEnvironment.() -> T
+): T = function(IdBasedConfiguratorSettingsEnvironment(configurator, moduleId))
 
 fun <T> withSettingsOf(
     module: Module,
     configurator: ModuleConfigurator = module.configurator,
-    function: ModuleSettingsEnvironment.() -> T
-): T = function(ModuleSettingsEnvironment(configurator, module.identificator))
+    function: ModuleCondifuratorSettingsEnvironment.() -> T
+): T = function(ModuleBasedConfiguratorSettingsEnvironment(configurator, module))
 
 
 abstract class ModuleConfiguratorWithSettings : ModuleConfigurator, SettingsOwner {
@@ -142,6 +159,16 @@ abstract class ModuleConfiguratorWithSettings : ModuleConfigurator, SettingsOwne
         values = enumValues<E>().asList()
         init()
     }
+
+
+    fun initDefaultValuesFor(module: Module, context: Context) {
+        withSettingsOf(module) {
+            settings.forEach { setting ->
+                val defaultValue = setting.defaultValue ?: return@forEach
+                context.settingContext[setting.reference] = defaultValue
+            }
+        }
+    }
 }
 
 val ModuleConfigurator.settings
@@ -152,7 +179,7 @@ val ModuleConfigurator.settings
 
 val Module.configuratorSettings
     get() = configurator.settings.map { setting ->
-        ModuleConfiguratorSettingReference(configurator, this, setting)
+        ModuleBasedConfiguratorSettingReference(configurator, this, setting)
     }
 
 interface ModuleConfigurator : DisplayableSettingItem, EntitiesOwnerDescriptor {
@@ -167,8 +194,11 @@ interface ModuleConfigurator : DisplayableSettingItem, EntitiesOwnerDescriptor {
     fun createBuildFileIRs(configurationData: ModuleConfigurationData, module: Module): List<BuildSystemIR> =
         emptyList()
 
-    fun createModuleIRs(configurationData: ModuleConfigurationData, module: Module): List<BuildSystemIR> =
+    fun ValuesReadingContext.createModuleIRs(configurationData: ModuleConfigurationData, module: Module): List<BuildSystemIR> =
         emptyList()
+
+    fun createStdlibType(configurationData: ModuleConfigurationData, module: Module): StdlibType? =
+        moduleType.correspondingStdlib()
 
     fun createRootBuildFileIrs(configurationData: ModuleConfigurationData): List<BuildSystemIR> = emptyList()
     fun createKotlinPluginIR(configurationData: ModuleConfigurationData, module: Module): KotlinBuildSystemPluginIR? =

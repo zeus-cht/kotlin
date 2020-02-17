@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluat
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -103,9 +104,14 @@ class DiagnosticReporterByTrackingStrategy(
     override fun onCallReceiver(callReceiver: SimpleKotlinCallArgument, diagnostic: KotlinCallDiagnostic) {
         when (diagnostic.javaClass) {
             UnsafeCallError::class.java -> {
-                val implicitInvokeCheck = (callReceiver as? ReceiverExpressionKotlinCallArgument)?.isForImplicitInvoke
-                    ?: callReceiver.receiver.receiverValue.type.isExtensionFunctionType
-                tracingStrategy.unsafeCall(trace, callReceiver.receiver.receiverValue.type, implicitInvokeCheck)
+                val unsafeCallErrorDiagnostic = diagnostic.cast<UnsafeCallError>()
+                val isForImplicitInvoke = when (callReceiver) {
+                    is ReceiverExpressionKotlinCallArgument -> callReceiver.isForImplicitInvoke
+                    else -> unsafeCallErrorDiagnostic.isForImplicitInvoke
+                            || callReceiver.receiver.receiverValue.type.isExtensionFunctionType
+                }
+
+                tracingStrategy.unsafeCall(trace, callReceiver.receiver.receiverValue.type, isForImplicitInvoke)
             }
 
             SuperAsExtensionReceiver::class.java -> {
@@ -120,7 +126,8 @@ class DiagnosticReporterByTrackingStrategy(
     override fun onCallArgument(callArgument: KotlinCallArgument, diagnostic: KotlinCallDiagnostic) {
         when (diagnostic.javaClass) {
             SmartCastDiagnostic::class.java -> reportSmartCast(diagnostic as SmartCastDiagnostic)
-            UnstableSmartCast::class.java -> reportUnstableSmartCast(diagnostic as UnstableSmartCast)
+            UnstableSmartCastDiagnosticError::class.java,
+            UnstableSmartCastResolutionError::class.java -> reportUnstableSmartCast(diagnostic as UnstableSmartCast)
             TooManyArguments::class.java -> {
                 trace.reportTrailingLambdaErrorOr(callArgument.psiExpression) { expr ->
                     TOO_MANY_ARGUMENTS.on(expr, (diagnostic as TooManyArguments).descriptor)
@@ -181,6 +188,20 @@ class DiagnosticReporterByTrackingStrategy(
 
             ResolvedToSamWithVarargDiagnostic::class.java -> {
                 trace.report(TYPE_INFERENCE_CANDIDATE_WITH_SAM_AND_VARARG.on(callArgument.psiCallArgument.valueArgument.asElement()))
+            }
+
+            NotEnoughInformationForLambdaParameter::class.java -> {
+                val unknownParameterTypeDiagnostic = diagnostic as NotEnoughInformationForLambdaParameter
+                val lambdaArgument = unknownParameterTypeDiagnostic.lambdaArgument
+                val parameterIndex = unknownParameterTypeDiagnostic.parameterIndex
+
+                val argumentExpression = KtPsiUtil.deparenthesize(lambdaArgument.psiCallArgument.valueArgument.getArgumentExpression())
+                if (argumentExpression !is KtLambdaExpression) return
+
+                val parameter = argumentExpression.valueParameters.getOrNull(parameterIndex)
+                reportIfNonNull(parameter) {
+                    trace.report(CANNOT_INFER_PARAMETER_TYPE.on(it))
+                }
             }
         }
     }
@@ -273,6 +294,7 @@ class DiagnosticReporterByTrackingStrategy(
                         is ArgumentConstraintPosition -> position.argument
                         is ReceiverConstraintPosition -> position.argument
                         is LHSArgumentConstraintPosition -> position.argument
+                        is LambdaArgumentConstraintPosition -> position.lambda.atom
                         else -> null
                     }
                 argument?.let {
@@ -376,6 +398,9 @@ class DiagnosticReporterByTrackingStrategy(
                     }
                 ) return
 
+                if (isSpecialFunction(error.resolvedAtom))
+                    return
+
                 val expression = when (val atom = error.resolvedAtom.atom) {
                     is PSIKotlinCall -> atom.psiCall.calleeExpression
                     is PSIKotlinCallArgument -> atom.valueArgument.getArgumentExpression()
@@ -389,6 +414,14 @@ class DiagnosticReporterByTrackingStrategy(
                 }
                 trace.reportDiagnosticOnce(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER.on(expression, typeVariableName))
             }
+        }
+    }
+
+    private fun isSpecialFunction(atom: ResolvedAtom): Boolean {
+        if (atom !is ResolvedCallAtom) return false
+
+        return ControlStructureTypingUtils.ResolveConstruct.values().any { specialFunction ->
+            specialFunction.specialFunctionName == atom.candidateDescriptor.name
         }
     }
 

@@ -1,4 +1,3 @@
-extra["versions.shadow"] = "4.0.3"
 extra["versions.native-platform"] = "0.14"
 
 buildscript {
@@ -46,10 +45,6 @@ plugins {
 
 gradlePlugin {
     plugins {
-        register("pill-configurable") {
-            id = "pill-configurable"
-            implementationClass = "org.jetbrains.kotlin.pill.PillConfigurablePlugin"
-        }
         register("jps-compatible") {
             id = "jps-compatible"
             implementationClass = "org.jetbrains.kotlin.pill.JpsCompatiblePlugin"
@@ -72,10 +67,11 @@ val intellijUltimateEnabled by extra(kotlinBuildProperties.intellijUltimateEnabl
 val intellijSeparateSdks by extra(project.getBooleanProperty("intellijSeparateSdks") ?: false)
 val verifyDependencyOutput by extra( getBooleanProperty("kotlin.build.dependency.output.verification") ?: isTeamcityBuild)
 
-extra["intellijReleaseType"] = if (extra["versions.intellijSdk"]?.toString()?.endsWith("SNAPSHOT") == true)
-    "snapshots"
-else
-    "releases"
+extra["intellijReleaseType"] = when {
+    extra["versions.intellijSdk"]?.toString()?.contains("-EAP-") == true -> "snapshots"
+    extra["versions.intellijSdk"]?.toString()?.endsWith("SNAPSHOT") == true -> "nightly"
+    else -> "releases"
+}
 
 extra["versions.androidDxSources"] = "5.0.0_r2"
 
@@ -101,7 +97,7 @@ dependencies {
     implementation("net.rubygrapefruit:native-platform-windows-i386:${property("versions.native-platform")}")
     implementation("com.jakewharton.dex:dex-method-list:3.0.0")
 
-    implementation("com.github.jengelman.gradle.plugins:shadow:${property("versions.shadow")}")
+    implementation("com.github.jengelman.gradle.plugins:shadow:${rootProject.extra["versions.shadow"]}")
     implementation("org.jetbrains.intellij.deps:asm-all:7.0.1")
 
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.5")

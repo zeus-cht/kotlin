@@ -6,28 +6,40 @@
 package org.jetbrains.kotlin.fir
 
 import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.builder.AbstractFirRegularClassBuilder
+import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.FirExpressionWithSmartcast
-import org.jetbrains.kotlin.fir.expressions.FirWhenSubjectExpression
-import org.jetbrains.kotlin.fir.visitors.FirTransformer
 
 fun ModuleInfo.dependenciesWithoutSelf(): Sequence<ModuleInfo> = dependencies().asSequence().filter { it != this }
 
 // TODO: rewrite
 fun FirBlock.returnExpressions(): List<FirExpression> = listOfNotNull(statements.lastOrNull() as? FirExpression)
 
-fun FirElement.unwrapWhenSubjectExpression(): FirElement = if (this is FirWhenSubjectExpression) {
-    val whenExpression = whenSubject.whenExpression
-    whenExpression.subjectVariable
-        ?: whenExpression.subject
-        ?: throw IllegalStateException("Subject or subject variable must be not null")
-} else {
-    this
+private val PUBLIC_METHOD_NAMES_IN_OBJECT = setOf("equals", "hashCode", "getClass", "wait", "notify", "notifyAll", "toString")
+
+fun AbstractFirRegularClassBuilder.calculateSAM() {
+    val status = status as FirDeclarationStatusImpl
+    status.isNotSAM = isNotSam()
 }
 
-tailrec fun FirElement.unwrapSmartcast(): FirElement = if (this is FirExpressionWithSmartcast) {
-    originalExpression.unwrapSmartcast()
-} else {
-    this
+fun AbstractFirRegularClassBuilder.isNotSam(): Boolean {
+    var counter = 0
+    for (declaration in declarations) {
+        if (declaration is FirProperty && declaration.modality == Modality.ABSTRACT) {
+            return true
+        }
+        if (declaration is FirSimpleFunction) {
+            if (declaration.modality != Modality.ABSTRACT || declaration.name.asString() in PUBLIC_METHOD_NAMES_IN_OBJECT) {
+                continue
+            }
+            counter++
+            if (counter > 1) {
+                return true
+            }
+        }
+    }
+    return false
 }

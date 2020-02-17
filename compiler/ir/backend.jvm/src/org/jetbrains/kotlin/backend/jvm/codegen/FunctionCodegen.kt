@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -31,16 +31,16 @@ import org.jetbrains.kotlin.resolve.jvm.annotations.SYNCHRONIZED_ANNOTATION_FQ_N
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodGenericSignature
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.kotlin.utils.sure
-import org.jetbrains.org.objectweb.asm.MethodVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.*
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 open class FunctionCodegen(
     private val irFunction: IrFunction,
     private val classCodegen: ClassCodegen,
-    private val inlinedInto: ExpressionCodegen? = null
+    private val inlinedInto: ExpressionCodegen? = null,
 ) {
     val context = classCodegen.context
     val state = classCodegen.state
@@ -53,10 +53,9 @@ open class FunctionCodegen(
         }
 
     private fun doGenerate(): JvmMethodGenericSignature {
-        val functionView = irFunction.getOrCreateSuspendFunctionViewIfNeeded(context)
-        val signature = classCodegen.methodSignatureMapper.mapSignatureWithGeneric(functionView)
+        val signature = classCodegen.methodSignatureMapper.mapSignatureWithGeneric(irFunction)
 
-        val flags = calculateMethodFlags(functionView.isStatic)
+        val flags = calculateMethodFlags(irFunction.isStatic)
         var methodVisitor = createMethod(flags, signature)
 
         if (state.generateParametersMetadata && flags.and(Opcodes.ACC_SYNTHETIC) == 0) {
@@ -64,14 +63,25 @@ open class FunctionCodegen(
         }
 
         if (irFunction.origin != IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER) {
-            AnnotationCodegen(classCodegen, context, methodVisitor::visitAnnotation).genAnnotations(
-                functionView,
-                signature.asmMethod.returnType
+            object : AnnotationCodegen(classCodegen, context) {
+                override fun visitAnnotation(descr: String?, visible: Boolean): AnnotationVisitor {
+                    return methodVisitor.visitAnnotation(descr, visible)
+                }
+
+                override fun visitTypeAnnotation(descr: String?, path: TypePath?, visible: Boolean): AnnotationVisitor {
+                    return methodVisitor.visitTypeAnnotation(
+                        TypeReference.newTypeReference(TypeReference.METHOD_RETURN).value, path, descr, visible
+                    )
+                }
+            }.genAnnotations(
+                irFunction,
+                signature.asmMethod.returnType,
+                irFunction.returnType
             )
             // Not generating parameter annotations for default stubs fixes KT-7892, though
             // this certainly looks like a workaround for a javac bug.
             if (irFunction !is IrConstructor || !irFunction.parentAsClass.shouldNotGenerateConstructorParameterAnnotations()) {
-                generateParameterAnnotations(functionView, methodVisitor, signature, classCodegen, context)
+                generateParameterAnnotations(irFunction, methodVisitor, signature, classCodegen, context)
             }
         }
 
@@ -96,7 +106,7 @@ open class FunctionCodegen(
                 )
                 else -> methodVisitor
             }
-            ExpressionCodegen(functionView, signature, frameMap, InstructionAdapter(methodVisitor), classCodegen, inlinedInto).generate()
+            ExpressionCodegen(irFunction, signature, frameMap, InstructionAdapter(methodVisitor), classCodegen, inlinedInto).generate()
             methodVisitor.visitMaxs(-1, -1)
             if (irFunction.hasContinuation()) {
                 context.continuationClassBuilders[continuationClass().attributeOwnerId].sure {
@@ -118,24 +128,32 @@ open class FunctionCodegen(
         isAnonymousObject || origin == JvmLoweredDeclarationOrigin.CONTINUATION_CLASS || origin == JvmLoweredDeclarationOrigin.SUSPEND_LAMBDA
 
     private fun psiElement(): KtElement =
-        if (irFunction.isSuspend) irFunction.symbol.descriptor.psiElement as KtElement
-        else context.suspendLambdaToOriginalFunctionMap[irFunction.parentAsClass.attributeOwnerId]!!.symbol.descriptor.psiElement as KtElement
+        (if (irFunction.isSuspend)
+            irFunction.symbol.descriptor.psiElement ?: irFunction.parentAsClass.descriptor.psiElement
+        else
+            context.suspendLambdaToOriginalFunctionMap[irFunction.parentAsClass.attributeOwnerId]!!.symbol.descriptor.psiElement)
+                as KtElement
 
     private fun IrFunction.hasContinuation(): Boolean = isSuspend &&
             // We do not generate continuation and state-machine for synthetic accessors, bridges, and delegated members,
             // in a sense, they are tail-call
             !isKnownToBeTailCall() &&
-            // TODO: We should generate two versions of inline suspend function: one with state-machine and one without
-            !isInline &&
             // This is suspend lambda parameter of inline function
             origin != IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA &&
             // This is just a template for inliner
             origin != JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE_CAPTURES_CROSSINLINE &&
+            // This is just a bridge to the function with the continuation
+            origin != JvmLoweredDeclarationOrigin.MULTIFILE_BRIDGE &&
             // Continuations are generated for suspendImpls
-            parentAsClass.functions.none { it.name.asString() == name.asString() + SUSPEND_IMPL_NAME_SUFFIX }
+            parentAsClass.functions.none {
+                it.name.asString() == name.asString() + SUSPEND_IMPL_NAME_SUFFIX &&
+                        it.attributeOwnerId == (this as? IrAttributeContainer)?.attributeOwnerId
+            } &&
+            // $$forInline functions never have a continuation
+            origin != JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE
 
-    private fun continuationClass(): IrClass =
-        irFunction.body!!.statements[0] as IrClass
+    private fun continuationClass() =
+        irFunction.body!!.statements.firstIsInstance<IrClass>()
 
     private fun IrFunction.getVisibilityForDefaultArgumentStub(): Int =
         when (visibility) {
@@ -161,6 +179,7 @@ open class FunctionCodegen(
         ) Opcodes.ACC_BRIDGE else 0
         val modalityFlag = when ((irFunction as? IrSimpleFunction)?.modality) {
             Modality.FINAL -> when {
+                irFunction.origin == JvmLoweredDeclarationOrigin.CLASS_STATIC_INITIALIZER -> 0
                 classCodegen.irClass.isInterface && irFunction.body != null -> 0
                 !classCodegen.irClass.isAnnotationClass || irFunction.isStatic -> Opcodes.ACC_FINAL
                 else -> Opcodes.ACC_ABSTRACT
@@ -210,7 +229,14 @@ open class FunctionCodegen(
 
     private fun generateAnnotationDefaultValueIfNeeded(methodVisitor: MethodVisitor) {
         getAnnotationDefaultValueExpression()?.let { defaultValueExpression ->
-            val annotationCodegen = AnnotationCodegen(classCodegen, context) { _, _ -> methodVisitor.visitAnnotationDefault() }
+            val annotationCodegen = object: AnnotationCodegen(
+                classCodegen,
+                context
+            ) {
+                override fun visitAnnotation(descr: String?, visible: Boolean): AnnotationVisitor {
+                    return methodVisitor.visitAnnotationDefault()
+                }
+            }
             annotationCodegen.generateAnnotationDefaultValue(defaultValueExpression)
         }
     }
@@ -236,17 +262,16 @@ open class FunctionCodegen(
 
     private fun createFrameMapWithReceivers(): IrFrameMap {
         val frameMap = IrFrameMap()
-        val functionView = irFunction.getOrCreateSuspendFunctionViewIfNeeded(context)
 
         if (irFunction is IrConstructor) {
             frameMap.enterDispatchReceiver(irFunction.constructedClass.thisReceiver!!)
-        } else if (functionView.dispatchReceiverParameter != null) {
-            frameMap.enterDispatchReceiver(functionView.dispatchReceiverParameter!!)
+        } else if (irFunction.dispatchReceiverParameter != null) {
+            frameMap.enterDispatchReceiver(irFunction.dispatchReceiverParameter!!)
         }
-        functionView.extensionReceiverParameter?.let {
+        irFunction.extensionReceiverParameter?.let {
             frameMap.enter(it, classCodegen.typeMapper.mapType(it))
         }
-        for (parameter in functionView.valueParameters) {
+        for (parameter in irFunction.valueParameters) {
             frameMap.enter(parameter, classCodegen.typeMapper.mapType(parameter.type))
         }
 
@@ -276,13 +301,22 @@ private fun generateParameterAnnotations(
         }
 
         if (!kind.isSkippedInGenericSignature) {
-            AnnotationCodegen(innerClassConsumer, context) { descriptor, visible ->
-                mv.visitParameterAnnotation(
-                    i - syntheticParameterCount,
-                    descriptor,
-                    visible
-                )
-            }.genAnnotations(annotated, parameterSignature.asmType)
+            object : AnnotationCodegen(innerClassConsumer, context) {
+                override fun visitAnnotation(descr: String?, visible: Boolean): AnnotationVisitor {
+                    return mv.visitParameterAnnotation(
+                        i - syntheticParameterCount,
+                        descr,
+                        visible
+                    )
+                }
+
+                override fun visitTypeAnnotation(descr: String?, path: TypePath?, visible: Boolean): AnnotationVisitor {
+                    return mv.visitTypeAnnotation(
+                        TypeReference.newFormalParameterReference(i - syntheticParameterCount).value,
+                        path, descr, visible
+                    )
+                }
+            }.genAnnotations(annotated, parameterSignature.asmType, annotated?.type)
         }
     }
 }

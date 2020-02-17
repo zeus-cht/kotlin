@@ -20,6 +20,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Conditions
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.ContainerUtil
@@ -43,19 +44,19 @@ import org.jetbrains.kotlin.diagnostics.*
 import org.jetbrains.kotlin.load.java.InternalFlexibleTypeTransformer
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.CommonPlatforms
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.platform.konan.KonanPlatforms
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactoryImpl
 import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.jetbrains.kotlin.test.util.trimTrailingWhitespacesAndAddNewlineAtEOF
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.junit.Assert
 import java.io.File
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.reflect.jvm.javaField
@@ -156,6 +157,7 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
         val withNewInferenceDirective: Boolean
         val newInferenceEnabled: Boolean
         val renderDiagnosticMessages: Boolean
+        val renderDiagnosticsFullText: Boolean
 
         init {
             this.whatDiagnosticsToConsider = parseDiagnosticFilterDirective(directives, declareCheckType)
@@ -165,8 +167,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
             this.declareFlexibleType = EXPLICIT_FLEXIBLE_TYPES_DIRECTIVE in directives
             this.markDynamicCalls = MARK_DYNAMIC_CALLS_DIRECTIVE in directives
             this.withNewInferenceDirective = WITH_NEW_INFERENCE_DIRECTIVE in directives
-            this.newInferenceEnabled = customLanguageVersionSettings?.supportsFeature(LanguageFeature.NewInference) ?:
-                    shouldUseNewInferenceForTests()
+            this.newInferenceEnabled =
+                customLanguageVersionSettings?.supportsFeature(LanguageFeature.NewInference) ?: shouldUseNewInferenceForTests()
             if (fileName.endsWith(".java")) {
                 // TODO: check there are no syntax errors in .java sources
                 this.createKtFile = lazyOf(null)
@@ -174,10 +176,12 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
                 this.expectedText = this.clearText
             } else {
                 this.expectedText = textWithMarkers
-                this.clearText = CheckerTestUtil.parseDiagnosedRanges(addExtras(expectedText), diagnosedRanges, diagnosedRangesToDiagnosticNames)
+                this.clearText =
+                    CheckerTestUtil.parseDiagnosedRanges(addExtras(expectedText), diagnosedRanges, diagnosedRangesToDiagnosticNames)
                 this.createKtFile = lazy { TestCheckerUtil.createCheckAndReturnPsiFile(fileName, clearText, project) }
             }
             this.renderDiagnosticMessages = RENDER_DIAGNOSTICS_MESSAGES in directives
+            this.renderDiagnosticsFullText = RENDER_DIAGNOSTICS_FULL_TEXT in directives
         }
 
         val ktFile: KtFile? by createKtFile
@@ -209,14 +213,14 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
         private fun addImports(text: String, imports: String): String {
             var result = text
-            val pattern = Pattern.compile("^package [\\.\\w\\d]*\n", Pattern.MULTILINE)
+            val pattern = Pattern.compile("^package [.\\w\\d]*\n", Pattern.MULTILINE)
             val matcher = pattern.matcher(result)
-            if (matcher.find()) {
+            result = if (matcher.find()) {
                 // add imports after the package directive
-                result = result.substring(0, matcher.end()) + imports + result.substring(matcher.end())
+                result.substring(0, matcher.end()) + imports + result.substring(matcher.end())
             } else {
                 // add imports at the beginning
-                result = imports + result
+                imports + result
             }
             return result
         }
@@ -263,10 +267,9 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
                 moduleDescriptor,
                 this.diagnosedRangesToDiagnosticNames
             )
-            val filteredDiagnostics = ContainerUtil.filter(
-                diagnostics + jvmSignatureDiagnostics,
-                { whatDiagnosticsToConsider.value(it.diagnostic) }
-            )
+            val filteredDiagnostics = ContainerUtil.filter(diagnostics + jvmSignatureDiagnostics) {
+                whatDiagnosticsToConsider.value(it.diagnostic)
+            }
 
             actualDiagnostics.addAll(filteredDiagnostics)
 
@@ -319,11 +322,9 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
                     fun updateUncheckedDiagnostics(diagnostic: TextDiagnostic, start: Int, end: Int) {
                         diagnostic.enhanceInferenceCompatibility(invertedInferenceCompatibilityOfTest)
-                        uncheckedDiagnostics.add(PositionalTextDiagnostic(diagnostic, start, end
-                    )
-                )
-                }
-            })
+                        uncheckedDiagnostics.add(PositionalTextDiagnostic(diagnostic, start, end))
+                    }
+                })
 
             actualText.append(
                 CheckerTestUtil.addDiagnosticMarkersToText(
@@ -369,7 +370,7 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
     companion object {
         private const val HELPERS_PATH = "./compiler/testData/diagnostics/helpers"
         val DIAGNOSTICS_DIRECTIVE = "DIAGNOSTICS"
-        val DIAGNOSTICS_PATTERN: Pattern = Pattern.compile("([\\+\\-!])(\\w+)\\s*")
+        val DIAGNOSTICS_PATTERN: Pattern = Pattern.compile("([+\\-!])(\\w+)\\s*")
         val DIAGNOSTICS_TO_INCLUDE_ANYWAY: Set<DiagnosticFactory<*>> = setOf(
             Errors.UNRESOLVED_REFERENCE,
             Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER,
@@ -405,6 +406,10 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
         val RENDER_DIAGNOSTICS_MESSAGES = "RENDER_DIAGNOSTICS_MESSAGES"
 
+        val RENDER_DIAGNOSTICS_FULL_TEXT = "RENDER_DIAGNOSTICS_FULL_TEXT"
+
+        val DIAGNOSTIC_IN_TESTDATA_PATTERN = Regex("<!>|<!(.*?(\\(\".*?\"\\)|\\(\\))??)+(?<!<)!>")
+
         fun parseDiagnosticFilterDirective(
             directiveMap: Map<String, String>,
             allowUnderscoreUsage: Boolean
@@ -432,12 +437,12 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
             if (!matcher.find()) {
                 Assert.fail(
                     "Wrong syntax in the '// !$DIAGNOSTICS_DIRECTIVE: ...' directive:\n" +
-                                    "found: '$directives'\n" +
-                                    "Must be '([+-!]DIAGNOSTIC_FACTORY_NAME|ERROR|WARNING|INFO)+'\n" +
-                                    "where '+' means 'include'\n" +
-                                    "      '-' means 'exclude'\n" +
-                                    "      '!' means 'exclude everything but this'\n" +
-                                    "directives are applied in the order of appearance, i.e. !FOO +BAR means include only FOO and BAR"
+                            "found: '$directives'\n" +
+                            "Must be '([+-!]DIAGNOSTIC_FACTORY_NAME|ERROR|WARNING|INFO)+'\n" +
+                            "where '+' means 'include'\n" +
+                            "      '-' means 'exclude'\n" +
+                            "      '!' means 'exclude everything but this'\n" +
+                            "directives are applied in the order of appearance, i.e. !FOO +BAR means include only FOO and BAR"
                 )
             }
 
@@ -458,7 +463,7 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
                         if (!first) {
                             Assert.fail(
                                 "'$operation$name' appears in a position rather than the first one, " +
-                                                "which effectively cancels all the previous filters in this directive"
+                                        "which effectively cancels all the previous filters in this directive"
                             )
                         }
                         condition = newCondition
@@ -476,10 +481,9 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
             )
         }
 
-        private val DIAGNOSTIC_IN_TESTDATA_PATTERN = Regex("(<!>|(<!(.(\".*\")*?)+?!>))")
-
         fun loadTestDataWithoutDiagnostics(file: File): String {
-            return KotlinTestUtils.doLoadFile(file).replace(DIAGNOSTIC_IN_TESTDATA_PATTERN, "")
+            val textWithoutDiagnostics = KotlinTestUtils.doLoadFile(file).replace(DIAGNOSTIC_IN_TESTDATA_PATTERN, "")
+            return StringUtil.convertLineSeparators(textWithoutDiagnostics.trim()).trimTrailingWhitespacesAndAddNewlineAtEOF()
         }
     }
 

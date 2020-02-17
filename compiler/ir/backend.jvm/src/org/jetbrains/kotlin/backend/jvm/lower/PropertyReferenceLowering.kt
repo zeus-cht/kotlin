@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -21,7 +21,10 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
-import org.jetbrains.kotlin.ir.builders.declarations.*
+import org.jetbrains.kotlin.ir.builders.declarations.addField
+import org.jetbrains.kotlin.ir.builders.declarations.addFunction
+import org.jetbrains.kotlin.ir.builders.declarations.buildClass
+import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
@@ -97,15 +100,18 @@ internal class PropertyReferenceLowering(val context: JvmBackendContext) : Class
     private fun IrBuilderWithScope.computeSignatureString(expression: IrCallableReference): IrExpression {
         return expression.getter?.let { getter ->
             localPropertyIndices[getter]?.let { irString("<v#$it>") }
-                ?: if (getter.owner.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
-                    // Default property accessor. Compute the signature now, so that we will not get into trouble
-                    // if the getter is transformed to a static method by inline classes lowering.
+                ?: if (getter.owner.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR && getter.owner.parentAsClass.isInline) {
+                    // Default property accessor in an inline class. Compute the signature now, so that we will not
+                    // get into trouble if the getter is transformed to a static method by inline classes lowering.
                     irString(getter.owner.signature)
                 } else {
                     // Delay the computation of the signature until after inline classes lowering to make sure
                     // we mangle the function names correctly for things like extension methods on inline classes.
                     irCall(signatureStringIntrinsic).apply {
-                        putValueArgument(0, IrFunctionReferenceImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, expression.type, getter, 0, null))
+                        putValueArgument(
+                            0,
+                            IrFunctionReferenceImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, expression.type, getter, 0, getter, null)
+                        )
                     }
                 }
         } ?: irString(expression.field!!.owner.signature)
@@ -120,10 +126,9 @@ internal class PropertyReferenceLowering(val context: JvmBackendContext) : Class
             modality = Modality.OPEN
             origin = JvmLoweredDeclarationOrigin.GENERATED_MEMBER_IN_CALLABLE_REFERENCE
         }.apply {
-            overriddenSymbols.add(method.symbol)
+            overriddenSymbols += method.symbol
             dispatchReceiverParameter = thisReceiver!!.copyTo(this)
-            for (parameter in method.valueParameters)
-                valueParameters.add(parameter.copyTo(this))
+            valueParameters = method.valueParameters.map { it.copyTo(this) }
             body = context.createIrBuilder(symbol, startOffset, endOffset).run {
                 irExprBody(buildBody(listOf(dispatchReceiverParameter!!) + valueParameters))
             }
@@ -136,10 +141,9 @@ internal class PropertyReferenceLowering(val context: JvmBackendContext) : Class
             visibility = method.visibility
             origin = IrDeclarationOrigin.FAKE_OVERRIDE
         }.apply {
-            overriddenSymbols.add(method.symbol)
+            overriddenSymbols += method.symbol
             dispatchReceiverParameter = thisReceiver!!.copyTo(this)
-            for (parameter in method.valueParameters)
-                valueParameters.add(parameter.copyTo(this))
+            valueParameters = method.valueParameters.map { it.copyTo(this) }
         }
 
     private class PropertyReferenceKind(

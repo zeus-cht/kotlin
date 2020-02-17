@@ -2,12 +2,10 @@ package org.jetbrains.kotlin.tools.projectWizard.core.entity
 
 import org.jetbrains.kotlin.tools.projectWizard.Identificator
 import org.jetbrains.kotlin.tools.projectWizard.core.*
-import org.jetbrains.kotlin.tools.projectWizard.id
 import org.jetbrains.kotlin.tools.projectWizard.moduleConfigurators.ModuleConfigurator
 import org.jetbrains.kotlin.tools.projectWizard.phases.GenerationPhase
 import org.jetbrains.kotlin.tools.projectWizard.settings.DisplayableSettingItem
 import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Module
-import org.jetbrains.kotlin.tools.projectWizard.settings.buildsystem.Sourceset
 import org.jetbrains.kotlin.tools.projectWizard.settings.version.Version
 import org.jetbrains.kotlin.tools.projectWizard.templates.Template
 import java.nio.file.Files
@@ -42,13 +40,10 @@ data class PluginSettingReference<V : Any, T : SettingType<V>>(
         settingContext.getPluginSetting(this@PluginSettingReference)
 }
 
-data class ModuleConfiguratorSettingReference<V : Any, T : SettingType<V>>(
-    val descriptor: ModuleConfigurator,
-    val moduleId: Identificator,
-    val setting: ModuleConfiguratorSetting<V, T>
-) : SettingReference<V, T>() {
-    constructor(descriptor: ModuleConfigurator, module: Module, setting: ModuleConfiguratorSetting<V, T>) :
-            this(descriptor, module.identificator, setting)
+sealed class ModuleConfiguratorSettingReference<V : Any, T : SettingType<V>> : SettingReference<V, T>() {
+    abstract val descriptor: ModuleConfigurator
+    abstract val moduleId: Identificator
+    abstract val setting: ModuleConfiguratorSetting<V, T>
 
     override val path: String
         get() = "${descriptor.id}/$moduleId/${setting.path}"
@@ -57,6 +52,24 @@ data class ModuleConfiguratorSettingReference<V : Any, T : SettingType<V>>(
         get() = setting.type::class
 
     override fun Context.getSetting(): Setting<V, T> = setting
+    abstract val module: Module?
+}
+
+data class ModuleBasedConfiguratorSettingReference<V : Any, T : SettingType<V>>(
+    override val descriptor: ModuleConfigurator,
+    override val module: Module,
+    override val setting: ModuleConfiguratorSetting<V, T>
+) : ModuleConfiguratorSettingReference<V, T>() {
+    override val moduleId: Identificator
+        get() = module.identificator
+}
+
+data class IdBasedConfiguratorSettingReference<V : Any, T : SettingType<V>>(
+    override val descriptor: ModuleConfigurator,
+    override val moduleId: Identificator,
+    override val setting: ModuleConfiguratorSetting<V, T>
+) : ModuleConfiguratorSettingReference<V, T>() {
+    override val module: Module? = null
 }
 
 sealed class TemplateSettingReference<V : Any, T : SettingType<V>> : SettingReference<V, T>() {
@@ -71,16 +84,16 @@ sealed class TemplateSettingReference<V : Any, T : SettingType<V>> : SettingRefe
         get() = setting.type::class
 
     override fun Context.getSetting(): Setting<V, T> = setting
-    abstract val sourceset: Sourceset?
+    abstract val module: Module?
 }
 
-data class SourcesetBasedTemplateSettingReference<V : Any, T : SettingType<V>>(
+data class ModuleBasedTemplateSettingReference<V : Any, T : SettingType<V>>(
     override val descriptor: Template,
-    override val sourceset: Sourceset,
+    override val module: Module,
     override val setting: TemplateSetting<V, T>
 ) : TemplateSettingReference<V, T>() {
     override val sourcesetId: Identificator
-        get() = sourceset.identificator
+        get() = module.identificator
 }
 
 data class IdBasedTemplateSettingReference<V : Any, T : SettingType<V>>(
@@ -88,7 +101,7 @@ data class IdBasedTemplateSettingReference<V : Any, T : SettingType<V>>(
     override val sourcesetId: Identificator,
     override val setting: TemplateSetting<V, T>
 ) : TemplateSettingReference<V, T>() {
-    override val sourceset: Sourceset? = null
+    override val module: Module? = null
 }
 
 inline val <V : Any, reified T : SettingType<V>> PluginSettingPropertyReference<V, T>.reference: PluginSettingReference<V, T>
@@ -229,9 +242,8 @@ object StringSettingType : SettingType<String>() {
         private val title: String,
         neededAtPhase: GenerationPhase
     ) : SettingBuilder<String, StringSettingType>(path, title, neededAtPhase) {
-        fun shouldNotBeBlank() = validate { value: String ->
-            if (value.isBlank()) ValidationResult.ValidationError("`${title.capitalize()}` should not be blank ")
-            else ValidationResult.OK
+        fun shouldNotBeBlank() {
+            validate(StringValidators.shouldNotBeBlank(title.capitalize()))
         }
 
         override val type = StringSettingType
@@ -297,7 +309,7 @@ class ValueSettingType<V : Any>(
     ) : SettingBuilder<V, ValueSettingType<V>>(path, title, neededAtPhase) {
         init {
             validate { value ->
-                if (value is Validatable<*>) value.validator.validate(this, value)
+                if (value is Validatable<*>) (value.validator as SettingValidator<Any>).validate(this, value)
                 else ValidationResult.OK
             }
         }
@@ -342,7 +354,7 @@ class ListSettingType<V : Any>(private val parser: Parser<V>) : SettingType<List
             validate { values ->
                 values.fold(ValidationResult.OK as ValidationResult) { result, value ->
                     result and when (value) {
-                        is Validatable<*> -> value.validator.validate(this, value)
+                        is Validatable<*> -> (value.validator as SettingValidator<Any>).validate(this, value)
                         else -> ValidationResult.OK
                     }
                 }

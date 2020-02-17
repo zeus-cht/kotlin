@@ -8,8 +8,8 @@ package org.jetbrains.kotlin.cli.metadata
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.common.CommonDependenciesContainer
 import org.jetbrains.kotlin.analyzer.common.CommonPlatformAnalyzerServices
-import org.jetbrains.kotlin.backend.common.serialization.DescriptorTable
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataMonolithicSerializer
+import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -24,12 +24,9 @@ import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.konan.util.KlibMetadataFactories
-import org.jetbrains.kotlin.library.KotlinAbiVersion
-import org.jetbrains.kotlin.library.KotlinLibrary
-import org.jetbrains.kotlin.library.KotlinLibraryVersioning
-import org.jetbrains.kotlin.library.SerializedMetadata
+import org.jetbrains.kotlin.library.*
 import org.jetbrains.kotlin.library.impl.buildKoltinLibrary
-import org.jetbrains.kotlin.library.impl.createKotlinLibrary
+import org.jetbrains.kotlin.library.impl.createKotlinLibraryComponents
 import org.jetbrains.kotlin.library.metadata.parseModuleHeader
 import org.jetbrains.kotlin.metadata.builtins.BuiltInsBinaryVersion
 import org.jetbrains.kotlin.name.Name
@@ -52,7 +49,7 @@ internal class K2MetadataKlibSerializer(private val metadataVersion: BuiltInsBin
             LockBasedStorageManager("K2MetadataKlibSerializer")
         )
 
-        val analyzer = runCommonAnalysisForSerialization(environment, false, dependencyContainer)
+        val analyzer = runCommonAnalysisForSerialization(environment, true, dependencyContainer)
 
         if (analyzer == null || analyzer.hasErrors()) return
 
@@ -70,7 +67,6 @@ internal class K2MetadataKlibSerializer(private val metadataVersion: BuiltInsBin
         val serializedMetadata: SerializedMetadata = KlibMetadataMonolithicSerializer(
             configuration.languageVersionSettings,
             metadataVersion,
-            DescriptorTable.createDefault(),
             skipExpects = false,
             includeOnlyModuleContent = true
         ).serializeModule(module)
@@ -79,7 +75,7 @@ internal class K2MetadataKlibSerializer(private val metadataVersion: BuiltInsBin
             abiVersion = KotlinAbiVersion.CURRENT,
             libraryVersion = null,
             compilerVersion = KotlinCompilerVersion.getVersion(),
-            metadataVersion = null,
+            metadataVersion = KlibMetadataVersion.INSTANCE.toString(),
             irVersion = null
         )
 
@@ -109,7 +105,8 @@ private class KlibMetadataDependencyContainer(
         val klibFiles = classpathFiles
             .filter { it.extension == "klib" || it.isDirectory }
 
-        klibFiles.map { createKotlinLibrary(org.jetbrains.kotlin.konan.file.File(it.absolutePath)) }
+        // TODO: need to move K2Metadata to SearchPathResolver.
+        klibFiles.map { resolveSingleFileKlib(org.jetbrains.kotlin.konan.file.File(it.absolutePath)) }
     }
 
     private val builtIns

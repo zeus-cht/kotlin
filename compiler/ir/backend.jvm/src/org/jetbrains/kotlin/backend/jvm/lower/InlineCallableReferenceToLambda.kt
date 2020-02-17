@@ -50,19 +50,18 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
     private var inlinableReferences = mutableSetOf<IrCallableReference>()
 
     override fun lower(irFile: IrFile) {
-        IrInlineReferenceLocator.scan(context, irFile).let {
-            inlinableReferences.addAll(it.inlineReferences)
-        }
+        inlinableReferences.addAll(IrInlineReferenceLocator.scan(context, irFile))
         irFile.transformChildrenVoid(this)
     }
 
     override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+        expression.transformChildrenVoid(this)
         if (expression !in inlinableReferences || expression.origin.isLambda) return expression
-
         return expandInlineFunctionReferenceToLambda(expression, expression.symbol.owner)
     }
 
     override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+        expression.transformChildrenVoid(this)
         if (expression !in inlinableReferences) return expression
 
         return if (expression.field?.owner == null) {
@@ -106,6 +105,7 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
                 field.type,
                 function.symbol,
                 typeArgumentsCount = 0,
+                reflectionTarget = null,
                 origin = IrStatementOrigin.LAMBDA
             ).apply {
                 copyAttributes(expression)
@@ -128,7 +128,7 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
                 name = Name.identifier("stub_for_inlining")
                 visibility = Visibilities.LOCAL
                 returnType = referencedFunction.returnType
-                isSuspend = false
+                isSuspend = referencedFunction.isSuspend
             }.apply {
                 for ((index, argumentType) in argumentTypes.withIndex()) {
                     addValueParameter {
@@ -138,12 +138,12 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
                 }
 
                 body = this@InlineCallableReferenceToLambdaPhase.context.createJvmIrBuilder(
-                    this.symbol,
+                    symbol,
                     expression.startOffset,
                     expression.endOffset
                 ).run {
                     irExprBody(irCall(referencedFunction).apply {
-                        this@apply.symbol.owner.allTypeParameters.forEach {
+                        symbol.owner.allTypeParameters.forEach {
                             putTypeArgument(it.index, expression.getTypeArgument(it.index))
                         }
 
@@ -174,8 +174,9 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
                 expression.endOffset,
                 function.returnType,
                 function.symbol,
-                function.typeParameters.size,
-                IrStatementOrigin.LAMBDA
+                typeArgumentsCount = function.typeParameters.size,
+                reflectionTarget = null,
+                origin = IrStatementOrigin.LAMBDA
             ).apply {
                 copyAttributes(expression)
             }

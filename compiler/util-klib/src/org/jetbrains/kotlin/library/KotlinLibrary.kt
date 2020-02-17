@@ -23,10 +23,12 @@ const val KLIB_PROPERTY_EXPORT_FORWARD_DECLARATIONS = "exportForwardDeclarations
 interface BaseKotlinLibrary {
     val libraryName: String
     val libraryFile: File
+    val componentList: List<String>
     val versions: KotlinLibraryVersioning
     // Whether this library is default (provided by distribution)?
     val isDefault: Boolean
     val manifestProperties: Properties
+    val has_pre_1_4_manifest: Boolean
 }
 
 interface MetadataLibrary {
@@ -37,9 +39,9 @@ interface MetadataLibrary {
 
 interface IrLibrary {
     val dataFlowGraph: ByteArray?
-    fun irDeclaration(index: Long, fileIndex: Int): ByteArray
-    fun symbol(index: Int, fileIndex: Int): ByteArray
+    fun irDeclaration(index: Int, fileIndex: Int): ByteArray
     fun type(index: Int, fileIndex: Int): ByteArray
+    fun signature(index: Int, fileIndex: Int): ByteArray
     fun string(index: Int, fileIndex: Int): ByteArray
     fun body(index: Int, fileIndex: Int): ByteArray
     fun file(index: Int): ByteArray

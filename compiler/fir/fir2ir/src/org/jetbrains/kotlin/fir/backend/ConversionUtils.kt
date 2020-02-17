@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.fir.backend
 import com.intellij.psi.PsiCompiledElement
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.expressions.FirConstExpression
+import org.jetbrains.kotlin.fir.expressions.FirConstKind
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
@@ -18,6 +20,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -59,7 +62,7 @@ fun ConeKotlinType.toIrType(
     return when (this) {
         is ConeKotlinErrorType -> createErrorType()
         is ConeLookupTagBasedType -> {
-            val irSymbol = getPrimitiveArrayType(this.classId, irBuiltIns) ?: run {
+            val irSymbol = getArrayType(this.classId, irBuiltIns) ?: run {
                 val firSymbol = this.lookupTag.toSymbol(session) ?: return createErrorType()
                 firSymbol.toIrSymbol(session, declarationStorage)
             }
@@ -87,8 +90,9 @@ fun ConeKotlinType.toIrType(
     }
 }
 
-private fun getPrimitiveArrayType(classId: ClassId?, irBuiltIns: IrBuiltIns): IrClassifierSymbol? {
+private fun getArrayType(classId: ClassId?, irBuiltIns: IrBuiltIns): IrClassifierSymbol? {
     val irType = when (classId) {
+        ClassId(FqName("kotlin"), FqName("Array"), false) -> return irBuiltIns.arrayClass
         ClassId(FqName("kotlin"), FqName("BooleanArray"), false) -> irBuiltIns.booleanType
         ClassId(FqName("kotlin"), FqName("ByteArray"), false) -> irBuiltIns.byteType
         ClassId(FqName("kotlin"), FqName("CharArray"), false) -> irBuiltIns.charType
@@ -188,4 +192,26 @@ fun FirVariableSymbol<*>.toBackingFieldSymbol(declarationStorage: Fir2IrDeclarat
 
 fun FirVariableSymbol<*>.toValueSymbol(declarationStorage: Fir2IrDeclarationStorage): IrSymbol {
     return declarationStorage.getIrValueSymbol(this)
+}
+
+fun FirConstExpression<*>.getIrConstKind(): IrConstKind<*> = when (kind) {
+    FirConstKind.IntegerLiteral -> {
+        val type = typeRef.coneTypeUnsafe<ConeIntegerLiteralType>()
+        type.getApproximatedType().toConstKind()!!.toIrConstKind()
+    }
+    else -> kind.toIrConstKind()
+}
+
+private fun FirConstKind<*>.toIrConstKind(): IrConstKind<*> = when (this) {
+    FirConstKind.Null -> IrConstKind.Null
+    FirConstKind.Boolean -> IrConstKind.Boolean
+    FirConstKind.Char -> IrConstKind.Char
+    FirConstKind.Byte -> IrConstKind.Byte
+    FirConstKind.Short -> IrConstKind.Short
+    FirConstKind.Int -> IrConstKind.Int
+    FirConstKind.Long -> IrConstKind.Long
+    FirConstKind.String -> IrConstKind.String
+    FirConstKind.Float -> IrConstKind.Float
+    FirConstKind.Double -> IrConstKind.Double
+    FirConstKind.IntegerLiteral -> throw IllegalArgumentException()
 }

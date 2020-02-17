@@ -10,7 +10,7 @@ class A {
 }
 
 val ab = A.B // property
-val abc = A.B.<!UNRESOLVED_REFERENCE!>C<!> // object
+val abc = A.B.C // object
 
 object D {
     class E {
@@ -27,6 +27,11 @@ val de = D.E // extension
 
 enum class G {
     H;
+
+    fun foo() {
+        values()
+    }
+
     companion object {
         val H = ""
 
@@ -34,5 +39,5 @@ enum class G {
     }
 }
 
-val gh = G.<!AMBIGUITY!>H<!> // companion property
-val gv = G.<!AMBIGUITY!>values<!>() // static function
+val gh = G.H // companion property
+val gv = G.values() // static function

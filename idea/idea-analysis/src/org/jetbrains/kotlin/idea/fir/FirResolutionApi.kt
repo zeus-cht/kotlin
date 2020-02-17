@@ -8,22 +8,26 @@ package org.jetbrains.kotlin.idea.fir
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.*
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.ResolutionMode
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.getClassDeclaredCallableSymbols
-import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDesignatedBodyResolveTransformer
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirBodyResolveTransformer
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.createReturnTypeCalculatorForIDE
 import org.jetbrains.kotlin.fir.resolve.transformers.runResolve
-import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.FirPackageMemberScope
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.types.FirErrorTypeRef
 import org.jetbrains.kotlin.fir.types.FirUserTypeRef
+import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
+import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -55,11 +59,8 @@ private fun FirFile.findCallableMember(
     var result: FirCallableDeclaration<*>? = null
     val processor = { symbol: FirCallableSymbol<*> ->
         val fir = symbol.fir
-        if (fir.psi == callableMember) {
+        if (result == null && fir.psi == callableMember) {
             result = fir
-            ProcessorAction.STOP
-        } else {
-            ProcessorAction.NEXT
         }
     }
     if (callableMember is KtNamedFunction || callableMember is KtConstructor<*>) {
@@ -192,11 +193,41 @@ private fun FirDeclaration.runResolve(
     if (designation.all { it.resolvePhase >= toPhase }) {
         return
     }
-    val transformer = FirDesignatedBodyResolveTransformer(
+    val scopeSession = ScopeSession()
+    val transformer = FirDesignatedBodyResolveTransformerForIDE(
         designation.iterator(), state.getSession(psi as KtElement),
+        scopeSession,
         implicitTypeOnly = toPhase == FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE
     )
     file.transform<FirFile, ResolutionMode>(transformer, ResolutionMode.ContextDependent)
+}
+
+private class FirDesignatedBodyResolveTransformerForIDE(
+    private val designation: Iterator<FirElement>,
+    session: FirSession,
+    scopeSession: ScopeSession,
+    implicitTypeOnly: Boolean
+) : FirBodyResolveTransformer(
+    session,
+    phase = FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE,
+    implicitTypeOnly = implicitTypeOnly,
+    scopeSession = scopeSession,
+    returnTypeCalculator = createReturnTypeCalculatorForIDE(session, scopeSession)
+) {
+    override fun <E : FirElement> transformElement(element: E, data: ResolutionMode): CompositeTransformResult<E> {
+        if (designation.hasNext()) {
+            designation.next().visitNoTransform(this, data)
+            return element.compose()
+        }
+        return super.transformElement(element, data)
+    }
+
+    override fun transformDeclaration(declaration: FirDeclaration, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
+        return components.withContainer(declaration) {
+            declaration.replaceResolvePhase(transformerPhase)
+            transformElement(declaration, data)
+        }
+    }
 }
 
 fun KtElement.getOrBuildFir(

@@ -16,6 +16,7 @@ import kotlin.io.FilesKt;
 import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.TestHelperGeneratorKt;
 import org.jetbrains.kotlin.TestsCompilerError;
 import org.jetbrains.kotlin.TestsCompiletimeError;
 import org.jetbrains.kotlin.backend.common.output.OutputFile;
@@ -27,12 +28,15 @@ import org.jetbrains.kotlin.cli.common.output.OutputUtilsKt;
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles;
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace;
+import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot;
+import org.jetbrains.kotlin.cli.jvm.config.JvmContentRootsKt;
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.config.*;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.psi.KtFile;
+import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.scripting.definitions.ScriptDependenciesProvider;
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper;
 import org.jetbrains.kotlin.test.*;
@@ -58,10 +62,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -165,6 +166,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
     ) {
         LanguageVersionSettings explicitLanguageVersionSettings = null;
         boolean disableReleaseCoroutines = false;
+        boolean includeCompatExperimentalCoroutines = false;
 
         List<String> kotlinConfigurationFlags = new ArrayList<>(0);
         for (TestFile testFile : testFilesWithConfigurationDirectives) {
@@ -190,9 +192,14 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
 
             if (!InTextDirectivesUtils.findLinesWithPrefixesRemoved(testFile.content, "// COMMON_COROUTINES_TEST").isEmpty()) {
                 assert !testFile.content.contains("COROUTINES_PACKAGE") : "Must replace COROUTINES_PACKAGE prior to tests compilation";
-                if (coroutinesPackage.equals("kotlin.coroutines.experimental")) {
+                if (DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL.asString().equals(coroutinesPackage)) {
                     disableReleaseCoroutines = true;
+                    includeCompatExperimentalCoroutines = true;
                 }
+            }
+
+            if (testFile.content.contains(DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL.asString())) {
+                includeCompatExperimentalCoroutines = true;
             }
 
             Map<String, String> directives = KotlinTestUtils.parseDirectives(testFile.content);
@@ -211,6 +218,9 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                     LanguageVersion.LATEST_STABLE,
                     Collections.emptyMap()
             );
+        }
+        if (includeCompatExperimentalCoroutines) {
+            JvmContentRootsKt.addJvmClasspathRoot(configuration, ForTestCompileRuntime.coroutinesCompatForTests());
         }
 
         if (explicitLanguageVersionSettings != null) {
@@ -424,6 +434,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         if (additionalDependencies != null) {
             files.addAll(additionalDependencies);
         }
+        files.addAll(getExtraDependenciesFromKotlinCompileClasspath());
 
         ScriptDependenciesProvider externalImportsProvider =
                 ScriptDependenciesProvider.Companion.getInstance(myEnvironment.getProject());
@@ -449,6 +460,20 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             throw ExceptionUtilsKt.rethrow(e);
         }
     }
+
+    private Set<File> getExtraDependenciesFromKotlinCompileClasspath() {
+        List<File> includeFromCompileClasspath = CollectionsKt.listOf(
+                ForTestCompileRuntime.coroutinesCompatForTests()
+        );
+        List<File> compileClasspath =
+                CollectionsKt.map(
+                        CollectionsKt.filterIsInstance(
+                                myEnvironment.getConfiguration().get(CLIConfigurationKeys.CONTENT_ROOTS),
+                                JvmClasspathRoot.class),
+                        JvmClasspathRoot::getFile);
+        return CollectionsKt.intersect(compileClasspath, includeFromCompileClasspath);
+    }
+
 
     @NotNull
     protected String generateToText() {
@@ -509,8 +534,15 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             );
             classFileFactory = generationState.getFactory();
 
-            if (verifyWithDex() && DxChecker.RUN_DX_CHECKER) {
+            // Some names are not allowed in the dex file format and the VM will reject the program
+            // if they are used. Therefore, a few tests cannot be dexed as they use such names that
+            // are valid on the JVM but not on the Android Runtime.
+            boolean ignoreDexing = myFiles.getPsiFiles().stream().anyMatch(
+                it -> InTextDirectivesUtils.isDirectiveDefined(it.getText(), "IGNORE_DEXING")
+            );
+            if (verifyWithDex() && DxChecker.RUN_DX_CHECKER && !ignoreDexing) {
                 DxChecker.check(classFileFactory);
+                D8Checker.check(classFileFactory);
             }
         }
         catch (TestsCompiletimeError e) {
@@ -698,6 +730,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             if (loadAndroidAnnotations) {
                 javaClasspath.add(ForTestCompileRuntime.androidAnnotationsForTests().getPath());
             }
+            javaClasspath.addAll(CollectionsKt.map(getExtraDependenciesFromKotlinCompileClasspath(), File::getPath));
 
             javaClassesOutputDirectory = getJavaClassesOutputDirectory();
             compileJava(findJavaSourcesInDirectory(javaSourceDir), javaClasspath, javacOptions, javaClassesOutputDirectory);
@@ -783,7 +816,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             expectedText = expectedText.replace("COROUTINES_PACKAGE", coroutinesPackage);
         }
 
-        List<TestFile> testFiles = createTestFiles(file, expectedText, coroutinesPackage);
+        List<TestFile> testFiles = createTestFiles(file, expectedText);
 
         doMultiFileTest(file, testFiles);
     }
@@ -794,14 +827,18 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
     }
 
     @NotNull
-    private static List<TestFile> createTestFiles(File file, String expectedText, String coroutinesPackage) {
-        return TestFiles.createTestFiles(file.getName(), expectedText, new TestFiles.TestFileFactoryNoModules<TestFile>() {
+    private List<TestFile> createTestFiles(File file, String expectedText) {
+        List testFiles = TestFiles.createTestFiles(file.getName(), expectedText, new TestFiles.TestFileFactoryNoModules<TestFile>() {
             @NotNull
             @Override
             public TestFile create(@NotNull String fileName, @NotNull String text, @NotNull Map<String, String> directives) {
                 return new TestFile(fileName, text);
             }
         }, coroutinesPackage);
+        if (InTextDirectivesUtils.isDirectiveDefined(expectedText, "WITH_HELPERS")) {
+            testFiles.add(new TestFile("CodegenTestHelpers.kt", TestHelperGeneratorKt.createTextForCodegenTestHelpers(getBackend())));
+        }
+        return testFiles;
     }
 
     @NotNull

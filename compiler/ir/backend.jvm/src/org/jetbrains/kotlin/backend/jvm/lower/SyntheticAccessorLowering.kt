@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
+import org.jetbrains.kotlin.backend.common.descriptors.synthesizedString
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
@@ -37,14 +38,27 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrElementTransformerVoidWithContext(), FileLoweringPass {
+    data class LambdaCallSite(val scope: IrDeclaration, val crossinline: Boolean)
+
     private val pendingAccessorsToAdd = mutableListOf<IrFunction>()
-    private val inlineLambdaToCallSite = mutableMapOf<IrFunction, IrDeclaration?>()
+    private val inlineLambdaToCallSite = mutableMapOf<IrFunction, LambdaCallSite>()
 
     override fun lower(irFile: IrFile) {
-        inlineLambdaToCallSite.putAll(IrInlineReferenceLocator.scan(context, irFile).lambdaToCallSite)
+        irFile.accept(object : IrInlineReferenceLocator(context) {
+            override fun visitInlineLambda(
+                argument: IrFunctionReference,
+                callee: IrFunction,
+                parameter: IrValueParameter,
+                scope: IrDeclaration
+            ) {
+                inlineLambdaToCallSite[argument.symbol.owner] = LambdaCallSite(scope, parameter.isCrossinline)
+            }
+        }, null)
+
         irFile.transformChildrenVoid(this)
 
         for (accessor in pendingAccessorsToAdd) {
@@ -122,7 +136,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
                 return IrFunctionReferenceImpl(
                     expression.startOffset, expression.endOffset, expression.type,
                     accessor.symbol, accessor.typeParameters.size,
-                    accessor.valueParameters.size, expression.origin
+                    accessor.valueParameters.size, accessor.symbol, expression.origin
                 )
             }
         }
@@ -148,8 +162,8 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
                 accessor.metadata = declaration.metadata
                 declaration.safeAs<IrConstructorImpl>()?.metadata = null
                 accessor.annotations += declaration.annotations
-                declaration.annotations.clear()
-                declaration.valueParameters.forEach { it.annotations.clear() }
+                declaration.annotations = emptyList()
+                declaration.valueParameters.forEach { it.annotations = emptyList() }
             }
         }
     }
@@ -159,7 +173,11 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
     private fun IrDeclarationWithVisibility.accessorParent(parent: IrDeclarationParent = this.parent) =
         if (visibility == JavaVisibilities.PROTECTED_STATIC_VISIBILITY) {
             val classes = allScopes.map { it.irElement }.filterIsInstance<IrClass>()
-            classes.lastOrNull { parent is IrClass && it.isSubclassOf(parent) } ?: classes.last()
+            val companions = classes.mapNotNull { it.companionObject() }.filterIsInstance<IrClass>()
+            val objectsInScope =
+                classes.flatMap { it.declarations.filter(IrDeclaration::isAnonymousObject).filterIsInstance<IrClass>() }
+            val candidates = objectsInScope + companions + classes
+            candidates.lastOrNull { parent is IrClass && it.isSubclassOf(parent) } ?: classes.last()
         } else parent
 
     private fun IrConstructor.makeConstructorAccessor(): IrConstructorImpl {
@@ -177,7 +195,9 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
             accessor.returnType = source.returnType.remapTypeParameters(source, accessor)
 
             accessor.addValueParameter(
-                "marker", context.ir.symbols.defaultConstructorMarker.defaultType, JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR
+                "constructor_marker".synthesizedString,
+                context.ir.symbols.defaultConstructorMarker.defaultType,
+                JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR
             )
 
             accessor.body = IrExpressionBodyImpl(
@@ -320,7 +340,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
                 )
             }
 
-            accessor.addValueParameter("value", fieldSymbol.owner.type, JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR)
+            accessor.addValueParameter("<set-?>", fieldSymbol.owner.type, JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR)
 
             accessor.body = createAccessorBodyForSetter(fieldSymbol.owner, accessor)
         }.symbol
@@ -490,15 +510,14 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
     }
 
     private fun IrField.fieldAccessorSuffix(): String {
-        // The only static field accessors are those for fields moved from companion objects, hence a
-        // _c_ompanion _p_roperty suffix. However, companion objects for interfaces keep their fields
-        // (as interfaces cannot own fields), hence are simple _p_roperty accessors, like everything else.
-        val companionSuffix = if (isStatic && !parentAsClass.isCompanion) "cp" else "p"
+        // Special _c_ompanion _p_roperty suffix for accessing companion backing field moved to outer
+        if (origin == JvmLoweredDeclarationOrigin.COMPANION_PROPERTY_BACKING_FIELD && !parentAsClass.isCompanion) {
+            return "cp"
+        }
 
         // Static accesses that need an accessor must be due to being inherited, hence accessed on a
         // _s_upertype
-        val staticSuffix = if (isStatic) "\$s" + parentAsClass.descriptor.syntheticAccessorToSuperSuffix() else ""
-        return companionSuffix + staticSuffix
+        return "p" + if (isStatic) "\$s" + parentAsClass.descriptor.syntheticAccessorToSuperSuffix() else ""
     }
 
     private val Visibility.isPrivate
@@ -509,16 +528,18 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
                 this == JavaVisibilities.PROTECTED_AND_PACKAGE ||
                 this == JavaVisibilities.PROTECTED_STATIC_VISIBILITY
 
-    private fun IrDeclaration.getAccessContext(withSuper: Boolean): IrDeclarationContainer? = when {
+    private fun IrDeclaration.getAccessContext(allowSamePackage: Boolean): IrDeclarationContainer? = when {
         this is IrDeclarationContainer -> this
-        // For inline lambdas, we can navigate to the only call site directly.
-        this in inlineLambdaToCallSite -> inlineLambdaToCallSite[this]?.getAccessContext(withSuper)
+        // For inline lambdas, we can navigate to the only call site directly. Crossinline lambdas might be inlined
+        // into other classes in the same package, so private/super require accessors anyway.
+        this in inlineLambdaToCallSite ->
+            inlineLambdaToCallSite[this]!!.takeIf { allowSamePackage || !it.crossinline }?.scope?.getAccessContext(allowSamePackage)
         // Accesses from inline functions can actually be anywhere; even private inline functions can be
         // inlined into a different class, e.g. a callable reference. For protected inline functions
         // calling methods on `super` we also need an accessor to satisfy INVOKESPECIAL constraints.
         // TODO scan nested classes for calls to private inline functions?
         this is IrFunction && isInline -> null
-        else -> (parent as? IrDeclaration)?.getAccessContext(withSuper)
+        else -> (parent as? IrDeclaration)?.getAccessContext(allowSamePackage)
     }
 
     private fun IrSymbol.isAccessible(withSuper: Boolean, thisObjReference: IrClassSymbol?): Boolean {
@@ -547,7 +568,8 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
 
         // If local variables are accessible by Kotlin rules, they also are by Java rules.
         val symbolDeclarationContainer = (declaration.parent as? IrDeclarationContainer) as? IrElement ?: return true
-        val contextDeclarationContainer = (currentScope!!.irElement as IrDeclaration).getAccessContext(withSuper) ?: return false
+        val contextDeclarationContainer =
+            (currentScope!!.irElement as IrDeclaration).getAccessContext(declaration.visibility.isProtected && !withSuper) ?: return false
 
         val samePackage = declaration.getPackageFragment()?.fqName == contextDeclarationContainer.getPackageFragment()?.fqName
         val fromSubclassOfReceiversClass = contextDeclarationContainer is IrClass && symbolDeclarationContainer is IrClass &&

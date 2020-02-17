@@ -8,10 +8,12 @@ package org.jetbrains.kotlin.backend.jvm.lower
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.ir.isMethodOfAny
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
-import org.jetbrains.kotlin.backend.common.ir.passTypeArgumentsFrom
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
+import org.jetbrains.kotlin.backend.jvm.ir.copyFromWithPlaceholderTypeArguments
+import org.jetbrains.kotlin.backend.jvm.ir.createDelegatingCallWithPlaceholderTypeArguments
+import org.jetbrains.kotlin.backend.jvm.ir.createPlaceholderAnyNType
 import org.jetbrains.kotlin.backend.jvm.ir.hasJvmDefault
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrLocalDelegatedPropertySymbol
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -187,11 +190,15 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
             newFunction.parentAsClass.declarations.add(newFunction)
         }
 
-    // Bridge from static to static method - simply fill the arguments to the parameters.
+    // Bridge from static to static method - simply fill the function arguments to the parameters.
     // By nature of the generation of both source and target of bridge, they line up.
     private fun IrFunction.bridgeToStatic(callTarget: IrFunction) {
         body = IrExpressionBodyImpl(IrCallImpl(startOffset, endOffset, returnType, callTarget.symbol).also { call ->
-            call.passTypeArgumentsFrom(this)
+
+            callTarget.typeParameters.forEachIndexed { i, _ ->
+                call.putTypeArgument(i, createPlaceholderAnyNType(context.irBuiltIns))
+            }
+
             valueParameters.forEachIndexed { i, it ->
                 call.putValueArgument(i, IrGetValueImpl(startOffset, endOffset, it.symbol))
             }
@@ -209,7 +216,9 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
                 callTarget.symbol,
                 superQualifierSymbol = callTarget.parentAsClass.symbol
             ).also { call ->
-                call.passTypeArgumentsFrom(this)
+                this.typeParameters.drop(callTarget.parentAsClass.typeParameters.size).forEachIndexed { i, typeParameter ->
+                    call.putTypeArgument(i, typeParameter.defaultType)
+                }
 
                 var offset = 0
                 callTarget.dispatchReceiverParameter?.let {
@@ -243,7 +252,7 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
         val newFunction = removedFunctions[expression.symbol]?.owner
         return super.visitCall(
             if (newFunction != null) {
-                irCall(expression, newFunction, receiversAsArguments = true)
+                createDelegatingCallWithPlaceholderTypeArguments(expression, newFunction, context.irBuiltIns)
             } else {
                 expression
             }
@@ -256,14 +265,10 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
             if (newFunction != null) {
                 with(expression) {
                     IrFunctionReferenceImpl(
-                        startOffset,
-                        endOffset,
-                        type,
-                        newFunction.symbol,
-                        typeArgumentsCount,
-                        origin
+                        startOffset, endOffset, type, newFunction.symbol, newFunction.typeParameters.size, newFunction.valueParameters.size,
+                        expression.reflectionTarget, origin
                     ).apply {
-                        copyTypeAndValueArgumentsFrom(expression, receiversAsArguments = true)
+                        copyFromWithPlaceholderTypeArguments(expression, context.irBuiltIns)
                         copyAttributes(expression)
                     }
                 }

@@ -22,7 +22,8 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTestFramework
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinTestRunnerCliArgs
 import java.io.File
 
-class KotlinMocha(override val compilation: KotlinJsCompilation) : KotlinJsTestFramework {
+class KotlinMocha(override val compilation: KotlinJsCompilation) :
+    KotlinJsTestFramework {
     private val project: Project = compilation.target.project
     private val nodeJs = NodeJsRootPlugin.apply(project.rootProject)
     private val versions = nodeJs.versions

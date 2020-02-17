@@ -6,8 +6,6 @@ plugins {
 dependencies {
     testRuntime(intellijDep())
 
-    compile(project(":kotlin-native:kotlin-native-library-reader"))
-
     compileOnly(project(":idea:idea-gradle"))
     compileOnly(project(":idea:idea-native"))
 
@@ -74,10 +72,6 @@ dependencies {
 
     if (Ide.AS36.orHigher()) {
         testRuntime(intellijPluginDep("android-layoutlib"))
-    }
-
-    if (Ide.AS36()) {
-        testRuntime(intellijPluginDep("android-wizardTemplate-plugin"))
     }
 }
 

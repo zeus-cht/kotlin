@@ -11,6 +11,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import junit.framework.TestCase
 import org.jetbrains.kotlin.asJava.finder.JavaElementFinder
+import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.fir.backend.Fir2IrConverter
@@ -19,6 +20,7 @@ import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveTransformer
 import org.jetbrains.kotlin.ir.AbstractIrTextTestCase
+import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerDesc
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import java.io.File
 
@@ -92,8 +94,10 @@ abstract class AbstractFir2IrTextTest : AbstractIrTextTestCase() {
             }
         }
 
+        val signaturer = IdSignatureDescriptor(JvmManglerDesc())
+
         return Fir2IrConverter.createModuleFragment(
-            session, firFiles, myEnvironment.configuration.languageVersionSettings
+            session, firFiles, myEnvironment.configuration.languageVersionSettings, signaturer = signaturer
         ).irModuleFragment
     }
 }

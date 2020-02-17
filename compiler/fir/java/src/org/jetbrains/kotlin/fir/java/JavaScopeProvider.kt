@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.fir.java.scopes.JavaClassEnhancementScope
 import org.jetbrains.kotlin.fir.java.scopes.JavaClassUseSiteMemberScope
 import org.jetbrains.kotlin.fir.java.scopes.JavaOverrideChecker
 import org.jetbrains.kotlin.fir.resolve.*
-import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
-import org.jetbrains.kotlin.fir.scopes.ConeSubstitutionScopeKey
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.*
@@ -33,16 +31,10 @@ class JavaScopeProvider(
 ) : FirScopeProvider() {
     override fun getUseSiteMemberScope(
         klass: FirClass<*>,
-        substitutor: ConeSubstitutor,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
-    ): FirScope {
-        val baseScope = buildJavaEnhancementScope(useSiteSession, klass.symbol as FirRegularClassSymbol, scopeSession, mutableSetOf())
-        if (substitutor == ConeSubstitutor.Empty) return baseScope
-        return scopeSession.getOrBuild(klass, ConeSubstitutionScopeKey(substitutor)) {
-            FirClassSubstitutionScope(useSiteSession, baseScope, scopeSession, substitutor)
-        }
-    }
+    ): FirScope =
+        buildJavaEnhancementScope(useSiteSession, klass.symbol as FirRegularClassSymbol, scopeSession, mutableSetOf())
 
     private fun buildJavaEnhancementScope(
         useSiteSession: FirSession,
@@ -58,6 +50,14 @@ class JavaScopeProvider(
         }
     }
 
+    private fun buildDeclaredMemberScope(regularClass: FirRegularClass): FirScope {
+        return if (regularClass is FirJavaClass) declaredMemberScopeWithLazyNestedScope(
+            regularClass,
+            existingNames = regularClass.existingNestedClassifierNames,
+            symbolProvider = symbolProvider
+        ) else declaredMemberScope(regularClass)
+    }
+
     private fun buildUseSiteMemberScopeWithJavaTypes(
         regularClass: FirRegularClass,
         useSiteSession: FirSession,
@@ -65,11 +65,7 @@ class JavaScopeProvider(
         visitedSymbols: MutableSet<FirClassLikeSymbol<*>>
     ): JavaClassUseSiteMemberScope {
         return scopeSession.getOrBuild(regularClass.symbol, JAVA_USE_SITE) {
-            val declaredScope = if (regularClass is FirJavaClass) declaredMemberScopeWithLazyNestedScope(
-                regularClass,
-                existingNames = regularClass.existingNestedClassifierNames,
-                symbolProvider = symbolProvider
-            ) else declaredMemberScope(regularClass)
+            val declaredScope = buildDeclaredMemberScope(regularClass)
             val wrappedDeclaredScope = declaredMemberScopeDecorator(regularClass, declaredScope, useSiteSession, scopeSession)
             val superTypeEnhancementScopes =
                 lookupSuperTypes(regularClass, lookupInterfaces = true, deep = false, useSiteSession = useSiteSession)
@@ -105,10 +101,20 @@ class JavaScopeProvider(
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {
-        return FirStaticScope(getUseSiteMemberScope(klass, ConeSubstitutor.Empty, useSiteSession, scopeSession))
+        if (klass !is FirRegularClass) return null
+        val enhancementScope = scopeSession.getOrBuild(klass.symbol, JAVA_ENHANCEMENT_FOR_STATIC) {
+            val declaredScope = buildDeclaredMemberScope(klass)
+            val wrappedDeclaredScope = declaredMemberScopeDecorator(klass, declaredScope, useSiteSession, scopeSession)
+            JavaClassEnhancementScope(
+                useSiteSession, JavaClassUseSiteMemberScope(
+                    klass, useSiteSession, superTypesScope = object : FirScope() {}, declaredMemberScope = wrappedDeclaredScope
+                )
+            )
+        }
+        return FirStaticScope(enhancementScope)
     }
 }
 
-
+private val JAVA_ENHANCEMENT_FOR_STATIC = scopeSessionKey<FirRegularClassSymbol, JavaClassEnhancementScope>()
 private val JAVA_ENHANCEMENT = scopeSessionKey<FirRegularClassSymbol, JavaClassEnhancementScope>()
 private val JAVA_USE_SITE = scopeSessionKey<FirRegularClassSymbol, JavaClassUseSiteMemberScope>()

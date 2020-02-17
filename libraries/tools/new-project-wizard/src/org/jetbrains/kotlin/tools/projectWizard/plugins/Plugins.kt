@@ -22,12 +22,13 @@ object Plugins {
             KotlinPlugin(context),
             TemplatesPlugin(context),
             ProjectTemplatesPlugin(context),
+            RunConfigurationsPlugin(context),
 
             // templates
-            KotlinTestTemplatePlugin(context),
             ConsoleJvmApplicationTemplatePlugin(context),
             KtorTemplatesPlugin(context),
-            JsTemplatesPlugin(context)
+            JsTemplatesPlugin(context),
+            NativeConsoleApplicationTemplatePlugin(context)
         )
     }
 }

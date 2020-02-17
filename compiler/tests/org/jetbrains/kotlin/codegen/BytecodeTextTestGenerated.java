@@ -114,6 +114,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         runTest("compiler/testData/codegen/bytecodeText/falseSmartCast.kt");
     }
 
+    @TestMetadata("flagsInMultiFileInherit.kt")
+    public void testFlagsInMultiFileInherit() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeText/flagsInMultiFileInherit.kt");
+    }
+
     @TestMetadata("inlineFromOtherModule.kt")
     public void testInlineFromOtherModule() throws Exception {
         runTest("compiler/testData/codegen/bytecodeText/inlineFromOtherModule.kt");
@@ -254,6 +259,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         runTest("compiler/testData/codegen/bytecodeText/maxStackAfterOptimizations.kt");
     }
 
+    @TestMetadata("noAccessorForProtectedInSamePackageCrossinline.kt")
+    public void testNoAccessorForProtectedInSamePackageCrossinline() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeText/noAccessorForProtectedInSamePackageCrossinline.kt");
+    }
+
     @TestMetadata("noFlagAnnotations.kt")
     public void testNoFlagAnnotations() throws Exception {
         runTest("compiler/testData/codegen/bytecodeText/noFlagAnnotations.kt");
@@ -379,16 +389,6 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
 
         public void testAllFilesPresentInArgumentOrder() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/argumentOrder"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
-        }
-
-        @TestMetadata("argumentReorder.kt")
-        public void testArgumentReorder() throws Exception {
-            runTest("compiler/testData/codegen/bytecodeText/argumentOrder/argumentReorder.kt");
-        }
-
-        @TestMetadata("argumentReorderWithDefault.kt")
-        public void testArgumentReorderWithDefault() throws Exception {
-            runTest("compiler/testData/codegen/bytecodeText/argumentOrder/argumentReorderWithDefault.kt");
         }
 
         @TestMetadata("sameOrder.kt")
@@ -1236,6 +1236,64 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         @TestMetadata("string.kt")
         public void testString() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/constants/string.kt");
+        }
+    }
+
+    @TestMetadata("compiler/testData/codegen/bytecodeText/constructors")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Constructors extends AbstractBytecodeTextTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInConstructors() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/constructors"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @TestMetadata("enumPrimaryDefaults.kt")
+        public void testEnumPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/enumPrimaryDefaults.kt");
+        }
+
+        @TestMetadata("inlineArgumentPrimaryDefaults.kt")
+        public void testInlineArgumentPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/inlineArgumentPrimaryDefaults.kt");
+        }
+
+        @TestMetadata("inlinePrimaryDefaults.kt")
+        public void testInlinePrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/inlinePrimaryDefaults.kt");
+        }
+
+        @TestMetadata("innerPrimaryDefaults.kt")
+        public void testInnerPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/innerPrimaryDefaults.kt");
+        }
+
+        @TestMetadata("internalPrimaryDefaults.kt")
+        public void testInternalPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/internalPrimaryDefaults.kt");
+        }
+
+        @TestMetadata("localPrimaryDefaults.kt")
+        public void testLocalPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/localPrimaryDefaults.kt");
+        }
+
+        @TestMetadata("parameterlessPrimary.kt")
+        public void testParameterlessPrimary() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/parameterlessPrimary.kt");
+        }
+
+        @TestMetadata("privatePrimaryDefaults.kt")
+        public void testPrivatePrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/privatePrimaryDefaults.kt");
+        }
+
+        @TestMetadata("protectedPrimaryDefaults.kt")
+        public void testProtectedPrimaryDefaults() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/constructors/protectedPrimaryDefaults.kt");
         }
     }
 
@@ -2831,6 +2889,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
             KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
         }
 
+        @TestMetadata("addedInterfaceBridge.kt")
+        public void testAddedInterfaceBridge() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/interfaces/addedInterfaceBridge.kt");
+        }
+
         public void testAllFilesPresentInInterfaces() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/interfaces"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
         }
@@ -3180,6 +3243,16 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
             runTest("compiler/testData/codegen/bytecodeText/lineNumbers/ifTrueElse.kt");
         }
 
+        @TestMetadata("inlineCondition.kt")
+        public void testInlineCondition() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/lineNumbers/inlineCondition.kt");
+        }
+
+        @TestMetadata("inlineCondition2.kt")
+        public void testInlineCondition2() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/lineNumbers/inlineCondition2.kt");
+        }
+
         @TestMetadata("singleThen.kt")
         public void testSingleThen() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/lineNumbers/singleThen.kt");
@@ -3508,6 +3581,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         @TestMetadata("nullCheckAfterExclExcl_1_4.kt")
         public void testNullCheckAfterExclExcl_1_4() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/nullCheckOptimization/nullCheckAfterExclExcl_1_4.kt");
+        }
+
+        @TestMetadata("nullabilityAssertionOnDispatchReceiver.kt")
+        public void testNullabilityAssertionOnDispatchReceiver() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/nullCheckOptimization/nullabilityAssertionOnDispatchReceiver.kt");
         }
 
         @TestMetadata("primitiveCheck.kt")

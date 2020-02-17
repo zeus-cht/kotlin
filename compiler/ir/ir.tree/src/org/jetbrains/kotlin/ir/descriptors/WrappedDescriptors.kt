@@ -595,7 +595,7 @@ open class WrappedClassDescriptor(
 
     override fun isInline() = owner.isInline
 
-    override fun isFun() = TODO("not implemented")
+    override fun isFun() = owner.isFun
 
     override fun getThisAsReceiverParameter() = owner.thisReceiver?.descriptor as ReceiverParameterDescriptor
 
@@ -1055,13 +1055,9 @@ open class WrappedFieldDescriptor(
 
     override val isDelegated get() = false
 
-    override fun getBackingField(): FieldDescriptor? {
-        TODO("not implemented")
-    }
-
-    override fun getDelegateField(): FieldDescriptor? {
-        TODO("not implemented")
-    }
+    // Following functions are used in error reporting when rendering annotations on properties
+    override fun getBackingField(): FieldDescriptor? = null // TODO
+    override fun getDelegateField(): FieldDescriptor? = null // TODO
 
     override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
 }
@@ -1069,7 +1065,7 @@ open class WrappedFieldDescriptor(
 private fun getContainingDeclaration(declaration: IrDeclarationWithName): DeclarationDescriptor {
     val parent = declaration.parent
     val parentDescriptor = (parent as IrSymbolOwner).symbol.descriptor
-    return if (parent is IrClass && parent.origin == IrDeclarationOrigin.FILE_CLASS) {
+    return if (parent is IrClass && parent.isFileClass) {
         // JVM IR adds facade classes for IR of functions/properties loaded both from sources and dependencies. However, these shouldn't
         // exist in the descriptor hierarchy, since this is what the old backend (dealing with descriptors) expects.
         parentDescriptor.containingDeclaration!!

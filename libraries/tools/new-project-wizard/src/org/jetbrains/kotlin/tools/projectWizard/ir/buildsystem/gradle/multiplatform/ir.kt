@@ -26,7 +26,7 @@ data class TargetAccessIR(
 }
 
 interface TargetConfigurationIR : MultiplatformIR, IrsOwner {
-    val name: String
+    val targetName: String
 }
 
 fun TargetConfigurationIR.addWithJavaIntoJvmTarget() = when {
@@ -39,7 +39,7 @@ data class DefaultTargetConfigurationIR(
     val targetAccess: TargetAccessIR,
     override val irs: List<BuildSystemIR>
 ) : TargetConfigurationIR {
-    override val name: String
+    override val targetName: String
         get() = targetAccess.nonDefaultName ?: targetAccess.type.name
 
     override fun withReplacedIrs(irs: List<BuildSystemIR>): DefaultTargetConfigurationIR =
@@ -57,19 +57,22 @@ data class DefaultTargetConfigurationIR(
 }
 
 data class NonDefaultTargetConfigurationIR(
-    override val name: String,
+    val variableName: String,
+    override val targetName: String,
     override val irs: List<BuildSystemIR>
 ) : TargetConfigurationIR {
     override fun withReplacedIrs(irs: List<BuildSystemIR>): NonDefaultTargetConfigurationIR =
         copy(irs = irs)
 
     override fun GradlePrinter.renderGradle() {
-        +name
-        when (dsl) {
-            GradlePrinter.GradleDsl.KOTLIN -> +".apply"
-            GradlePrinter.GradleDsl.GROOVY -> +".with"
+        if (irs.isNotEmpty()) {
+            +variableName
+            when (dsl) {
+                GradlePrinter.GradleDsl.KOTLIN -> +".apply"
+                GradlePrinter.GradleDsl.GROOVY -> +".with"
+            }
+            +" "; inBrackets { irs.listNl() }
         }
-        +" "; inBrackets { irs.listNl() }
     }
 }
 

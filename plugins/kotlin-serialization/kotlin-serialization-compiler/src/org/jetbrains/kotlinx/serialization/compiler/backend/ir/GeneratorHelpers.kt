@@ -44,7 +44,7 @@ interface IrBuilderExtension {
     private fun IrClass.declareSimpleFunctionWithExternalOverrides(descriptor: FunctionDescriptor): IrSimpleFunction {
         return compilerContext.symbolTable.declareSimpleFunction(startOffset, endOffset, SERIALIZABLE_PLUGIN_ORIGIN, descriptor)
             .also { f ->
-                descriptor.overriddenDescriptors.mapTo(f.overriddenSymbols) {
+                f.overriddenSymbols = descriptor.overriddenDescriptors.map {
                     compilerContext.symbolTable.referenceSimpleFunction(it.original)
                 }
             }
@@ -357,16 +357,15 @@ interface IrBuilderExtension {
 
         if (!overwriteValueParameters)
             assert(valueParameters.isEmpty())
-        else
-            valueParameters.clear()
-        valueParameters.addAll(descriptor.valueParameters.map { it.irValueParameter() })
+
+        valueParameters = descriptor.valueParameters.map { it.irValueParameter() }
 
         assert(typeParameters.isEmpty())
         if (copyTypeParameters) copyTypeParamsFromDescriptor()
     }
 
     fun IrFunction.copyTypeParamsFromDescriptor() {
-        descriptor.typeParameters.mapTo(typeParameters) {
+        typeParameters += descriptor.typeParameters.map {
             IrTypeParameterImpl(
                 startOffset, endOffset,
                 SERIALIZABLE_PLUGIN_ORIGIN,
@@ -588,15 +587,11 @@ interface IrBuilderExtension {
                     typeArgs = listOf(thisIrType)
                 }
                 enumSerializerId -> {
-                    serializerClass = module.getClassFromInternalSerializationPackage("CommonEnumSerializer")
+                    serializerClass = module.getClassFromInternalSerializationPackage(SpecialBuiltins.enumSerializer)
                     args = kType.toClassDescriptor!!.let { enumDesc ->
                         listOf(
                             irString(enumDesc.serialName()),
-                            irCall(findEnumValuesMethod(enumDesc)),
-                            createArrayOfExpression(
-                                compilerContext.irBuiltIns.stringType,
-                                getEnumMembersNames(enumDesc).map { irString(it) }.toList()
-                            )
+                            irCall(findEnumValuesMethod(enumDesc))
                         )
                     }
                     typeArgs = listOf(thisIrType)

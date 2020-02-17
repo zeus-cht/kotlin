@@ -1,8 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.CacheableTransformer
 import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer
 import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
 import kotlinx.metadata.jvm.KmModuleVisitor
 import kotlinx.metadata.jvm.KotlinModuleMetadata
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import proguard.gradle.ProGuardTask
 import shadow.org.apache.tools.zip.ZipEntry
 import shadow.org.apache.tools.zip.ZipOutputStream
@@ -17,16 +19,11 @@ buildscript {
 
 plugins {
     java
-    id("pill-configurable")
 }
 
 callGroovy("configureJavaOnlyJvm6Project", project)
 
 publish()
-
-pill {
-    importAsLibrary = true
-}
 
 val core = "$rootDir/core"
 val relocatedCoreSrc = "$buildDir/core-relocated"
@@ -63,6 +60,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:13.0")
 }
 
+@CacheableTransformer
 class KotlinModuleShadowTransformer(private val logger: Logger) : Transformer {
     @Suppress("ArrayInDataClass")
     private data class Entry(val path: String, val bytes: ByteArray)
@@ -124,10 +122,17 @@ val stripMetadata by tasks.registering {
     dependsOn(reflectShadowJar)
     val inputJar = provider { reflectShadowJar.get().outputs.files.singleFile }
     val outputJar = File("$libsDir/kotlin-reflect-stripped.jar")
-    inputs.file(inputJar)
+    inputs.file(inputJar).withPathSensitivity(RELATIVE)
     outputs.file(outputJar)
+    outputs.cacheIf { true }
     doLast {
-        stripMetadata(logger, "kotlin/reflect/jvm/internal/impl/.*", inputJar.get(), outputJar)
+        stripMetadata(
+            logger = logger,
+            classNamePattern = "kotlin/reflect/jvm/internal/impl/.*",
+            inFile = inputJar.get(),
+            outFile = outputJar,
+            preserveFileTimestamps = false
+        )
     }
 }
 

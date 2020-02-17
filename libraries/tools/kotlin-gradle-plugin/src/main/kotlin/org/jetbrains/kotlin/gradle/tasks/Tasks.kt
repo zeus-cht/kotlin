@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.daemon.common.MultiModuleICSettings
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.incremental.ChangedFiles
 import org.jetbrains.kotlin.gradle.internal.*
-import org.jetbrains.kotlin.gradle.internal.prepareCompilerArguments
 import org.jetbrains.kotlin.gradle.internal.tasks.TaskWithLocalState
 import org.jetbrains.kotlin.gradle.internal.tasks.allOutputFiles
 import org.jetbrains.kotlin.gradle.logging.*
@@ -37,6 +36,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.ownModuleName
 import org.jetbrains.kotlin.gradle.report.BuildReportMode
 import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.incremental.ChangedFiles
+import org.jetbrains.kotlin.library.impl.isKotlinLibrary
 import org.jetbrains.kotlin.utils.LibraryUtils
 import java.io.File
 import javax.inject.Inject
@@ -285,6 +285,10 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         }
     }
 
+    protected open fun skipCondition(inputs: IncrementalTaskInputs): Boolean {
+        return !inputs.isIncremental && getSourceRoots().kotlinSourceFiles.isEmpty()
+    }
+
     private fun executeImpl(inputs: IncrementalTaskInputs) {
         // Check that the JDK tools are available in Gradle (fail-fast, instead of a fail during the compiler run):
         findToolsJar()
@@ -294,7 +298,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
         logger.kotlinDebug { "All kotlin sources: ${allKotlinSources.pathsAsStringRelativeTo(project.rootProject.projectDir)}" }
 
-        if (!inputs.isIncremental && allKotlinSources.isEmpty()) {
+        if (skipCondition(inputs)) {
             // Skip running only if non-incremental run. Otherwise, we may need to do some cleanup.
             logger.kotlinDebug { "No Kotlin files found, skipping Kotlin compiler task" }
             return
@@ -510,7 +514,8 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
     override val kotlinOptions: KotlinJsOptions
         get() = kotlinOptionsImpl
 
-    private val defaultOutputFile: File
+    @get:Internal
+    protected val defaultOutputFile: File
         get() = File(destinationDir, "${taskData.compilation.ownModuleName}.js")
 
     @Suppress("unused")
@@ -546,8 +551,15 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
             return friendPaths.filter { filter(File(it)) }
         }
 
+    @Suppress("unused")
+    @get:InputFiles
+    @get:Optional
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    internal val sourceMapBaseDirs: FileCollection?
+        get() = kotlinOptionsImpl.sourceMapBaseDirs
+
     private fun isHybridKotlinJsLibrary(file: File): Boolean =
-        LibraryUtils.isKotlinJavascriptLibrary(file) && LibraryUtils.isKotlinJavascriptIrLibrary(file)
+        LibraryUtils.isKotlinJavascriptLibrary(file) && isKotlinLibrary(file)
 
     private fun KotlinJsOptions.isPreIrBackendDisabled(): Boolean =
         listOf(
@@ -570,7 +582,7 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
     private val libraryFilter: (File) -> Boolean
         get() = if (kotlinOptions.isIrBackendEnabled()) {
             if (kotlinOptions.isPreIrBackendDisabled()) {
-                LibraryUtils::isKotlinJavascriptIrLibrary
+                ::isKotlinLibrary
             } else {
                 ::isHybridKotlinJsLibrary
             }

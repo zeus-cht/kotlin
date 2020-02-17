@@ -110,7 +110,8 @@ open class SerializerCodegenImpl(
         } else {
             load(0, serializerAsmType)
         }
-        invokespecial(descImplType.internalName, "<init>", "(Ljava/lang/String;${generatedSerializerType.descriptor})V", false)
+        aconst(serializableProperties.size)
+        invokespecial(descImplType.internalName, "<init>", "(Ljava/lang/String;${generatedSerializerType.descriptor}I)V", false)
     }
 
     protected open fun ExpressionCodegen.addElementsContentToDescriptor(descriptorVar: Int) = with(v) {
@@ -406,11 +407,8 @@ open class SerializerCodegenImpl(
             )
             if (!serializableDescriptor.isInternalSerializable) {
                 //validate all required (constructor) fields
-                val nonThrowLabel = Label()
-                val throwLabel = Label()
                 for ((i, property) in properties.serializableConstructorProperties.withIndex()) {
                     if (property.optional || property.transient) {
-                        // todo: Normal reporting of error
                         if (!property.isConstructorParameterWithDefault)
                             throw CompilationException(
                                 "Property ${property.name} was declared as optional/transient but has no default value",
@@ -419,15 +417,12 @@ open class SerializerCodegenImpl(
                             )
                     } else {
                         genValidateProperty(i, bitMaskOff(i))
-                        // todo: print name of each variable?
-                        ificmpeq(throwLabel)
+                        val nonThrowLabel = Label()
+                        ificmpne(nonThrowLabel)
+                        genMissingFieldExceptionThrow(property.name)
+                        visitLabel(nonThrowLabel)
                     }
                 }
-                goTo(nonThrowLabel)
-                // throwing an exception
-                visitLabel(throwLabel)
-                genExceptionThrow(serializationExceptionName, "Not all required constructor fields were specified")
-                visitLabel(nonThrowLabel)
             }
             // create object with constructor
             anew(serializableAsmType)
@@ -491,7 +486,7 @@ open class SerializerCodegenImpl(
                         (if (useSerializer) kSerialLoaderType.descriptor else "")
                         + (if (unknownSer) AsmTypes.K_CLASS_TYPE.descriptor else "")
                         + (if (update) sti.type.descriptor else "")
-                        + ")" + (if (sti.unit) "V" else sti.type.descriptor)
+                        + ")" + (sti.type.descriptor)
             )
         }
 
@@ -513,11 +508,7 @@ open class SerializerCodegenImpl(
             produceCall(false)
         }
 
-        if (sti.unit) {
-            StackValue.putUnitInstance(this)
-        } else {
-            StackValue.coerce(sti.type, propertyType, this)
-        }
+        StackValue.coerce(sti.type, propertyType, this)
         store(propertyVar, propertyType)
     }
 
@@ -564,7 +555,7 @@ open class SerializerCodegenImpl(
                 //    throw
                 // set
                 ificmpne(nextLabel)
-                genExceptionThrow(serializationExceptionMissingFieldName, property.name)
+                genMissingFieldExceptionThrow(property.name)
                 visitLabel(nextLabel)
             }
 

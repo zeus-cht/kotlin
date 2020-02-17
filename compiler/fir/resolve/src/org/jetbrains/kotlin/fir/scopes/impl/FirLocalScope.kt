@@ -8,49 +8,50 @@ package org.jetbrains.kotlin.fir.scopes.impl
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.NAME_FOR_BACKING_FIELD
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.name.Name
 
 class FirLocalScope : FirScope() {
 
     val properties = mutableMapOf<Name, FirVariableSymbol<*>>()
-    val functions = mutableMapOf<Name, FirFunctionSymbol<*>>()
+    val functions = mutableMapOf<Name, MutableList<FirFunctionSymbol<*>>>()
     val classes = mutableMapOf<Name, FirRegularClassSymbol>()
 
-    fun storeDeclaration(declaration: FirNamedDeclaration) {
-        when (declaration) {
-            is FirVariable<*> -> properties[declaration.name] = declaration.symbol
-            is FirSimpleFunction -> functions[declaration.name] = declaration.symbol as FirNamedFunctionSymbol
-            is FirRegularClass -> classes[declaration.name] = declaration.symbol
-        }
+    fun storeClass(klass: FirRegularClass) {
+        classes[klass.name] = klass.symbol
+    }
+
+    fun storeFunction(function: FirSimpleFunction) {
+        functions.getOrPut(function.name) {
+            mutableListOf()
+        }.add(function.symbol as FirNamedFunctionSymbol)
+    }
+
+    fun storeVariable(variable: FirVariable<*>) {
+        properties[variable.name] = variable.symbol
     }
 
     fun storeBackingField(property: FirProperty) {
         properties[NAME_FOR_BACKING_FIELD] = property.backingFieldSymbol
     }
 
-    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> ProcessorAction): ProcessorAction {
-        val function = functions[name]
-        if (function != null) {
-            return processor(function)
+    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
+        for (function in functions[name].orEmpty()) {
+            processor(function)
         }
-        return ProcessorAction.NONE
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: Name, processor: (FirVariableSymbol<*>) -> Unit) {
         val property = properties[name]
         if (property != null) {
-            return processor(property)
+            processor(property)
         }
-        return ProcessorAction.NONE
     }
 
-    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> Unit) {
         val klass = classes[name]
         if (klass != null) {
-            return processor(klass)
+            processor(klass)
         }
-        return ProcessorAction.NONE
     }
 }

@@ -25,21 +25,27 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-fun FirElement.renderWithType(): String = buildString {
+fun FirElement.renderWithType(mode: FirRenderer.RenderMode = FirRenderer.RenderMode.Normal): String = buildString {
     append(this@renderWithType)
     append(": ")
-    this@renderWithType.accept(FirRenderer(this))
+    this@renderWithType.accept(FirRenderer(this, mode))
 }
 
-fun FirElement.render(): String = buildString { this@render.accept(FirRenderer(this)) }
+fun FirElement.render(mode: FirRenderer.RenderMode = FirRenderer.RenderMode.Normal): String =
+    buildString { this@render.accept(FirRenderer(this, mode)) }
 
-class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
+class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderMode.Normal) : FirVisitorVoid() {
+    enum class RenderMode {
+        Normal, DontRenderLambdaBodies
+    }
+
     private val printer = Printer(builder)
 
     private var lineBeginning = true
@@ -135,8 +141,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             receiverType.accept(this)
             print(".")
         }
-        if (callableDeclaration is FirNamedDeclaration) {
-            print(callableDeclaration.name)
+        when (callableDeclaration) {
+            is FirSimpleFunction -> print(callableDeclaration.name)
+            is FirVariable<*> -> print(callableDeclaration.name)
         }
 
         if (callableDeclaration is FirFunction<*>) {
@@ -238,20 +245,23 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             }
         }
 
-        visitNamedDeclaration(memberDeclaration)
-    }
-
-    override fun visitNamedDeclaration(namedDeclaration: FirNamedDeclaration) {
-        visitDeclaration(namedDeclaration)
-        if (namedDeclaration !is FirCallableDeclaration<*>) { // Handled by visitCallableDeclaration
-            print(" " + namedDeclaration.name)
-            if (namedDeclaration is FirTypeParametersOwner) {
-                namedDeclaration.typeParameters.renderTypeParameters()
+        visitDeclaration(memberDeclaration)
+        when (memberDeclaration) {
+            is FirClassLikeDeclaration<*> -> {
+                if (memberDeclaration is FirRegularClass) {
+                    print(" " + memberDeclaration.name)
+                }
+                if (memberDeclaration is FirTypeAlias) {
+                    print(" " + memberDeclaration.name)
+                }
+                memberDeclaration.typeParameters.renderTypeParameters()
             }
-        } else if (namedDeclaration is FirMemberDeclaration) {
-            if (namedDeclaration.typeParameters.isNotEmpty()) {
-                print(" ")
-                namedDeclaration.typeParameters.renderTypeParameters()
+            is FirCallableDeclaration<*> -> {
+                // Name is handled by visitCallableDeclaration
+                if (memberDeclaration.typeParameters.isNotEmpty()) {
+                    print(" ")
+                    memberDeclaration.typeParameters.renderTypeParameters()
+                }
             }
         }
     }
@@ -272,8 +282,6 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             }
         )
     }
-
-
 
     private fun List<FirDeclaration>.renderDeclarations() {
         renderInBraces {
@@ -419,7 +427,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         if (anonymousFunction.invocationKind != null) {
             print(" <kind=${anonymousFunction.invocationKind}> ")
         }
-        anonymousFunction.body?.renderBody()
+        if (mode != RenderMode.DontRenderLambdaBodies) {
+            anonymousFunction.body?.renderBody()
+        }
     }
 
     override fun <F : FirFunction<F>> visitFunction(function: FirFunction<F>) {
@@ -659,6 +669,12 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         lambdaArgumentExpression.expression.accept(this)
     }
 
+    override fun visitVarargArgumentsExpression(varargArgumentsExpression: FirVarargArgumentsExpression) {
+        print("vararg(")
+        varargArgumentsExpression.arguments.renderSeparated()
+        print(")")
+    }
+
     override fun visitCall(call: FirCall) {
         print("(")
         call.arguments.renderSeparated()
@@ -761,7 +777,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         annotations.renderAnnotations()
         print("R|")
         val coneType = resolvedTypeRef.type
-        print(coneType.renderFunctionType(kind, resolvedTypeRef.isExtensionFunctionType()))
+        print(coneType.renderFunctionType(kind, resolvedTypeRef.annotations.any {
+            it.isExtensionFunctionAnnotationCall
+        }))
         print("|")
     }
 
@@ -938,6 +956,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
     override fun visitCallableReferenceAccess(callableReferenceAccess: FirCallableReferenceAccess) {
         callableReferenceAccess.annotations.renderAnnotations()
         callableReferenceAccess.explicitReceiver?.accept(this)
+        if (callableReferenceAccess.safe && callableReferenceAccess.explicitReceiver !is FirResolvedQualifier) {
+            print("?")
+        }
         print("::")
         callableReferenceAccess.calleeReference.accept(this)
     }
@@ -1042,6 +1063,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             print(classId.asString())
         } else {
             print(resolvedQualifier.packageFqName.asString().replace(".", "/"))
+        }
+        if (resolvedQualifier.safe) {
+            print("?")
         }
         print("|")
     }

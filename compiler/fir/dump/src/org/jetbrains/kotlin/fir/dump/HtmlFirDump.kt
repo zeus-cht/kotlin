@@ -849,6 +849,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
 
     private fun FlowContent.generate(memberDeclaration: FirMemberDeclaration) {
         when (memberDeclaration) {
+            is FirEnumEntry -> generate(memberDeclaration)
             is FirRegularClass -> generate(memberDeclaration)
             is FirSimpleFunction -> generate(memberDeclaration)
             is FirProperty -> if (memberDeclaration.isLocal) generate(memberDeclaration as FirVariable<*>) else generate(memberDeclaration)
@@ -1002,7 +1003,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         }
     }
 
-    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirMemberFunction<*>) {
+    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirFunction<*>) {
         describeTypeParameters(fir)
 
         fir.receiverTypeRef?.let {
@@ -1475,9 +1476,14 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                 is FirOperatorCall -> generate(expression)
                 is FirBinaryLogicExpression -> generate(expression)
                 is FirCheckNotNullCall -> generate(expression)
+                is FirVarargArgumentsExpression -> generate(expression)
                 else -> inlineUnsupported(expression)
             }
         }
+    }
+
+    private fun FlowContent.generate(varargArgumentExpression: FirVarargArgumentsExpression) {
+        generateList(varargArgumentExpression.arguments, separator = ",") { generate(it) }
     }
 
     private fun FlowContent.generate(binaryLogicExpression: FirBinaryLogicExpression) {
@@ -1676,6 +1682,12 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                 ws
                 simpleName(alias)
             }
+        }
+    }
+
+    private fun FlowContent.generate(enumEntry: FirEnumEntry) {
+        iline {
+            simpleName(enumEntry.name)
         }
     }
 

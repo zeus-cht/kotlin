@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirStatement
-import org.jetbrains.kotlin.fir.impl.FirAbstractAnnotatedElement
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImpl
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.visitors.transformSingle
 
 class FirSingleExpressionBlock(
     var statement: FirStatement
-) : FirBlock(), FirAbstractAnnotatedElement {
+) : FirBlock(), FirAnnotationContainer {
     override val source: FirSourceElement ? get() = statement.source
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override val statements: List<FirStatement> get() = listOf(statement)
@@ -41,4 +41,9 @@ class FirSingleExpressionBlock(
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {
         typeRef = newTypeRef
     }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun buildSingleExpressionBlock(statement: FirStatement): FirBlock {
+    return FirSingleExpressionBlock(statement)
 }

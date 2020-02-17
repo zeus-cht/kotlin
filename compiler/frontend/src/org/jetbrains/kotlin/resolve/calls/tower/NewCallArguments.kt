@@ -60,7 +60,7 @@ val KotlinCallArgument.psiExpression: KtExpression?
         return when (this) {
             is ReceiverExpressionKotlinCallArgument -> receiver.receiverValue.safeAs<ExpressionReceiver>()?.expression
             is QualifierReceiverKotlinCallArgument -> receiver.safeAs<Qualifier>()?.expression
-            is EmptyLabeledReturn -> null // questionable, maybe unit?
+            is EmptyLabeledReturn -> returnExpression
             else -> psiCallArgument.valueArgument.getArgumentExpression()
         }
     }
@@ -178,6 +178,30 @@ class FakeValueArgumentForLeftCallableReference(val ktExpression: KtCallableRefe
     override fun isNamed(): Boolean = false
     override fun asElement(): KtElement = getArgumentExpression() ?: ktExpression
     override fun getSpreadElement(): LeafPsiElement? = null
+    override fun isExternal(): Boolean = false
+}
+
+class FakePositionalValueArgumentForCallableReferenceImpl(
+    private val callElement: KtElement,
+    override val index: Int
+) : FakePositionalValueArgumentForCallableReference {
+    override fun getArgumentExpression(): KtExpression? = null
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): KtElement = callElement
+    override fun getSpreadElement(): LeafPsiElement? = null
+    override fun isExternal(): Boolean = false
+}
+
+class FakeImplicitSpreadValueArgumentForCallableReferenceImpl(
+    private val callElement: KtElement,
+    override val expression: ValueArgument
+) : FakeImplicitSpreadValueArgumentForCallableReference {
+    override fun getArgumentExpression(): KtExpression? = null
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): KtElement = callElement
+    override fun getSpreadElement(): LeafPsiElement? = null // TODO callElement?
     override fun isExternal(): Boolean = false
 }
 
