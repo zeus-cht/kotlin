@@ -129,13 +129,19 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     // indicates that task should compile kotlin incrementally if possible
     // it's not possible when IncrementalTaskInputs#isIncremental returns false (i.e first build)
-    @get:Input
+    // todo: deprecate and remove (we may need to design api for configuring IC)
+    // don't rely on it to check if IC is enabled, use isIncrementalCompilationEnabled instead
+    @get:Internal
     var incremental: Boolean = false
         get() = field
         set(value) {
             field = value
             logger.kotlinDebug { "Set $this.incremental=$value" }
         }
+
+    @Input
+    internal open fun isIncrementalCompilationEnabled(): Boolean =
+        incremental
 
     @get:Internal
     internal var buildReportMode: BuildReportMode? = null
@@ -264,13 +270,13 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         // then Gradle forces next build to be non-incremental (see Gradle's DefaultTaskArtifactStateRepository#persistNewOutputs)
         // To prevent this, we backup outputs before incremental build and restore when exception is thrown
         val outputsBackup: TaskOutputsBackup? =
-            if (incremental && inputs.isIncremental)
+            if (isIncrementalCompilationEnabled() && inputs.isIncremental)
                 kotlinLogger.logTime("Backing up outputs for incremental build") {
                     TaskOutputsBackup(allOutputFiles())
                 }
             else null
 
-        if (!incremental) {
+        if (!isIncrementalCompilationEnabled()) {
             clearLocalState("IC is disabled")
         }
 
@@ -402,7 +408,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         val outputItemCollector = OutputItemsCollectorImpl()
         val compilerRunner = compilerRunner()
 
-        val icEnv = if (incremental) {
+        val icEnv = if (isIncrementalCompilationEnabled()) {
             logger.info(USING_JVM_INCREMENTAL_COMPILATION_MESSAGE)
             IncrementalCompilationEnvironment(
                 if (hasFilesInTaskBuildDirectory()) changedFiles else ChangedFiles.Unknown(),
@@ -431,7 +437,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     }
 
     private fun disableMultiModuleIC(): Boolean {
-        if (!incremental || javaOutputDir == null) return false
+        if (!isIncrementalCompilationEnabled() || javaOutputDir == null) return false
 
         fun forEachTask(fn: (Task) -> Unit) {
             if (isGradleVersionAtLeast(4, 10)) {
@@ -514,6 +520,17 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
     private val defaultOutputFile: File
         get() = File(destinationDir, "${taskData.compilation.ownModuleName}.js")
 
+    @get:Input
+    internal var incrementalJsKlib: Boolean = true
+
+    override fun isIncrementalCompilationEnabled(): Boolean =
+        when {
+            "-Xir-produce-js" in kotlinOptions.freeCompilerArgs -> false
+            "-Xir-produce-klib-dir" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
+            "-Xir-produce-klib-file" in kotlinOptions.freeCompilerArgs -> incrementalJsKlib
+            else -> incremental
+        }
+
     @Suppress("unused")
     @get:OutputFile
     val outputFile: File
@@ -564,6 +581,7 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
             "-Xir-produce-klib-file"
         ).any(freeCompilerArgs::contains)
 
+    // see also isIncrementalCompilationEnabled
     private fun KotlinJsOptions.isIrBackendEnabled(): Boolean =
         listOf(
             "-Xir-produce-klib-dir",
@@ -594,7 +612,6 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
 
         if (kotlinOptions.isIrBackendEnabled()) {
             logger.info(USING_JS_IR_BACKEND_MESSAGE)
-            incremental = false
         }
 
         val dependencies = compileClasspath
@@ -619,7 +636,7 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
         val outputItemCollector = OutputItemsCollectorImpl()
         val compilerRunner = compilerRunner()
 
-        val icEnv = if (incremental) {
+        val icEnv = if (isIncrementalCompilationEnabled()) {
             logger.info(USING_JS_INCREMENTAL_COMPILATION_MESSAGE)
             IncrementalCompilationEnvironment(
                 if (hasFilesInTaskBuildDirectory()) changedFiles else ChangedFiles.Unknown(),
