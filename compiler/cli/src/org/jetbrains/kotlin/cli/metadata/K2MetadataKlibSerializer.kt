@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
+import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.konan.util.KlibMetadataFactories
 import org.jetbrains.kotlin.library.*
 import org.jetbrains.kotlin.library.impl.buildKoltinLibrary
@@ -186,7 +187,8 @@ private class KlibMetadataDependencyContainer(
             storageManager = LockBasedStorageManager("KlibMetadataPackageFragmentProvider"),
             moduleDescriptor = libraryModuleDescriptor,
             configuration = CompilerDeserializationConfiguration(languageVersionSettings),
-            compositePackageFragmentAddend = null
+            compositePackageFragmentAddend = null,
+            lookupTracker = LookupTracker.DO_NOTHING
         ).also {
             libraryModuleDescriptor.initialize(it)
         }

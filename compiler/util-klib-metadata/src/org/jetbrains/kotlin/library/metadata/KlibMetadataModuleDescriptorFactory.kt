@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.descriptors.konan.KlibModuleDescriptorFactory
+import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.library.metadata.PackageAccessHandler
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
@@ -29,7 +30,8 @@ interface KlibMetadataModuleDescriptorFactory {
         languageVersionSettings,
         storageManager,
         builtIns,
-        packageAccessHandler
+        packageAccessHandler,
+        LookupTracker.DO_NOTHING
     )
 
     fun createDescriptorAndNewBuiltIns(
@@ -37,14 +39,17 @@ interface KlibMetadataModuleDescriptorFactory {
         languageVersionSettings: LanguageVersionSettings,
         storageManager: StorageManager,
         packageAccessHandler: PackageAccessHandler?
-    ) = createDescriptorOptionalBuiltIns(library, languageVersionSettings, storageManager, null, packageAccessHandler)
+    ) = createDescriptorOptionalBuiltIns(
+        library, languageVersionSettings, storageManager, null, packageAccessHandler, LookupTracker.DO_NOTHING
+    )
 
     fun createDescriptorOptionalBuiltIns(
         library: KotlinLibrary,
         languageVersionSettings: LanguageVersionSettings,
         storageManager: StorageManager,
         builtIns: KotlinBuiltIns?,
-        packageAccessHandler: PackageAccessHandler?
+        packageAccessHandler: PackageAccessHandler?,
+        lookupTracker: LookupTracker
     ): ModuleDescriptorImpl
 
     fun createPackageFragmentProvider(
@@ -54,13 +59,15 @@ interface KlibMetadataModuleDescriptorFactory {
         storageManager: StorageManager,
         moduleDescriptor: ModuleDescriptor,
         configuration: DeserializationConfiguration,
-        compositePackageFragmentAddend: PackageFragmentProvider?
+        compositePackageFragmentAddend: PackageFragmentProvider?,
+        lookupTracker: LookupTracker
     ): PackageFragmentProvider
 
     fun createCachedPackageFragmentProvider(
         byteArrays: List<ByteArray>,
         storageManager: StorageManager,
         moduleDescriptor: ModuleDescriptor,
-        configuration: DeserializationConfiguration
+        configuration: DeserializationConfiguration,
+        lookupTracker: LookupTracker
     ): PackageFragmentProvider
 }

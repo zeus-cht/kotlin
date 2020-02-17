@@ -44,7 +44,8 @@ class KlibMetadataModuleDescriptorFactoryImpl(
         languageVersionSettings: LanguageVersionSettings,
         storageManager: StorageManager,
         builtIns: KotlinBuiltIns?,
-        packageAccessHandler: PackageAccessHandler?
+        packageAccessHandler: PackageAccessHandler?,
+        lookupTracker: LookupTracker
     ): ModuleDescriptorImpl {
 
         val libraryProto = parseModuleHeader(library.moduleHeaderData)
@@ -71,7 +72,8 @@ class KlibMetadataModuleDescriptorFactoryImpl(
             storageManager,
             moduleDescriptor,
             deserializationConfiguration,
-            compositePackageFragmentAddend
+            compositePackageFragmentAddend,
+            lookupTracker
         )
 
         moduleDescriptor.initialize(provider)
@@ -83,16 +85,16 @@ class KlibMetadataModuleDescriptorFactoryImpl(
         byteArrays: List<ByteArray>,
         storageManager: StorageManager,
         moduleDescriptor: ModuleDescriptor,
-        configuration: DeserializationConfiguration
-
-    ):  PackageFragmentProvider {
+        configuration: DeserializationConfiguration,
+        lookupTracker: LookupTracker
+    ): PackageFragmentProvider {
         val deserializedPackageFragments = packageFragmentsFactory.createCachedPackageFragments(
             byteArrays, moduleDescriptor, storageManager
         )
 
         val provider = PackageFragmentProviderImpl(deserializedPackageFragments)
         return initializePackageFragmentProvider(provider, deserializedPackageFragments, storageManager,
-            moduleDescriptor, configuration, null)
+            moduleDescriptor, configuration, null, lookupTracker)
     }
 
     override fun createPackageFragmentProvider(
@@ -102,7 +104,8 @@ class KlibMetadataModuleDescriptorFactoryImpl(
         storageManager: StorageManager,
         moduleDescriptor: ModuleDescriptor,
         configuration: DeserializationConfiguration,
-        compositePackageFragmentAddend: PackageFragmentProvider?
+        compositePackageFragmentAddend: PackageFragmentProvider?,
+        lookupTracker: LookupTracker
     ): PackageFragmentProvider {
 
         val deserializedPackageFragments = packageFragmentsFactory.createDeserializedPackageFragments(
@@ -116,7 +119,7 @@ class KlibMetadataModuleDescriptorFactoryImpl(
 
         val provider = PackageFragmentProviderImpl(deserializedPackageFragments + syntheticPackageFragments)
         return initializePackageFragmentProvider(provider, deserializedPackageFragments, storageManager,
-            moduleDescriptor, configuration, compositePackageFragmentAddend)
+            moduleDescriptor, configuration, compositePackageFragmentAddend, lookupTracker)
     }
 
     fun initializePackageFragmentProvider(
@@ -125,7 +128,8 @@ class KlibMetadataModuleDescriptorFactoryImpl(
         storageManager: StorageManager,
         moduleDescriptor: ModuleDescriptor,
         configuration: DeserializationConfiguration,
-        compositePackageFragmentAddend: PackageFragmentProvider?
+        compositePackageFragmentAddend: PackageFragmentProvider?,
+        lookupTracker: LookupTracker
     ): PackageFragmentProvider {
 
         val notFoundClasses = NotFoundClasses(storageManager, moduleDescriptor)
@@ -145,7 +149,7 @@ class KlibMetadataModuleDescriptorFactoryImpl(
             provider,
             LocalClassifierTypeSettings.Default,
             ErrorReporter.DO_NOTHING,
-            LookupTracker.DO_NOTHING,
+            lookupTracker,
             flexibleTypeDeserializer,
             emptyList(),
             notFoundClasses,

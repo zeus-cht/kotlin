@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.descriptors.commonizer.utils.ResettableClockMark
 import org.jetbrains.kotlin.descriptors.commonizer.utils.createKotlinNativeForwardDeclarationsModule
 import org.jetbrains.kotlin.konan.library.*
 import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.library.SerializedMetadata
 import org.jetbrains.kotlin.library.ToolingSingleFileKlibResolveStrategy
@@ -113,7 +114,8 @@ class NativeDistributionCommonizer(
                     languageVersionSettings = LanguageVersionSettingsImpl.DEFAULT,
                     storageManager = storageManager,
                     builtIns = rawStdlibModule.builtIns,
-                    packageAccessHandler = null
+                    packageAccessHandler = null,
+                    lookupTracker = LookupTracker.DO_NOTHING
                 )
                 val data = NativeSensitiveManifestData.readFrom(library)
                 DeserializedModule(rawModule, data, File(library.libraryFile.path))
