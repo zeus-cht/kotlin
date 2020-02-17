@@ -11,11 +11,11 @@ data class Point(val x: Double, val y: Double)
 @SharedImmutable
 val point1 = Point(1.0, 1.0)
 
-<!INCOMPATIBLE_SHARED_IMMUTABLE!>@SharedImmutable<!>
+<!INAPPLICABLE_SHARED_IMMUTABLE_VAR!>@SharedImmutable<!>
 var point2 = Point(2.0, 2.0)
 
-class Date(@SharedImmutable val month: Int, <!INCOMPATIBLE_SHARED_IMMUTABLE!>@SharedImmutable<!> var day:Int)
+class Date(<!INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL!>@SharedImmutable<!> val month: Int, <!INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL, INAPPLICABLE_SHARED_IMMUTABLE_VAR!>@SharedImmutable<!> var day:Int)
 class Person(val name: String) {
-    <!INCOMPATIBLE_SHARED_IMMUTABLE!>@SharedImmutable<!>
+    <!INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL, INAPPLICABLE_SHARED_IMMUTABLE_VAR!>@SharedImmutable<!>
     var surname: String? = null
 }

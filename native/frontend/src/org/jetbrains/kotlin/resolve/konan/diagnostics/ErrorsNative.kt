@@ -21,7 +21,9 @@ object ErrorsNative {
     @JvmField
     val INCOMPATIBLE_THROWS_INHERITED = DiagnosticFactory1.create<KtDeclaration, Collection<DeclarationDescriptor>>(Severity.ERROR)
     @JvmField
-    val INCOMPATIBLE_SHARED_IMMUTABLE = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
+    val INAPPLICABLE_SHARED_IMMUTABLE_VAR = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
+    @JvmField
+    val INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
 
     init {
         Errors.Initializer.initializeFactoryNames(ErrorsNative::class.java)

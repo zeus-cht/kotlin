@@ -8,9 +8,12 @@ package org.jetbrains.kotlin.resolve.konan.diagnostics
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
@@ -18,11 +21,23 @@ object NativeSharedImmutableChecker : DeclarationChecker {
     private val sharedImmutableFqName = FqName("kotlin.native.concurrent.SharedImmutable")
 
     override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
-        if (descriptor !is VariableDescriptor || !descriptor.isVar) return
+        check(declaration, descriptor, context, ErrorsNative.INAPPLICABLE_SHARED_IMMUTABLE_VAR) {
+            descriptor !is VariableDescriptor || !descriptor.isVar
+        }
+        check(declaration, descriptor, context, ErrorsNative.INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL) {
+            DescriptorUtils.isTopLevelDeclaration(descriptor)
+        }
+    }
+
+    fun check(
+        declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext,
+        error: DiagnosticFactory0<KtElement>, successCondition: (DeclarationDescriptor) -> Boolean
+    ) {
+        if (successCondition(descriptor)) return
         val sharedImmutableAnnotation = descriptor.annotations.findAnnotation(sharedImmutableFqName)
         sharedImmutableAnnotation?.let {
             val reportLocation = DescriptorToSourceUtils.getSourceFromAnnotation(it) ?: declaration
-            context.trace.report(ErrorsNative.INCOMPATIBLE_SHARED_IMMUTABLE.on(reportLocation))
+            context.trace.report(error.on(reportLocation))
         }
     }
 }
