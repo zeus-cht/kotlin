@@ -1,0 +1,50 @@
+package
+
+@kotlin.native.concurrent.SharedImmutable public val point1: Point
+@kotlin.native.concurrent.SharedImmutable public var point2: Point
+
+public final class Date {
+    public constructor Date(/*0*/ month: kotlin.Int, /*1*/ day: kotlin.Int)
+    @kotlin.native.concurrent.SharedImmutable public final var day: kotlin.Int
+    @kotlin.native.concurrent.SharedImmutable public final val month: kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final class Person {
+    public constructor Person(/*0*/ name: kotlin.String)
+    public final val name: kotlin.String
+    @kotlin.native.concurrent.SharedImmutable public final var surname: kotlin.String?
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final data class Point {
+    public constructor Point(/*0*/ x: kotlin.Double, /*1*/ y: kotlin.Double)
+    public final val x: kotlin.Double
+    public final val y: kotlin.Double
+    public final operator /*synthesized*/ fun component1(): kotlin.Double
+    public final operator /*synthesized*/ fun component2(): kotlin.Double
+    public final /*synthesized*/ fun copy(/*0*/ x: kotlin.Double = ..., /*1*/ y: kotlin.Double = ...): Point
+    public open override /*1*/ /*synthesized*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*synthesized*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*synthesized*/ fun toString(): kotlin.String
+}
+
+package kotlin {
+
+    package kotlin.native {
+
+        package kotlin.native.concurrent {
+
+            @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.PROPERTY}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) public final annotation class SharedImmutable : kotlin.Annotation {
+                public constructor SharedImmutable()
+                public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+                public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+                public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+            }
+        }
+    }
+}
