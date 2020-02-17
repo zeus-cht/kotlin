@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.resolve.konan.diagnostics
 
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
 import org.jetbrains.kotlin.name.FqName
@@ -25,7 +26,8 @@ object NativeSharedImmutableChecker : DeclarationChecker {
             descriptor !is VariableDescriptor || !descriptor.isVar
         }
         check(declaration, descriptor, context, ErrorsNative.INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL) {
-            DescriptorUtils.isTopLevelDeclaration(descriptor)
+            DescriptorUtils.isTopLevelDeclaration(descriptor) ||
+                    (descriptor is PropertyDescriptor && descriptor.backingField == null)
         }
     }
 
