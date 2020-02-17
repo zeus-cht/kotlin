@@ -297,8 +297,7 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
         if (this is IrCall) {
             superQualifierSymbol?.let { return it.owner }
         }
-        return dispatchReceiver?.type?.classOrNull?.owner
-            ?: symbol.owner.parentAsClass // Static call or type parameter
+        return symbol.owner.parentAsClass
     }
 
     fun mapToCallableMethod(caller: IrFunction, expression: IrFunctionAccessExpression): IrCallableMethod {
