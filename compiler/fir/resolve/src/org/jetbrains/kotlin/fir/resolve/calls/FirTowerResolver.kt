@@ -77,9 +77,10 @@ class FirTowerResolver(
 
     private suspend fun processQualifierScopes(
         manager: TowerResolveManager,
-        info: CallInfo, qualifierScopes: List<FirScope>
+        info: CallInfo, qualifierReceiver: QualifierReceiver?
     ) {
-        for ((depth, qualifierScope) in qualifierScopes.withIndex()) {
+        if (qualifierReceiver == null) return
+        for ((depth, qualifierScope) in qualifierReceiver.callableScopes().withIndex()) {
             manager.processLevel(
                 ScopeTowerLevel(session, components, qualifierScope, noInnerConstructors = true),
                 info.noStubReceiver(), TowerGroup.Qualifier(depth)
@@ -92,8 +93,11 @@ class FirTowerResolver(
         info: CallInfo, qualifierReceiver: QualifierReceiver?, prioritized: Boolean
     ) {
         if (qualifierReceiver == null) return
-        if (info.callKind != CallKind.CallableReference && qualifierReceiver.classSymbol != qualifierReceiver.originalSymbol) return
-        val scope = qualifierReceiver.classifierScope(session, components.scopeSession) ?: return
+        if (info.callKind != CallKind.CallableReference &&
+            qualifierReceiver is ClassQualifierReceiver &&
+            qualifierReceiver.classSymbol != qualifierReceiver.originalSymbol
+        ) return
+        val scope = qualifierReceiver.classifierScope() ?: return
         manager.processLevel(
             ScopeTowerLevel(session, components, scope, noInnerConstructors = true), info.noStubReceiver(),
             if (prioritized) TowerGroup.ClassifierPrioritized else TowerGroup.Classifier
@@ -106,19 +110,15 @@ class FirTowerResolver(
         resolvedQualifier: FirResolvedQualifier,
         manager: TowerResolveManager
     ) {
-        val qualifierReceiver = createQualifierReceiver(resolvedQualifier, session)
-
-        val qualifierScopes =
-            qualifierReceiver?.callablesScopes(session, components.scopeSession)
-                ?: listOfNotNull(PackageQualifierReceiver(resolvedQualifier).scope(session, components.scopeSession))
+        val qualifierReceiver = createQualifierReceiver(resolvedQualifier, session, components.scopeSession)
 
         when {
             info.isPotentialQualifierPart -> {
                 processClassifierScope(manager, info, qualifierReceiver, prioritized = true)
-                processQualifierScopes(manager, info, qualifierScopes)
+                processQualifierScopes(manager, info, qualifierReceiver)
             }
             else -> {
-                processQualifierScopes(manager, info, qualifierScopes)
+                processQualifierScopes(manager, info, qualifierReceiver)
                 processClassifierScope(manager, info, qualifierReceiver, prioritized = false)
             }
         }
