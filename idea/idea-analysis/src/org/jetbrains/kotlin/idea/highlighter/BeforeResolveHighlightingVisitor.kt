@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.highlighter
 
 import com.intellij.codeHighlighting.RainbowHighlighter
+import com.intellij.ide.highlighter.JavaHighlightingColors
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.kdoc.parser.KDocKnownTag
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocLink
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtExpressionWithLabel
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -72,7 +74,10 @@ internal class BeforeResolveHighlightingVisitor(holder: AnnotationHolder) : High
         val argumentName = argument.getArgumentName() ?: return
         val eq = argument.equalsToken ?: return
         createInfoAnnotation(TextRange(argumentName.startOffset, eq.endOffset), null).textAttributes =
-            KotlinHighlightingColors.NAMED_ARGUMENT
+            if(argument.parent.parent is KtAnnotationEntry)
+                KotlinHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES
+            else
+                KotlinHighlightingColors.NAMED_ARGUMENT
     }
 
     override fun visitExpressionWithLabel(expression: KtExpressionWithLabel) {
