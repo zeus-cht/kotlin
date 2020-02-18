@@ -12,9 +12,8 @@ import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.classId
 import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
-import org.jetbrains.kotlin.fir.java.toConeKotlinTypeWithNullability
+import org.jetbrains.kotlin.fir.java.toConeKotlinTypeWithoutEnhancement
 import org.jetbrains.kotlin.fir.java.toFirJavaTypeRef
-import org.jetbrains.kotlin.fir.java.toNotNullConeKotlinType
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.jvm.FirJavaTypeRef
@@ -58,7 +57,7 @@ internal class EnhancementSignatureParts(
             }
         }
 
-        val containsFunctionN = current.toNotNullConeKotlinType(session, javaTypeParameterStack).contains {
+        val containsFunctionN = current.type.toConeKotlinTypeWithoutEnhancement(session, javaTypeParameterStack).contains {
             if (it is ConeClassErrorType) false
             else {
                 val classId = it.lookupTag.classId
@@ -150,10 +149,10 @@ internal class EnhancementSignatureParts(
                 }
             }
             is FirJavaTypeRef -> {
+                val convertedType = type.toConeKotlinTypeWithoutEnhancement(session, javaTypeParameterStack)
                 Pair(
-                    // TODO: optimize
-                    type.toConeKotlinTypeWithNullability(session, javaTypeParameterStack, nullability = ConeNullability.NOT_NULL),
-                    type.toConeKotlinTypeWithNullability(session, javaTypeParameterStack, nullability = ConeNullability.NULLABLE)
+                    convertedType.lowerBoundIfFlexible(),
+                    convertedType.upperBoundIfFlexible()
                 )
             }
             else -> return JavaTypeQualifiers.NONE
