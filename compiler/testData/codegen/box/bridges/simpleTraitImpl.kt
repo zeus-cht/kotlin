@@ -1,3 +1,5 @@
+// IGNORE_BACKEND_FIR: JVM_IR
+
 interface A<T> {
     fun foo(t: T) = "A"
 }
