@@ -113,6 +113,14 @@ class JavaScopeProvider(
         }
         return FirStaticScope(enhancementScope)
     }
+
+    override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope {
+        return if (klass is FirJavaClass) lazyNestedClassifierScope(
+            klass.symbol.classId,
+            existingNames = klass.existingNestedClassifierNames,
+            symbolProvider = symbolProvider
+        ) else nestedClassifierScope(klass)
+    }
 }
 
 private val JAVA_ENHANCEMENT_FOR_STATIC = scopeSessionKey<FirRegularClassSymbol, JavaClassEnhancementScope>()

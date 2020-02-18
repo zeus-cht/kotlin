@@ -7,18 +7,15 @@ package org.jetbrains.kotlin.fir.resolve.calls
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirClass
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.expandedConeType
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
-import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.lookupSuperTypes
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirQualifierScope
-import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
@@ -105,16 +102,9 @@ class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : A
         val (classSymbol, callableScopes) = getClassSymbolWithCallableScopes(classLikeSymbol, useSiteSession, scopeSession)
         if (classSymbol != null) {
             val klass = classSymbol.fir
-            val classifierScope = if ((klass as? FirRegularClass)?.hasLazyNestedClassifiers == false) {
-                nestedClassifierScope(klass)
-            } else {
-                useSiteSession.firSymbolProvider.getNestedClassifierScope(classLikeSymbol.classId)
-            }
+            val classifierScope = klass.scopeProvider.getNestedClassifierScope(klass, useSiteSession, scopeSession)
 
             return when {
-                classifierScope == null -> {
-                    callableScopes.map { FirQualifierScope(it, null) }
-                }
                 callableScopes.isEmpty() -> {
                     listOf(FirQualifierScope(null, classifierScope))
                 }

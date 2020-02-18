@@ -70,6 +70,10 @@ class KotlinScopeProvider(
             else -> null
         }
     }
+
+    override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope {
+        return nestedClassifierScope(klass)
+    }
 }
 
 
