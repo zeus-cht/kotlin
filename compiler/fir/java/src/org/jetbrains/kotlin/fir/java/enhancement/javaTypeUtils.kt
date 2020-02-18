@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.fir.symbols.ConeClassifierLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.ConeClassLikeLookupTagImpl
-import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -57,9 +56,10 @@ internal class IndexedJavaTypeQualifiers(private val data: Array<JavaTypeQualifi
 internal fun FirJavaTypeRef.enhance(
     session: FirSession,
     javaTypeParameterStack: JavaTypeParameterStack,
-    qualifiers: IndexedJavaTypeQualifiers
+    qualifiers: IndexedJavaTypeQualifiers,
+    isReturnPosition: Boolean
 ): FirResolvedTypeRef {
-    return type.enhancePossiblyFlexible(session, javaTypeParameterStack, annotations, qualifiers, 0)
+    return type.enhancePossiblyFlexible(session, javaTypeParameterStack, annotations, qualifiers, 0, isReturnPosition)
 }
 
 // The index in the lambda is the position of the type component:
@@ -71,23 +71,28 @@ private fun JavaType?.enhancePossiblyFlexible(
     javaTypeParameterStack: JavaTypeParameterStack,
     annotations: List<FirAnnotationCall>,
     qualifiers: IndexedJavaTypeQualifiers,
-    index: Int
+    index: Int,
+    isReturnPosition: Boolean
 ): FirResolvedTypeRef {
     val type = this
     val arguments = this?.typeArguments().orEmpty()
     val enhanced = when (type) {
         is JavaClassifierType -> {
             val lowerResult = type.enhanceInflexibleType(
-                session, javaTypeParameterStack, annotations, arguments, TypeComponentPosition.FLEXIBLE_LOWER, qualifiers, index
+                session, javaTypeParameterStack, annotations, arguments, TypeComponentPosition.FLEXIBLE_LOWER,
+                qualifiers, index, isReturnPosition
             )
             val upperResult = type.enhanceInflexibleType(
-                session, javaTypeParameterStack, annotations, arguments, TypeComponentPosition.FLEXIBLE_UPPER, qualifiers, index
+                session, javaTypeParameterStack, annotations, arguments, TypeComponentPosition.FLEXIBLE_UPPER,
+                qualifiers, index, isReturnPosition
             )
 
             when {
                 type.isRaw -> ConeRawType(lowerResult, upperResult)
                 else -> coneFlexibleOrSimpleType(
-                    session, lowerResult, upperResult, isNotNullTypeParameter = qualifiers(index).isNotNullTypeParameter
+                    session, lowerResult, upperResult,
+                    // && isReturnPosition: temporary to provide KT-36770 work...
+                    isNotNullTypeParameter = qualifiers(index).isNotNullTypeParameter && isReturnPosition
                 )
             }
         }
@@ -138,8 +143,7 @@ private fun coneFlexibleOrSimpleType(
                     type is ConeTypeParameterType || type.isNullable
                 }
             ) {
-                //return ConeDefinitelyNotNullType.create(lowerBound) ?: lowerBound
-                return lowerBound // Temporary to provide KT-36770 work...
+                return ConeDefinitelyNotNullType.create(lowerBound) ?: lowerBound
             }
         }
         return lowerBound
@@ -261,7 +265,8 @@ private fun JavaClassifierType.enhanceInflexibleType(
     arguments: List<JavaType?>,
     position: TypeComponentPosition,
     qualifiers: IndexedJavaTypeQualifiers,
-    index: Int
+    index: Int,
+    isReturnPosition: Boolean
 ): ConeKotlinType {
     val originalTag = when (val classifier = classifier) {
         is JavaClass -> {
@@ -303,7 +308,7 @@ private fun JavaClassifierType.enhanceInflexibleType(
                 )
             } else {
                 val argEnhancedTypeRef =
-                    arg.enhancePossiblyFlexible(session, javaTypeParameterStack, annotations, qualifiers, globalArgIndex)
+                    arg.enhancePossiblyFlexible(session, javaTypeParameterStack, annotations, qualifiers, globalArgIndex, isReturnPosition)
                 globalArgIndex += arg.subtreeSize()
 
                 argEnhancedTypeRef.type.type.toTypeProjection(Variance.INVARIANT)
@@ -397,7 +402,7 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
                 buildQualifiedAccessExpression {
                     calleeReference = buildResolvedNamedReference {
                         this.name = name
-                        resolvedSymbol = firStaticProperty.symbol as FirCallableSymbol<*>
+                        resolvedSymbol = firStaticProperty.symbol
                     }
                 }
             } else null

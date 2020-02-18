@@ -37,6 +37,7 @@ internal class EnhancementSignatureParts(
     private val current: FirJavaTypeRef,
     private val fromOverridden: Collection<FirTypeRef>,
     private val isCovariant: Boolean,
+    private val isReturnPosition: Boolean,
     private val context: FirJavaEnhancementContext,
     private val containerApplicabilityType: AnnotationTypeQualifierResolver.QualifierApplicabilityType
 ) {
@@ -67,7 +68,7 @@ internal class EnhancementSignatureParts(
             }
         }
 
-        val enhancedCurrent = current.enhance(session, javaTypeParameterStack, qualifiersWithPredefined ?: qualifiers)
+        val enhancedCurrent = current.enhance(session, javaTypeParameterStack, qualifiersWithPredefined ?: qualifiers, isReturnPosition)
         return PartEnhancementResult(
             enhancedCurrent, wereChanges = true, containsFunctionN = containsFunctionN
         )
