@@ -12,6 +12,14 @@ public final class Date {
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
+public final class Figure {
+    public constructor Figure()
+    @kotlin.native.concurrent.SharedImmutable public final val cornerPoint: Point
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
 public final class Person {
     public constructor Person(/*0*/ name: kotlin.String)
     public final val name: kotlin.String

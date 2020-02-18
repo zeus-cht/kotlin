@@ -19,3 +19,9 @@ class Person(val name: String) {
     <!INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL, INAPPLICABLE_SHARED_IMMUTABLE_VAR!>@SharedImmutable<!>
     var surname: String? = null
 }
+
+class Figure {
+    @SharedImmutable
+    val cornerPoint: Point
+        get() = point1
+}

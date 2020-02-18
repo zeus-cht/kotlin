@@ -13,10 +13,12 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.hasBackingField
 
 object NativeSharedImmutableChecker : DeclarationChecker {
     private val sharedImmutableFqName = FqName("kotlin.native.concurrent.SharedImmutable")
@@ -27,7 +29,8 @@ object NativeSharedImmutableChecker : DeclarationChecker {
         }
         check(declaration, descriptor, context, ErrorsNative.INAPPLICABLE_SHARED_IMMUTABLE_TOP_LEVEL) {
             DescriptorUtils.isTopLevelDeclaration(descriptor) ||
-                    (descriptor is PropertyDescriptor && descriptor.backingField == null)
+                    (descriptor is PropertyDescriptor && declaration is KtProperty && (declaration.delegate != null ||
+                            !descriptor.hasBackingField(context.trace.bindingContext)))
         }
     }
 
