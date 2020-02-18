@@ -112,7 +112,7 @@ class JavaScopeProvider(
                 )
             )
         }
-        return FirStaticCallablesScope(enhancementScope)
+        return FirOnlyCallablesScope(FirStaticScope(enhancementScope))
     }
 
     override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
