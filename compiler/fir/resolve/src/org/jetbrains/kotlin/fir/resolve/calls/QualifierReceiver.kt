@@ -19,12 +19,12 @@ import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirQualifierScope
 import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassErrorType
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
-import org.jetbrains.kotlin.name.ClassId
 import java.util.ArrayDeque
 
 class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : AbstractExplicitReceiver<FirResolvedQualifier>() {
@@ -70,15 +70,14 @@ class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : A
     }
 
     private fun getClassSymbolWithCallableScopes(
-        classId: ClassId,
+        symbol: FirClassLikeSymbol<*>,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): Pair<FirClassSymbol<*>?, List<FirScope>> {
-        val symbol = useSiteSession.firSymbolProvider.getClassLikeSymbolByFqName(classId) ?: return null to emptyList()
         if (symbol is FirTypeAliasSymbol) {
             val expansionSymbol = symbol.fir.expandedConeType?.lookupTag?.toSymbol(useSiteSession)
             if (expansionSymbol != null) {
-                return getClassSymbolWithCallableScopes(expansionSymbol.classId, useSiteSession, scopeSession)
+                return getClassSymbolWithCallableScopes(expansionSymbol, useSiteSession, scopeSession)
             }
         } else {
             return (symbol as? FirClassSymbol<*>)?.let { klassSymbol ->
@@ -101,15 +100,15 @@ class QualifierReceiver(override val explicitReceiver: FirResolvedQualifier) : A
     }
 
     fun qualifierScopes(useSiteSession: FirSession, scopeSession: ScopeSession): List<FirScope> {
-        val classId = explicitReceiver.classId ?: return emptyList()
+        val classLikeSymbol = explicitReceiver.symbol ?: return emptyList()
 
-        val (classSymbol, callableScopes) = getClassSymbolWithCallableScopes(classId, useSiteSession, scopeSession)
+        val (classSymbol, callableScopes) = getClassSymbolWithCallableScopes(classLikeSymbol, useSiteSession, scopeSession)
         if (classSymbol != null) {
             val klass = classSymbol.fir
             val classifierScope = if ((klass as? FirRegularClass)?.hasLazyNestedClassifiers == false) {
                 nestedClassifierScope(klass)
             } else {
-                useSiteSession.firSymbolProvider.getNestedClassifierScope(classId)
+                useSiteSession.firSymbolProvider.getNestedClassifierScope(classLikeSymbol.classId)
             }
 
             return when {

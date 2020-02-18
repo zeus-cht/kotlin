@@ -220,6 +220,7 @@ class FirCallResolver(
                     relativeClassFqName = classId.relativeClassName
                     safe = false
                     typeArguments.addAll(qualifiedAccess.typeArguments)
+                    symbol = referencedSymbol
                 }.apply {
                     resultType = if (classId.isLocal) {
                         typeForQualifierByDeclaration(referencedSymbol.fir, resultType, session)
