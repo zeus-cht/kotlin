@@ -16,5 +16,5 @@ fun <T : Any> test() {
         value = JClass.getNotNullT()
     }
 
-    value.hashCode() // unsafe call error
+    value.<!INAPPLICABLE_CANDIDATE!>hashCode<!>() // unsafe call error
 }
