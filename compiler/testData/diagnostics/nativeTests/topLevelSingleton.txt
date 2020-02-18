@@ -1,0 +1,19 @@
+package
+
+public final class AtomicInt {
+    public constructor AtomicInt(/*0*/ value: kotlin.Int)
+    public final var value: kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public object Foo {
+    private constructor Foo()
+    public final val backer2: AtomicInt
+    public final var field1: kotlin.Int
+    public final var field2: kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
