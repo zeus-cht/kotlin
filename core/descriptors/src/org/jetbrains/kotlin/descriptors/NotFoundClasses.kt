@@ -35,13 +35,13 @@ class NotFoundClasses(private val storageManager: StorageManager, private val mo
         }
 
         val container = classId.outerClassId?.let { outerClassId ->
-            getClass(outerClassId, typeParametersCount.drop(1))
+            getClass(outerClassId, listOf(0))
         } ?: packageFragments(classId.packageFqName)
 
         // Treat a class with a nested ClassId as inner for simplicity, otherwise the outer type cannot have generic arguments
         val isInner = classId.isNestedClass
 
-        MockClassDescriptor(storageManager, container, classId.shortClassName, isInner, typeParametersCount.firstOrNull() ?: 0)
+        MockClassDescriptor(storageManager, container, classId.shortClassName, isInner, typeParametersCount.sum())
     }
 
     class MockClassDescriptor internal constructor(
